@@ -5,12 +5,300 @@ const CDN = "https://d2xsxph8kpxj0f.cloudfront.net/310519663366992461/mRvpKEsVM9
 
 // ===================== DATA =====================
 
-const teamMembers = [
-  { name: "م. أحمد رجب", role: "مدير المشروع", img: `${CDN}/1000798493_818bf44a.jpg` },
-  { name: "م. حماد", role: "مهندس تنفيذ", img: null },
-  { name: "م. أحمد طنطاوي", role: "مهندس تشطيبات", img: null },
-  { name: "م. ريهام", role: "مصممة داخلية", img: null },
-  { name: "م. مارينا", role: "مصممة داخلية", img: null },
+// ===================== TEAM DATA (Hierarchical) =====================
+type TeamMember = {
+  id: string;
+  name: string;
+  title: string;
+  role: string;
+  duties: string[];
+  img: string | null;
+  level: number;
+  department: string;
+  color: string;
+};
+
+const teamData: TeamMember[] = [
+  // Level 1 - Top Leadership
+  {
+    id: "t1",
+    name: "د. عبد الرحمن ممدوح",
+    title: "رئيس مجلس الإدارة",
+    role: "القيادة والإشراف",
+    duties: [
+      "الإشراف العام على استراتيجية المشروع",
+      "متابعة الجودة والتسليم النهائي",
+      "إدارة الاجتماعات الرئيسية المرتبطة بتنفيذ بنود المشروع",
+    ],
+    img: `${CDN}/image35_e406061f.png`,
+    level: 1,
+    department: "القيادة",
+    color: "oklch(0.78 0.12 75)",
+  },
+  // Level 2 - Direct Reports
+  {
+    id: "t2",
+    name: "أ. كاميليا",
+    title: "Personal Assistant to Chairman",
+    role: "الدعم الإداري",
+    duties: [
+      "تنسيق جدول أعمال واجتماعات رئيس مجلس الإدارة",
+      "حلقة الوصل بين الإدارة العليا وباقي الأقسام",
+      "متابعة تنفيذ التكليفات الإدارية لضمان سير العمل",
+      "إدارة المراسلات والتقارير السرية للمشروع",
+    ],
+    img: `${CDN}/image41_8cd51320.png`,
+    level: 2,
+    department: "الإدارة",
+    color: "oklch(0.72 0.1 75)",
+  },
+  {
+    id: "t3",
+    name: "م. آية إبراهيم",
+    title: "مدير التصميم وتجربة العميل",
+    role: "التصميم وتجربة العميل",
+    duties: [
+      "Account Manager: المسؤولة عن التواصل المباشر بين العميل وفريق العمل",
+      "Admin Sales: تنسيق عروض الأسعار، إدارة ملف المشروع، والتعاقدات",
+      "دعم المبيعات: تقديم الدعم لمهندسي المبيعات أثناء المتابعة",
+    ],
+    img: `${CDN}/image46_79bce7f2.png`,
+    level: 2,
+    department: "التصميم",
+    color: "oklch(0.72 0.1 75)",
+  },
+  {
+    id: "t4",
+    name: "أ. محمد عادل",
+    title: "مدير الشؤون المالية والإدارية",
+    role: "الشؤون المالية والإدارية",
+    duties: [
+      "الإشراف الكامل على منظومة التوريدات وسلاسل الإمداد",
+      "مراقبة تكاليف المشروع وإدارة الدفعات المالية",
+      "إدارة التخطيط المالي والموازنات لضمان كفاءة الصرف",
+      "الإشراف على الشؤون الإدارية وتنسيق العمليات التشغيلية",
+    ],
+    img: `${CDN}/image52_e3beaa8d.png`,
+    level: 2,
+    department: "المالية",
+    color: "oklch(0.72 0.1 75)",
+  },
+  // Level 3 - Technical Team
+  {
+    id: "t5",
+    name: "م. أماني",
+    title: "مدير المكتب الفني",
+    role: "المكتب الفني",
+    duties: [
+      "إصدار الرسومات التنفيذية (Shop Drawings) لكافة بنود المشروع بدقة عالية",
+      "متابعة الرسومات الفنية وتفاصيلها لضمان مطابقتها للمواصفات قبل التنفيذ",
+      "تقديم الدعم الفني الكامل لفريق الإنتاج بالبيانات والقياسات اللازمة للتصنيع",
+      "إعداد وحصر الكميات والمواصفات الفنية لضمان دقة التوريدات والتكاليف",
+    ],
+    img: `${CDN}/image54_5463cb4e.png`,
+    level: 3,
+    department: "التقني",
+    color: "oklch(0.65 0.08 75)",
+  },
+  {
+    id: "t6",
+    name: "م. أحمد ورداني",
+    title: "مدير إدارة الإنتاج",
+    role: "إدارة الإنتاج",
+    duties: [
+      "تنفيذ كافة أعمال الديكور والأخشاب والأثاث بأعلى معايير الجودة",
+      "تنسيق واعتماد عينات الخامات والتشطيبات النهائية مع العميل",
+      "الإشراف الكامل على مراحل تصنيع الأثاث لضمان مطابقته للتصميم",
+      "متابعة الجدول الزمني للإنتاج والتركيب لضمان التسليم في الموعد المحدد",
+    ],
+    img: `${CDN}/image55_928b8d66.png`,
+    level: 3,
+    department: "التقني",
+    color: "oklch(0.65 0.08 75)",
+  },
+  {
+    id: "t7",
+    name: "م. بيشوي",
+    title: "مهندس التصميم الداخلي",
+    role: "التصميم الداخلي",
+    duties: [
+      "متابعة كافة التعديلات والتصميمات المطلوبة مع العميل",
+      "إصدار لوحات التنفيذ وعمل حصر دقيق للكميات",
+      "تقديم الرسم الفني والهندسي للمكتب الفني (حلقة الوصل الأساسية)",
+      "متابعة التعديلات الفنية للرسومات واعتمادها مع العميل",
+    ],
+    img: `${CDN}/image56_4ec70ae8.png`,
+    level: 3,
+    department: "التصميم",
+    color: "oklch(0.65 0.08 75)",
+  },
+  {
+    id: "t8",
+    name: "م. ريهام رشاد",
+    title: "Sales Engineer",
+    role: "مهندسة مبيعات وتصميم",
+    duties: [
+      "تصميم المطابخ وغرف الملابس (Dressing Rooms) بأحدث الأساليب العصرية",
+      "تنسيق أكواد الألوان والخامات مع العميل لضمان التناغم البصري",
+      "متابعة تنفيذ التصميمات المعتمدة لضمان دقة التفاصيل والجودة",
+      "تقديم الاستشارات الفنية للعملاء لاختيار أنسب الحلول للمساحات",
+    ],
+    img: `${CDN}/image57_ea2acca0.png`,
+    level: 3,
+    department: "المبيعات",
+    color: "oklch(0.65 0.08 75)",
+  },
+  {
+    id: "t9",
+    name: "م. أحمد رجب",
+    title: "مهندس البيع والمتابعة",
+    role: "مهندس مبيعات ومتابعة",
+    duties: [
+      "المتابعة المستمرة والدورية مع العميل لتنسيق مواعيد الاجتماعات",
+      "إعداد وتقديم عروض الأسعار التفصيلية ومناقشتها بوضوح",
+      "التنسيق المباشر مع مهندسي التصميم لضمان تلبية كافة المتطلبات",
+      "التعاون الكامل مع فريق المبيعات لضمان سلاسة سير العمل",
+    ],
+    img: `${CDN}/1000798493_818bf44a.jpg`,
+    level: 3,
+    department: "المبيعات",
+    color: "oklch(0.65 0.08 75)",
+  },
+  {
+    id: "t10",
+    name: "م. ملك",
+    title: "مهندسة خدمة ما بعد البيع",
+    role: "خدمة ما بعد البيع",
+    duties: [
+      "متابعة رضا العميل وتلقي الملاحظات والتقييمات بعد التسليم",
+      "تنسيق أعمال الصيانة الدورية ومعالجة أي ملاحظات فنية طارئة",
+      "إدارة تفعيل الضمان ومتابعة جودة الخامات والأعمال المنفذة",
+      "الحفاظ على تواصل دائم لضمان تجربة سكنية مريحة ومستقرة",
+    ],
+    img: `${CDN}/image58_7c419caf.png`,
+    level: 3,
+    department: "الخدمات",
+    color: "oklch(0.65 0.08 75)",
+  },
+  {
+    id: "t11",
+    name: "أ. ميلاد",
+    title: "مدير إدارة الموارد البشرية",
+    role: "HR Manager",
+    duties: [
+      "متابعة أداء فريق العمل بدقة أثناء تنفيذ وتقديم خدمات المشروع",
+      "استقبال الملاحظات والتقييمات لضمان أعلى مستويات الجودة",
+      "التواصل المباشر والفعال لحل أي عقبات قد تواجه سير العمل",
+    ],
+    img: `${CDN}/image59_27aea08b.png`,
+    level: 3,
+    department: "الإدارة",
+    color: "oklch(0.65 0.08 75)",
+  },
+  // Level 4 - Support Team
+  {
+    id: "t12",
+    name: "م. مارينا",
+    title: "Sales & Design Engineer",
+    role: "مهندسة مبيعات وتصميم",
+    duties: [
+      "تقديم الدعم الكامل والمستمر لإدارة المبيعات والتسويق",
+      "متابعة تصميمات المشروع لضمان دقتها ومطابقتها للمواصفات",
+      "تقديم الدعم الفني المتخصص لإدارة المبيعات والتصميم",
+    ],
+    img: `${CDN}/image60_f0924c3d.png`,
+    level: 4,
+    department: "المبيعات",
+    color: "oklch(0.58 0.06 75)",
+  },
+  {
+    id: "t13",
+    name: "م. جولي",
+    title: "Sales & Design Engineer",
+    role: "مهندسة مبيعات وتصميم",
+    duties: [
+      "تقديم الدعم الكامل والمستمر لإدارة المبيعات والتسويق",
+      "متابعة تصميمات المشروع لضمان دقتها ومطابقتها للمواصفات",
+      "تقديم الدعم الفني المتخصص لإدارة المبيعات والتصميم",
+    ],
+    img: `${CDN}/image62_449790fa.png`,
+    level: 4,
+    department: "المبيعات",
+    color: "oklch(0.58 0.06 75)",
+  },
+  {
+    id: "t14",
+    name: "م. حماد",
+    title: "إدارة المبيعات والمشتريات",
+    role: "مبيعات ومشتريات",
+    duties: [
+      "تقديم الدعم الفني والإداري اللازم لمهندسي إدارة المبيعات",
+      "متابعة المشتريات الخارجية بدقة والتنسيق المستمر مع العميل",
+    ],
+    img: `${CDN}/image63_745fb872.png`,
+    level: 4,
+    department: "المبيعات",
+    color: "oklch(0.58 0.06 75)",
+  },
+  {
+    id: "t15",
+    name: "م. أحمد طنطاوي",
+    title: "إدارة المبيعات والمشتريات",
+    role: "مبيعات ومشتريات",
+    duties: [
+      "تقديم الدعم الفني والإداري اللازم لمهندسي إدارة المبيعات",
+      "متابعة المشتريات الخارجية بدقة والتنسيق المستمر مع العميل",
+    ],
+    img: `${CDN}/image65_58fe37e0.png`,
+    level: 4,
+    department: "المبيعات",
+    color: "oklch(0.58 0.06 75)",
+  },
+  {
+    id: "t16",
+    name: "أ. محمد عبد الشافي",
+    title: "محاسب تكاليف المشروع",
+    role: "المحاسبة المالية",
+    duties: [
+      "متابعة التدفق النقدي للمشروعات وحسابات التكلفة بدقة",
+      "تقديم فواتير الصرف ومراجعتها بشكل دوري",
+      "تقديم الدعم المالي والاستشارات للعميل لضمان كفاءة الصرف",
+    ],
+    img: `${CDN}/image66_77681f81.png`,
+    level: 4,
+    department: "المالية",
+    color: "oklch(0.58 0.06 75)",
+  },
+  {
+    id: "t17",
+    name: "أ. رمضان إبراهيم",
+    title: "محاسب مالي",
+    role: "المحاسبة المالية",
+    duties: [
+      "متابعة حسابات المقاولين والموردين بدقة عالية",
+      "إدارة حسابات المشتريات وضمان سلامة الإجراءات المالية",
+      "متابعة الجدول الزمني المالي (Financial Timeline) للمشروع",
+    ],
+    img: `${CDN}/image68_db4d8a24.png`,
+    level: 4,
+    department: "المالية",
+    color: "oklch(0.58 0.06 75)",
+  },
+  {
+    id: "t18",
+    name: "م. صقر الجمل",
+    title: "مسؤول خطوط إنتاج النجارة والأثاث",
+    role: "الإنتاج والتصنيع",
+    duties: [
+      "الإشراف الكامل على خطوط إنتاج النجارة وتصنيع الأثاث في المصنع",
+      "مباشرة الفنيين والعمال داخل المصنع لضمان جودة ودقة الإنتاج",
+      "الرد على كافة الاستفسارات الفنية المتعلقة بالفرش، الديكور، والأخشاب",
+    ],
+    img: `${CDN}/image70_1615b035.png`,
+    level: 4,
+    department: "الإنتاج",
+    color: "oklch(0.58 0.06 75)",
+  },
 ];
 
 const projectContents = [
@@ -331,6 +619,7 @@ export default function Home() {
   const [selectedSmart, setSelectedSmart] = useState<string | null>(null);
   const [selectedCurtains, setSelectedCurtains] = useState<Record<string, string>>({});
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [selectedTeamMember, setSelectedTeamMember] = useState<string | null>(null);
 
   // Calculate totals
   const finishingTotal = finishingItems.filter(i => selectedFinishing.has(i.id)).reduce((s, i) => s + i.price, 0);
@@ -469,26 +758,156 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Team */}
+            {/* Team - Hierarchical Interactive */}
             <div style={{ background: CARD_BG, border: `1px solid ${GOLD_BORDER}`, borderRadius: "1rem", padding: "1.5rem", marginBottom: "1.5rem" }}>
-              <h2 style={{ color: GOLD, fontSize: "1.3rem", fontWeight: 700, marginBottom: "1rem", borderBottom: `1px solid ${GOLD_BORDER}`, paddingBottom: "0.5rem" }}>
+              <h2 style={{ color: GOLD, fontSize: "1.3rem", fontWeight: 700, marginBottom: "0.5rem", borderBottom: `1px solid ${GOLD_BORDER}`, paddingBottom: "0.5rem" }}>
                 👥 فريق العمل المكلف بالمشروع
               </h2>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "1rem" }}>
-                {teamMembers.map((m, i) => (
-                  <div key={i} style={{ background: CARD_BG2, border: `1px solid ${GOLD_BORDER}`, borderRadius: "0.75rem", padding: "1rem", textAlign: "center" }}>
-                    {m.img ? (
-                      <img src={m.img} alt={m.name} style={{ width: "70px", height: "70px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 0.5rem", display: "block", border: `2px solid ${GOLD}` }} />
-                    ) : (
-                      <div style={{ width: "70px", height: "70px", borderRadius: "50%", background: `linear-gradient(135deg, ${GOLD}, oklch(0.6 0.1 75))`, margin: "0 auto 0.5rem", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.8rem" }}>
-                        {m.role.includes("مهندس") ? "👷" : "🎨"}
-                      </div>
-                    )}
-                    <div style={{ color: GOLD, fontWeight: 700, fontSize: "0.85rem" }}>{m.name}</div>
-                    <div style={{ color: TEXT_SECONDARY, fontSize: "0.75rem", marginTop: "0.25rem" }}>{m.role}</div>
+              <p style={{ color: TEXT_SECONDARY, fontSize: "0.82rem", marginBottom: "1.25rem" }}>اضغط على أي عضو لعرض دوره ومهامه بالتفصيل</p>
+
+              {/* Level 1 - Chairman */}
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: "1.5rem" }}>
+                {teamData.filter(m => m.level === 1).map(member => (
+                  <div key={member.id}
+                    onClick={() => setSelectedTeamMember(selectedTeamMember === member.id ? null : member.id)}
+                    style={{
+                      cursor: "pointer",
+                      background: selectedTeamMember === member.id ? `${GOLD}18` : CARD_BG2,
+                      border: `2px solid ${selectedTeamMember === member.id ? GOLD : GOLD_BORDER}`,
+                      borderRadius: "1rem",
+                      padding: "1rem 1.5rem",
+                      textAlign: "center",
+                      minWidth: "200px",
+                      maxWidth: "240px",
+                      position: "relative",
+                    }}>
+                    <div style={{ position: "absolute", top: "-10px", left: "50%", transform: "translateX(-50%)", background: GOLD, color: DARK, fontSize: "0.65rem", fontWeight: 900, padding: "2px 10px", borderRadius: "999px" }}>قيادة</div>
+                    {member.img && <img src={member.img} alt={member.name} style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", margin: "0.5rem auto 0.5rem", display: "block", border: `3px solid ${GOLD}` }} />}
+                    <div style={{ color: GOLD, fontWeight: 800, fontSize: "0.95rem" }}>{member.name}</div>
+                    <div style={{ color: TEXT_PRIMARY, fontSize: "0.78rem", marginTop: "0.2rem" }}>{member.title}</div>
+                    <div style={{ color: TEXT_MUTED, fontSize: "0.72rem", marginTop: "0.15rem" }}>{member.role}</div>
                   </div>
                 ))}
               </div>
+
+              {/* Connector line */}
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: "0" }}>
+                <div style={{ width: "2px", height: "24px", background: GOLD_BORDER }} />
+              </div>
+
+              {/* Level 2 - Direct Reports */}
+              <div style={{ display: "flex", justifyContent: "center", gap: "1rem", flexWrap: "wrap", marginBottom: "1.5rem", paddingTop: "0" }}>
+                {/* Horizontal line connecting level 2 */}
+                <div style={{ width: "100%", display: "flex", justifyContent: "center", alignItems: "flex-start", gap: "0" }}>
+                  {teamData.filter(m => m.level === 2).map((member, idx, arr) => (
+                    <div key={member.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1, maxWidth: "220px" }}>
+                      <div style={{ width: "2px", height: "20px", background: GOLD_BORDER }} />
+                      <div
+                        onClick={() => setSelectedTeamMember(selectedTeamMember === member.id ? null : member.id)}
+                        style={{
+                          cursor: "pointer",
+                          background: selectedTeamMember === member.id ? `${GOLD}18` : CARD_BG2,
+                          border: `2px solid ${selectedTeamMember === member.id ? GOLD : GOLD_BORDER}`,
+                          borderRadius: "0.85rem",
+                          padding: "0.85rem 1rem",
+                          textAlign: "center",
+                          width: "100%",
+                          position: "relative",
+                        }}>
+                        <div style={{ position: "absolute", top: "-9px", left: "50%", transform: "translateX(-50%)", background: "oklch(0.72 0.1 75)", color: DARK, fontSize: "0.6rem", fontWeight: 900, padding: "2px 8px", borderRadius: "999px", whiteSpace: "nowrap" }}>{member.department}</div>
+                        {member.img && <img src={member.img} alt={member.name} style={{ width: "65px", height: "65px", borderRadius: "50%", objectFit: "cover", margin: "0.4rem auto 0.4rem", display: "block", border: `2px solid oklch(0.72 0.1 75)` }} />}
+                        <div style={{ color: GOLD, fontWeight: 700, fontSize: "0.85rem" }}>{member.name}</div>
+                        <div style={{ color: TEXT_PRIMARY, fontSize: "0.72rem", marginTop: "0.15rem" }}>{member.title}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Connector */}
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: "0" }}>
+                <div style={{ width: "2px", height: "20px", background: GOLD_BORDER }} />
+              </div>
+
+              {/* Level 3 - Technical Team */}
+              <div style={{ marginBottom: "1.5rem" }}>
+                <div style={{ textAlign: "center", color: TEXT_MUTED, fontSize: "0.75rem", marginBottom: "0.75rem", fontWeight: 600, letterSpacing: "0.05em" }}>——— الفريق التقني والتنفيذي ———</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "0.75rem" }}>
+                  {teamData.filter(m => m.level === 3).map(member => (
+                    <div key={member.id}
+                      onClick={() => setSelectedTeamMember(selectedTeamMember === member.id ? null : member.id)}
+                      style={{
+                        cursor: "pointer",
+                        background: selectedTeamMember === member.id ? `${GOLD}18` : CARD_BG2,
+                        border: `2px solid ${selectedTeamMember === member.id ? GOLD : GOLD_BORDER}`,
+                        borderRadius: "0.75rem",
+                        padding: "0.85rem",
+                        textAlign: "center",
+                        position: "relative",
+                      }}>
+                      <div style={{ position: "absolute", top: "-9px", left: "50%", transform: "translateX(-50%)", background: "oklch(0.65 0.08 75)", color: DARK, fontSize: "0.6rem", fontWeight: 900, padding: "2px 8px", borderRadius: "999px", whiteSpace: "nowrap" }}>{member.department}</div>
+                      {member.img && <img src={member.img} alt={member.name} style={{ width: "60px", height: "60px", borderRadius: "50%", objectFit: "cover", margin: "0.4rem auto 0.4rem", display: "block", border: `2px solid oklch(0.65 0.08 75)` }} />}
+                      <div style={{ color: GOLD, fontWeight: 700, fontSize: "0.82rem" }}>{member.name}</div>
+                      <div style={{ color: TEXT_SECONDARY, fontSize: "0.7rem", marginTop: "0.1rem" }}>{member.title}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Level 4 - Support Team */}
+              <div style={{ marginBottom: "1.5rem" }}>
+                <div style={{ textAlign: "center", color: TEXT_MUTED, fontSize: "0.75rem", marginBottom: "0.75rem", fontWeight: 600, letterSpacing: "0.05em" }}>——— فريق الدعم والتخصصات ———</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "0.65rem" }}>
+                  {teamData.filter(m => m.level === 4).map(member => (
+                    <div key={member.id}
+                      onClick={() => setSelectedTeamMember(selectedTeamMember === member.id ? null : member.id)}
+                      style={{
+                        cursor: "pointer",
+                        background: selectedTeamMember === member.id ? `${GOLD}18` : CARD_BG2,
+                        border: `2px solid ${selectedTeamMember === member.id ? GOLD : GOLD_BORDER}`,
+                        borderRadius: "0.65rem",
+                        padding: "0.75rem 0.65rem",
+                        textAlign: "center",
+                        position: "relative",
+                      }}>
+                      <div style={{ position: "absolute", top: "-9px", left: "50%", transform: "translateX(-50%)", background: "oklch(0.58 0.06 75)", color: DARK, fontSize: "0.58rem", fontWeight: 900, padding: "2px 7px", borderRadius: "999px", whiteSpace: "nowrap" }}>{member.department}</div>
+                      {member.img && <img src={member.img} alt={member.name} style={{ width: "52px", height: "52px", borderRadius: "50%", objectFit: "cover", margin: "0.4rem auto 0.35rem", display: "block", border: `2px solid oklch(0.58 0.06 75)` }} />}
+                      <div style={{ color: GOLD, fontWeight: 700, fontSize: "0.78rem" }}>{member.name}</div>
+                      <div style={{ color: TEXT_SECONDARY, fontSize: "0.67rem", marginTop: "0.1rem" }}>{member.title}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Member Detail Panel */}
+              {selectedTeamMember && (() => {
+                const m = teamData.find(x => x.id === selectedTeamMember);
+                if (!m) return null;
+                return (
+                  <div style={{ background: `${GOLD}10`, border: `1px solid ${GOLD}50`, borderRadius: "0.85rem", padding: "1.25rem", marginTop: "0.5rem" }}>
+                    <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start", flexWrap: "wrap" }}>
+                      {m.img && <img src={m.img} alt={m.name} style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", border: `3px solid ${GOLD}`, flexShrink: 0 }} />}
+                      <div style={{ flex: 1, minWidth: "200px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
+                          <span style={{ color: GOLD, fontWeight: 800, fontSize: "1rem" }}>{m.name}</span>
+                          <span style={{ background: GOLD, color: DARK, fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: "999px" }}>{m.department}</span>
+                        </div>
+                        <div style={{ color: TEXT_PRIMARY, fontSize: "0.85rem", marginBottom: "0.75rem" }}>{m.title}</div>
+                        <div style={{ color: TEXT_SECONDARY, fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.5rem" }}>📌 المهام والمسؤوليات:</div>
+                        <ul style={{ margin: 0, paddingRight: "1.2rem", listStyle: "none" }}>
+                          {m.duties.map((d, i) => (
+                            <li key={i} style={{ color: TEXT_PRIMARY, fontSize: "0.8rem", lineHeight: 1.7, marginBottom: "0.25rem", display: "flex", gap: "0.4rem", alignItems: "flex-start" }}>
+                              <span style={{ color: GOLD, flexShrink: 0, marginTop: "0.1rem" }}>◆</span>
+                              <span>{d}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <button onClick={() => setSelectedTeamMember(null)} style={{ background: "transparent", border: "none", color: TEXT_MUTED, cursor: "pointer", fontSize: "1.2rem", padding: "0.25rem", flexShrink: 0 }}>✕</button>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Project Contents */}
