@@ -463,7 +463,7 @@ const projectContents = [
 // Finishing items data
 const finishingItems = [
   {
-    id: "f0", name: "التصميم والتحضير الهندسي", price: 25000, paid: true,
+    id: "f0", name: "التصميم والتحضير الهندسي", price: 25000, paid: true, icon: "📍",
     slideImage: "/finishing_slides_render/slide-23.png",
     desc: "التصميم الداخلي والتحضير الهندسي الكامل للمشروع - تم الدفع بالكامل",
     details: [
@@ -475,7 +475,7 @@ const finishingItems = [
     ]
   },
   {
-    id: "f1", name: "أعمال التكسير", price: 14850,
+    id: "f1", name: "أعمال التكسير", price: 14850, icon: "💥",
     slideImage: "/finishing_slides_render/slide-24.png",
     desc: "أعمال التكسير بالمقطوعية والتشوين والعربية والنقل",
     details: [
@@ -487,7 +487,7 @@ const finishingItems = [
     ]
   },
   {
-    id: "f2", name: "أعمال المباني", price: 5400,
+    id: "f2", name: "أعمال المباني", price: 5400, icon: "🧱",
     slideImage: "/finishing_slides_render/slide-25.png",
     desc: "البند السادس: التأسيس المعماري (بالمقطوعية)",
     details: [
@@ -497,7 +497,7 @@ const finishingItems = [
     ]
   },
   {
-    id: "f3", name: "أعمال السباكة", price: 144045,
+    id: "f3", name: "أعمال السباكة", price: 144045, icon: "🚧",
     slideImage: "/finishing_slides_render/slide-32.png",
     desc: "توريد وتأسيس وتشطيب السباكة الكاملة (أعمال السباكة 92,070 + تشطيب الصحي 51,975)",
     details: [
@@ -511,7 +511,7 @@ const finishingItems = [
     ]
   },
   {
-    id: "f4", name: "أعمال تأسيس التكييف", price: 38475,
+    id: "f4", name: "أعمال تأسيس التكييف", price: 38475, icon: "❄️",
     slideImage: "/finishing_slides_render/slide-33.png",
     desc: "البند الحادي عشر: توريد وتركيب شامل الخامات والمصنعية",
     details: [
@@ -523,7 +523,7 @@ const finishingItems = [
     ]
   },
   {
-    id: "f5", name: "أعمال الكهرباء", price: 180659,
+    id: "f5", name: "أعمال الكهرباء", price: 180659, icon: "⚡",
     slideImage: "/finishing_slides_render/slide-39.png",
     desc: "التأسيس والتشطيب الكهربائي الكامل (6 صفحات تفاصيل)",
     details: [
@@ -535,7 +535,7 @@ const finishingItems = [
     ]
   },
   {
-    id: "f6", name: "أعمال المحارة", price: 44415,
+    id: "f6", name: "أعمال المحارة", price: 44415, icon: "🧱",
     slideImage: "/finishing_slides_render/slide-40.png",
     desc: "البند الثامن: توريد وتنفيذ شامل الخامات والتشوينات (تقريبي 110م)",
     details: [
@@ -547,7 +547,7 @@ const finishingItems = [
     ]
   },
   {
-    id: "f7", name: "أعمال السيراميك والبورسلين", price: 207000,
+    id: "f7", name: "أعمال السيراميك والبورسلين", price: 207000, icon: "🔲",
     slideImage: "/finishing_slides_render/slide-41.png",
     desc: "البند الخامس: توريد وتركيب - بورسلين هندي عالي الجودة",
     details: [
@@ -559,7 +559,7 @@ const finishingItems = [
     ]
   },
   {
-    id: "f8", name: "أعمال العزل المائي", price: 10125,
+    id: "f8", name: "أعمال العزل المائي", price: 10125, icon: "💧",
     slideImage: "/finishing_slides_render/slide-42.png",
     desc: "البند السادس: عزل الحمامات (عدد 2)",
     details: [
@@ -570,7 +570,7 @@ const finishingItems = [
     ]
   },
   {
-    id: "f9", name: "أعمال الجبس بورد", price: 87210,
+    id: "f9", name: "أعمال الجبس بورد", price: 87210, icon: "🟨",
     slideImage: "/finishing_slides_render/slide-43.png",
     desc: "البند التاسع: توريد وتركيب أسقف وحوائط - Knauf Systems",
     details: [
@@ -582,7 +582,7 @@ const finishingItems = [
     ]
   },
   {
-    id: "f10", name: "أعمال الأرضيات HDF", price: 50928,
+    id: "f10", name: "أعمال الأرضيات HDF", price: 50928, icon: "🟧",
     slideImage: "/finishing_slides_render/slide-44.png",
     desc: "البند العاشر: توريد وتركيب غرف النوم",
     details: [
@@ -593,7 +593,7 @@ const finishingItems = [
     ]
   },
   {
-    id: "f11", name: "أعمال الأبواب الخشبية والمصفحة", price: 117385,
+    id: "f11", name: "أعمال الأبواب الخشبية والمصفحة", price: 117385, icon: "🚪",
     slideImage: "/finishing_slides_render/slide-45.png",
     desc: "البند الحادي عشر: توريد وتركيب أبواب HPL + باب رئيسي مصفح",
     details: [
@@ -605,7 +605,7 @@ const finishingItems = [
     ]
   },
   {
-    id: "f12", name: "أعمال النظافة والتغليف", price: 13500,
+    id: "f12", name: "أعمال النظافة والتغليف", price: 13500, icon: "🧹",
     slideImage: "/finishing_slides_render/slide-46.png",
     desc: "البند الثاني عشر: طوال مدة المشروع",
     details: [
@@ -617,7 +617,7 @@ const finishingItems = [
     ]
   },
   {
-    id: "f13", name: "أعمال الدهانات", price: 104625,
+    id: "f13", name: "أعمال الدهانات", price: 104625, icon: "🎨",
     slideImage: "/finishing_slides_render/slide-47.png",
     desc: "البند الثالث عشر: توريد وتنفيذ 7 مراحل - Jotun Fenomastic",
     details: [
@@ -628,7 +628,7 @@ const finishingItems = [
     ]
   },
   {
-    id: "f14", name: "أعمال كبائن الشاور", price: 30173,
+    id: "f14", name: "أعمال كبائن الشاور", price: 30173, icon: "🛀",
     slideImage: "/finishing_slides_render/slide-48.png",
     desc: "البند الرابع عشر: توريد وتركيب (شقة + ماستر)",
     details: [
@@ -639,7 +639,7 @@ const finishingItems = [
     ]
   },
   {
-    id: "f15", name: "أعمال الرخام", price: 9234,
+    id: "f15", name: "أعمال الرخام", price: 9234, icon: "🖤",
     slideImage: "/finishing_slides_render/slide-49.png",
     desc: "البند الخامس عشر: توريد وتركيب - Black Galaxy Marble",
     details: [
@@ -1545,50 +1545,61 @@ export default function Home() {
                 </button>
               </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1rem" }}>
               {finishingItems.map(item => {
                 const isSelected = selectedFinishing.has(item.id);
+                const isExpanded = expandedItem === item.id;
                 return (
                   <div key={item.id}
                     style={{
                       background: isSelected ? `${GOLD}15` : CARD_BG,
                       border: `${isSelected ? 2 : 1}px solid ${isSelected ? GOLD_BORDER_ACTIVE : GOLD_BORDER}`,
-                      borderRadius: "0.75rem", overflow: "hidden", cursor: "pointer", transition: "all 0.2s",
-                    }}
-                    onClick={() => {
-                      const s = new Set(selectedFinishing);
-                      if (s.has(item.id)) s.delete(item.id); else s.add(item.id);
-                      setSelectedFinishing(s);
+                      borderRadius: "1rem", overflow: "hidden", transition: "all 0.2s",
+                      display: "flex", flexDirection: "column",
                     }}>
-                    <div style={{ position: "relative" }}>
-                      <img src={item.slideImage} alt={item.name} style={{ width: "100%", height: "180px", objectFit: "cover", objectPosition: "top" }} />
-                      {isSelected && (
-                        <div style={{ position: "absolute", top: "0.5rem", left: "0.5rem", background: GOLD, borderRadius: "50%", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <span style={{ color: DARK, fontWeight: 900, fontSize: "0.9rem" }}>✓</span>
+                    {/* Card header - click to select */}
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.2rem 1.2rem 1rem", cursor: "pointer", flex: 1 }}
+                      onClick={() => {
+                        const s = new Set(selectedFinishing);
+                        if (s.has(item.id)) s.delete(item.id); else s.add(item.id);
+                        setSelectedFinishing(s);
+                      }}>
+                      {/* Big icon box */}
+                      <div style={{ fontSize: "2.2rem", width: "60px", height: "60px", display: "flex", alignItems: "center", justifyContent: "center", background: `${GOLD}20`, borderRadius: "0.8rem", flexShrink: 0 }}>
+                        {item.icon}
+                      </div>
+                      {/* Name + price */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h3 style={{ color: isSelected ? GOLD : TEXT_PRIMARY, fontWeight: 800, fontSize: "1.05rem", margin: "0 0 0.3rem 0", lineHeight: 1.3 }}>{item.name}</h3>
+                        <div style={{ color: item.paid ? "#22c55e" : GOLD, fontWeight: 700, fontSize: "1rem" }}>
+                          {item.paid ? "✓ مدفوع بالكامل" : `${formatPrice(item.price)} جنيه`}
                         </div>
-                      )}
-                      {item.paid && (
-                        <div style={{ position: "absolute", top: "0.5rem", right: "0.5rem", background: "#22c55e", color: "#fff", borderRadius: "0.35rem", padding: "0.2rem 0.5rem", fontSize: "0.7rem", fontWeight: 700 }}>✓ مدفوع بالكامل</div>
-                      )}
-                    </div>
-                    <div style={{ padding: "0.9rem" }}>
-                      <h3 style={{ color: isSelected ? GOLD : TEXT_PRIMARY, fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.3rem" }}>{item.name}</h3>
-                      <p style={{ color: TEXT_MUTED, fontSize: "0.75rem", lineHeight: 1.5, marginBottom: "0.5rem" }}>{item.desc}</p>
-                      {item.details && (
-                        <ul style={{ margin: "0 0 0.5rem 0", padding: "0 1rem 0 0", listStyle: "none" }}>
-                          {item.details.map((d, idx) => (
-                            <li key={idx} style={{ color: TEXT_SECONDARY, fontSize: "0.72rem", lineHeight: 1.6, display: "flex", alignItems: "flex-start", gap: "0.3rem" }}>
-                              <span style={{ color: GOLD, flexShrink: 0 }}>◆</span>
-                              <span>{d}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                      <div style={{ color: item.paid ? "#22c55e" : GOLD, fontWeight: 900, fontSize: "1rem" }}>
-                        {item.paid ? "✓ تم الدفع" : `${formatPrice(item.price)} `}
-                        {!item.paid && <span style={{ fontSize: "0.75rem", fontWeight: 400 }}>جنيه</span>}
+                      </div>
+                      {/* Select indicator */}
+                      <div style={{ width: "24px", height: "24px", borderRadius: "50%", border: `2px solid ${GOLD}`, background: isSelected ? GOLD : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        {isSelected && <span style={{ color: DARK, fontSize: "0.7rem", fontWeight: 900 }}>✓</span>}
                       </div>
                     </div>
+                    {/* Details toggle button */}
+                    <div style={{ borderTop: `1px solid ${GOLD_BORDER}`, padding: "0.5rem 1.2rem" }}>
+                      <button
+                        style={{ background: "transparent", border: "none", color: GOLD, fontSize: "0.8rem", cursor: "pointer", fontFamily: "'Cairo', sans-serif", padding: 0 }}
+                        onClick={e => { e.stopPropagation(); setExpandedItem(isExpanded ? null : item.id); }}>
+                        {isExpanded ? "▲ إخفاء التفاصيل" : "▼ عرض التفاصيل"}
+                      </button>
+                    </div>
+                    {/* Expandable details */}
+                    {isExpanded && item.details && (
+                      <div style={{ padding: "0.75rem 1.2rem 1rem", borderTop: `1px solid ${GOLD_BORDER}`, background: `${GOLD}08` }}>
+                        {item.details.map((d, idx) => (
+                          <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", padding: "0.3rem 0", borderBottom: idx < item.details.length - 1 ? `1px solid ${GOLD_BORDER}` : "none" }}>
+                            <span style={{ color: GOLD, flexShrink: 0, fontSize: "0.75rem", marginTop: "0.2rem" }}>◆</span>
+                            <span style={{ color: TEXT_SECONDARY, fontSize: "0.82rem", lineHeight: 1.6 }}>{d}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
