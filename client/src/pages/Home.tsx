@@ -454,7 +454,7 @@ const teamData: TeamMember[] = [
 ];
 
 const projectContents = [
-  { title: "مقايسة التشطيب", icon: "🔨", desc: "11 بند تشطيب شامل", section: "finishing" as const, img: `${CDN}/1000793481_a03f7ba6.jpg` },
+  { title: "مقايسة التشطيب", icon: "🔨", desc: "16 بند تشطيب شامل", section: "finishing" as const, img: `${CDN}/1000793481_a03f7ba6.jpg` },
   { title: "مقايسة الأثاث", icon: "🛋️", desc: "16 قطعة أثاث فاخرة", section: "furniture" as const, img: `${CDN}/2_98efd75e.png` },
   { title: "Smart Home System", icon: "🏡", desc: "خيارين للنظام الذكي", section: "smart" as const, img: `${CDN}/pasted_file_HV1FPk_image_2c18654b.png` },
   { title: "مقايسة الستائر", icon: "🪟", desc: "4 ستائر بخيارين لكل", section: "curtains" as const, img: `${CDN}/ستارةالاطفال_c6be4038.png` },
@@ -462,17 +462,193 @@ const projectContents = [
 
 // Finishing items data
 const finishingItems = [
-  { id: "f1", name: "أعمال الجبس بورد", desc: "تقسيمات وأسقف جبس بورد عالية الجودة مع عوازل صوتية وحرارية", price: 215000, image: `${CDN}/3_a96032ee.png` },
-  { id: "f2", name: "أعمال الكهرباء", desc: "تمديدات كهربائية كاملة مع لوحات توزيع وإضاءة LED", price: 185000, image: `${CDN}/pasted_file_O763PZ_image_02340c8a.png` },
-  { id: "f3", name: "أعمال السباكة", desc: "تمديدات مياه وصرف صحي مع خلاطات وأطقم صحية مستوردة", price: 120000, image: `${CDN}/2_98efd75e.png` },
-  { id: "f4", name: "أعمال السيراميك والبورسلين", desc: "تركيب سيراميك وبورسلين عالي الجودة في جميع الأرضيات والحمامات", price: 165000, image: `${CDN}/4_b09dab89.png` },
-  { id: "f5", name: "أعمال الجبس المجسم", desc: "ديكورات جبسية مجسمة وكورنيشات وأعمال تشكيل فنية", price: 87210, image: `${CDN}/pasted_file_jmfZrK_image_860141de.png` },
-  { id: "f6", name: "أعمال الأرضيات HDF", desc: "أرضيات HDF ألماني عالي الجودة Class 32/AC4 مقاوم للخدش والرطوبة", price: 50928, image: `${CDN}/9_04993be5.png` },
-  { id: "f7", name: "أعمال الأبواب الخشبية والمصفحة", desc: "أبواب HPL عالية الجودة وباب رئيسي مصفح تركي/إيطالي بنظام غلق متعدد النقاط", price: 117385, image: `${CDN}/pasted_file_HV1FPk_image_2c18654b.png` },
-  { id: "f8", name: "أعمال النظافة والتغليف", desc: "نظافة دورية وتغليف وحماية طوال مدة المشروع", price: 13500, image: `${CDN}/pasted_file_UTop2X_image_e9c03242.png` },
-  { id: "f9", name: "أعمال الدهانات", desc: "دهانات Jotun Fenomastic 7 مراحل شاملة السيلر والمعجون والتشطيب", price: 104625, image: `${CDN}/pasted_file_NvmWqk_image_07f56c3f.png` },
-  { id: "f10", name: "أعمال كبائن الشاور", desc: "كابينتا حمام زجاج سيكوريت 10مم مع اكسسوارات ستانلس ستيل 304", price: 30173, image: `${CDN}/pasted_file_yy791x_image_6c65235e.png` },
-  { id: "f11", name: "أعمال الرخام", desc: "رخام أسود جلاكسي Black Galaxy Marble مستورد عالي الجودة", price: 9234, image: `${CDN}/pasted_file_YipdxV_image_0f73c2b2.png` },
+  {
+    id: "f0", name: "التصميم والتحضير الهندسي", price: 25000, paid: true,
+    slideImage: "/finishing_slides_render/slide-23.png",
+    desc: "التصميم الداخلي والتحضير الهندسي الكامل للمشروع - تم الدفع بالكامل",
+    details: [
+      "المعاينة وجمع البيانات",
+      "رسم البلانات التنفيذية",
+      "التصميم الداخلي والموديلنج",
+      "الحصر والمقايسة وتقديم التكلفة",
+      "ميتنج العرض والتعاقد",
+    ]
+  },
+  {
+    id: "f1", name: "أعمال التكسير", price: 14850,
+    slideImage: "/finishing_slides_render/slide-24.png",
+    desc: "أعمال التكسير بالمقطوعية والتشوين والعربية والنقل",
+    details: [
+      "تكسير المطبخ (حوائط وأرضيات)",
+      "تكسير عدد 2 حمام (حوائط وأرضيات)",
+      "تكسير عدد 2 أرضيات بلكونة",
+      "تكسير وزرة الشقة",
+      "شاملة: التشوين والعربية والنقل لمكان المخلفات",
+    ]
+  },
+  {
+    id: "f2", name: "أعمال المباني", price: 5400,
+    slideImage: "/finishing_slides_render/slide-25.png",
+    desc: "البند السادس: التأسيس المعماري (بالمقطوعية)",
+    details: [
+      "بناء حائط باب الحمام لتقسيم الفراغ",
+      "شامل التوريد (طوب، رمل، أسمنت)",
+      "شامل المصنعية والونش والتشوين لمكان العمل",
+    ]
+  },
+  {
+    id: "f3", name: "أعمال السباكة", price: 144045,
+    slideImage: "/finishing_slides_render/slide-32.png",
+    desc: "توريد وتأسيس وتشطيب السباكة الكاملة (أعمال السباكة 92,070 + تشطيب الصحي 51,975)",
+    details: [
+      "توريد وتأسيس عدد 2 خزان دفن بشاسيه (سمارت هوم)",
+      "توريد وتأسيس عدد 2 خلاط دفن (سمارت هوم)",
+      "خلاط دفن للشاور (راين شاور + هاند شاور)",
+      "توريد وتركيب عدد 2 قاعدة معلقة Duravit",
+      "توريد وتركيب عدد 2 خلاط وش Hawaii",
+      "تأسيس بيبة عدد 2 حمام وعدد 1 مطبخ",
+      "تأسيس وتشطيب تغذية المطبخ كاملة",
+    ]
+  },
+  {
+    id: "f4", name: "أعمال تأسيس التكييف", price: 38475,
+    slideImage: "/finishing_slides_render/slide-33.png",
+    desc: "البند الحادي عشر: توريد وتركيب شامل الخامات والمصنعية",
+    details: [
+      "مواسير نحاس جنوب أفريقي أصلي (30 متر - سماكة 0.7 مم)",
+      "عزل أرمفليكس (Armaflex) أسود - عزل حراري عالي الكفاءة",
+      "كابلات كنترول وباور (السويدي الأصلي)",
+      "صرف تكييف مواسير بيضاء مع العزل الأبيض",
+      "شامل التكسير والتركيب والاختبار",
+    ]
+  },
+  {
+    id: "f5", name: "أعمال الكهرباء", price: 180659,
+    slideImage: "/finishing_slides_render/slide-39.png",
+    desc: "التأسيس والتشطيب الكهربائي الكامل (6 صفحات تفاصيل)",
+    details: [
+      "تعديل وصيانة لوحة الجهد الكهربائي الحالية",
+      "تركيب لوحة اتصالات (نت، تليفون، دش)",
+      "تركيب قاطع رئيسي 100 أمبير + Earth Leakage",
+      "تمديد كابلات السويدي المعتمد (6مم/4مم/3مم/2مم/1.5مم)",
+      "تشطيب جميع اللقم والأوشاش والمفاتيح (Venus)",
+    ]
+  },
+  {
+    id: "f6", name: "أعمال المحارة", price: 44415,
+    slideImage: "/finishing_slides_render/slide-40.png",
+    desc: "البند الثامن: توريد وتنفيذ شامل الخامات والتشوينات (تقريبي 110م)",
+    details: [
+      "محارة المطبخ بالكامل",
+      "محارة عدد 2 حمام",
+      "محارة حائط باب الحمام الجديد",
+      "40 شيكارة أسمنت ممتاز + 6 متر رمل",
+      "تقفيل جميع مرمات الكهرباء والتكسير",
+    ]
+  },
+  {
+    id: "f7", name: "أعمال السيراميك والبورسلين", price: 207000,
+    slideImage: "/finishing_slides_render/slide-41.png",
+    desc: "البند الخامس: توريد وتركيب - بورسلين هندي عالي الجودة",
+    details: [
+      "أرضيات بورسلين هندي Premium - 85 متر مربع",
+      "حوائط حمامات سيراميك/بورسلين - 114 متر مربع",
+      "وزر الأرضيات - 60 متر طولي",
+      "مادة لصق سافيتو (Saveto) - 50 شيكارة",
+      "شامل مواد السقية والحشو",
+    ]
+  },
+  {
+    id: "f8", name: "أعمال العزل المائي", price: 10125,
+    slideImage: "/finishing_slides_render/slide-42.png",
+    desc: "البند السادس: عزل الحمامات (عدد 2)",
+    details: [
+      "دهان أسمنتي بوليمري ثنائي المكون (مواصفات عالية)",
+      "عمل رقبة زجاجة وتطبيق وجهين متعامدين",
+      "اختبار العزل بالماء لمدة 48 ساعة",
+      "عزل كامل للأرضيات والحوائط لمنع التسريب",
+    ]
+  },
+  {
+    id: "f9", name: "أعمال الجبس بورد", price: 87210,
+    slideImage: "/finishing_slides_render/slide-43.png",
+    desc: "البند التاسع: توريد وتركيب أسقف وحوائط - Knauf Systems",
+    details: [
+      "ألواح كناوف (Knauf) ألماني أصلي",
+      "أخضر مقاوم للرطوبة للحمامات والمطبخ",
+      "هيكل معدني: صاج مجلفن محمل 0.5 مم",
+      "فيشر نحاس، فايبر تيب، معجون فواصل ممتاز",
+      "ميتال تيب للكورنر والزوايا",
+    ]
+  },
+  {
+    id: "f10", name: "أعمال الأرضيات HDF", price: 50928,
+    slideImage: "/finishing_slides_render/slide-44.png",
+    desc: "البند العاشر: توريد وتركيب غرف النوم",
+    details: [
+      "أرضيات HDF ألماني عالي الجودة (Class 32/AC4)",
+      "مقاوم للخدش والرطوبة والبكتيريا",
+      "شامل الوزر والتقفيلات والفوم العازل",
+      "تركيب فني متخصص لضمان استواء السطح",
+    ]
+  },
+  {
+    id: "f11", name: "أعمال الأبواب الخشبية والمصفحة", price: 117385,
+    slideImage: "/finishing_slides_render/slide-45.png",
+    desc: "البند الحادي عشر: توريد وتركيب أبواب HPL + باب رئيسي مصفح",
+    details: [
+      "أبواب HPL مقاومة للخدش والرطوبة",
+      "حشوات داخلية عازلة للصوت",
+      "باب رئيسي مصفح تركي/إيطالي High Security",
+      "نظام غلق متعدد النقاط (Multi-point Lock)",
+      "اكسسوارات أصلية ومقبض فاخر وعين سحرية",
+    ]
+  },
+  {
+    id: "f12", name: "أعمال النظافة والتغليف", price: 13500,
+    slideImage: "/finishing_slides_render/slide-46.png",
+    desc: "البند الثاني عشر: طوال مدة المشروع",
+    details: [
+      "نظافة دورية للموقع طوال فترة العمل",
+      "رفع المخلفات والرتش أولاً بأول",
+      "نظافة نهائية شاملة قبل التسليم",
+      "تغليف الأرضيات (سيراميك/HDF) بالكارتون",
+      "حماية الأطقم الصحية والخلاطات والأبواب",
+    ]
+  },
+  {
+    id: "f13", name: "أعمال الدهانات", price: 104625,
+    slideImage: "/finishing_slides_render/slide-47.png",
+    desc: "البند الثالث عشر: توريد وتنفيذ 7 مراحل - Jotun Fenomastic",
+    details: [
+      "وجه سيلر مائي مقاوم للرطوبة (Jotun)",
+      "3 أوجه معجون أكريليك (Jotun) لتسوية الحوائط",
+      "صنفرة ميكانيكية ومعالجة العيوب الدقيقة",
+      "وجه بطانة + 2 وجه تشطيب Fenomastic كمبيوتر",
+    ]
+  },
+  {
+    id: "f14", name: "أعمال كبائن الشاور", price: 30173,
+    slideImage: "/finishing_slides_render/slide-48.png",
+    desc: "البند الرابع عشر: توريد وتركيب (شقة + ماستر)",
+    details: [
+      "كابينة حمام الشقة: زجاج سيكوريت 10 مم - 15,863 ج.م",
+      "كابينة حمام الماستر: Frameless بدون إطار - 14,310 ج.م",
+      "اكسسوارات ستانلس ستيل 304 غير قابل للصدأ",
+      "جوانات مغناطيسية لعزل تام للمياه",
+    ]
+  },
+  {
+    id: "f15", name: "أعمال الرخام", price: 9234,
+    slideImage: "/finishing_slides_render/slide-49.png",
+    desc: "البند الخامس عشر: توريد وتركيب - Black Galaxy Marble",
+    details: [
+      "رخام أسود جلاكسي مستورد عالي الجودة",
+      "جلي وتلميع المصنع (High Gloss)",
+      "سمك 2 سم مع شطف وتلميع الحواف",
+      "تركيب بمادة لاصقة قوية ومقاومة للمياه",
+    ]
+  },
 ];
 
 // Furniture items data
@@ -1385,17 +1561,33 @@ export default function Home() {
                       setSelectedFinishing(s);
                     }}>
                     <div style={{ position: "relative" }}>
-                      <img src={item.image} alt={item.name} style={{ width: "100%", height: "150px", objectFit: "cover" }} />
+                      <img src={item.slideImage} alt={item.name} style={{ width: "100%", height: "180px", objectFit: "cover", objectPosition: "top" }} />
                       {isSelected && (
                         <div style={{ position: "absolute", top: "0.5rem", left: "0.5rem", background: GOLD, borderRadius: "50%", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                           <span style={{ color: DARK, fontWeight: 900, fontSize: "0.9rem" }}>✓</span>
                         </div>
                       )}
+                      {item.paid && (
+                        <div style={{ position: "absolute", top: "0.5rem", right: "0.5rem", background: "#22c55e", color: "#fff", borderRadius: "0.35rem", padding: "0.2rem 0.5rem", fontSize: "0.7rem", fontWeight: 700 }}>✓ مدفوع بالكامل</div>
+                      )}
                     </div>
                     <div style={{ padding: "0.9rem" }}>
-                      <h3 style={{ color: isSelected ? GOLD : TEXT_PRIMARY, fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.4rem" }}>{item.name}</h3>
-                      <p style={{ color: TEXT_MUTED, fontSize: "0.78rem", lineHeight: 1.5, marginBottom: "0.6rem" }}>{item.desc}</p>
-                      <div style={{ color: GOLD, fontWeight: 900, fontSize: "1rem" }}>{formatPrice(item.price)} <span style={{ fontSize: "0.75rem", fontWeight: 400 }}>جنيه</span></div>
+                      <h3 style={{ color: isSelected ? GOLD : TEXT_PRIMARY, fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.3rem" }}>{item.name}</h3>
+                      <p style={{ color: TEXT_MUTED, fontSize: "0.75rem", lineHeight: 1.5, marginBottom: "0.5rem" }}>{item.desc}</p>
+                      {item.details && (
+                        <ul style={{ margin: "0 0 0.5rem 0", padding: "0 1rem 0 0", listStyle: "none" }}>
+                          {item.details.map((d, idx) => (
+                            <li key={idx} style={{ color: TEXT_SECONDARY, fontSize: "0.72rem", lineHeight: 1.6, display: "flex", alignItems: "flex-start", gap: "0.3rem" }}>
+                              <span style={{ color: GOLD, flexShrink: 0 }}>◆</span>
+                              <span>{d}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <div style={{ color: item.paid ? "#22c55e" : GOLD, fontWeight: 900, fontSize: "1rem" }}>
+                        {item.paid ? "✓ تم الدفع" : `${formatPrice(item.price)} `}
+                        {!item.paid && <span style={{ fontSize: "0.75rem", fontWeight: 400 }}>جنيه</span>}
+                      </div>
                     </div>
                   </div>
                 );
