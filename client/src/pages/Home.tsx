@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 // ===================== CDN BASE =====================
 const CDN = "https://d2xsxph8kpxj0f.cloudfront.net/310519663366992461/mRvpKEsVM97L32dYU7ka6B";
@@ -647,7 +647,28 @@ const TEXT_PRIMARY = "oklch(0.92 0.01 75)";
 const TEXT_SECONDARY = "oklch(0.65 0.01 75)";
 const TEXT_MUTED = "oklch(0.55 0.01 75)";
 
-type Section = "home" | "finishing" | "furniture" | "smart" | "curtains" | "summary";
+type Section = "home" | "finishing" | "furniture" | "smart" | "curtains" | "timeline" | "summary";
+
+// ===================== TIMELINE DATA =====================
+const timelinePhases = [
+  { id: 1, name: "المعاينة وجمع البيانات", minDays: 2, maxDays: 2, icon: "📐", color: "oklch(0.75 0.12 200)", desc: "معاينة الشقة وتحديد المتطلبات" },
+  { id: 2, name: "رسم البلانات التنفيذية", minDays: 7, maxDays: 10, icon: "📏", color: "oklch(0.75 0.12 200)", desc: "إعداد الرسومات التنفيذية والمخططات" },
+  { id: 3, name: "التصميم الداخلي والموديلنج", minDays: 10, maxDays: 14, icon: "🎨", color: "oklch(0.75 0.12 200)", desc: "تصميم ثلاثي الأبعاد واختيار الخامات" },
+  { id: 4, name: "الحصر والمقايسة والتكلفة", minDays: 4, maxDays: 6, icon: "📊", color: "oklch(0.75 0.12 200)", desc: "حصر الكميات وإعداد عروض الأسعار" },
+  { id: 5, name: "ميتنج العرض والتعاقد", minDays: 1, maxDays: 1, icon: "🤝", color: "oklch(0.78 0.12 75)", desc: "اجتماع العرض وتوقيع العقد" },
+  { id: 6, name: "التخطيط للتنفيذ واختيار الخامات", minDays: 5, maxDays: 7, icon: "🗓️", color: "oklch(0.75 0.12 130)", desc: "تحديد خطة التنفيذ واختيار الخامات" },
+  { id: 7, name: "أعمال التوريد (حسب البنود)", minDays: 0, maxDays: 0, icon: "🚛", color: "oklch(0.75 0.12 130)", desc: "توريد مستمر طوال فترة المشروع", continuous: true },
+  { id: 8, name: "تجهيز الموقع", minDays: 5, maxDays: 7, icon: "🏗️", color: "oklch(0.75 0.12 130)", desc: "تجهيز الموقع وتأمين المواد" },
+  { id: 9, name: "تأسيس السباكة", minDays: 5, maxDays: 7, icon: "🔧", color: "oklch(0.75 0.12 130)", desc: "تمديدات مياه وصرف صحي" },
+  { id: 10, name: "تأسيس الكهرباء", minDays: 6, maxDays: 8, icon: "⚡", color: "oklch(0.75 0.12 130)", desc: "تمديدات كهربائية ولوحات توزيع" },
+  { id: 11, name: "تأسيس التكييف", minDays: 4, maxDays: 6, icon: "❄️", color: "oklch(0.75 0.12 130)", desc: "تمديدات تكييف مركزي" },
+  { id: 12, name: "أعمال الجبس", minDays: 7, maxDays: 10, icon: "🏛️", color: "oklch(0.72 0.1 60)", desc: "أسقف جبس بورد وتقسيمات" },
+  { id: 13, name: "أعمال المحارة", minDays: 10, maxDays: 14, icon: "🪨", color: "oklch(0.72 0.1 60)", desc: "تشطيب حوائط وأسقف" },
+  { id: 14, name: "أعمال الأرضيات", minDays: 7, maxDays: 10, icon: "🟫", color: "oklch(0.72 0.1 60)", desc: "سيراميك وبورسلين وHDF" },
+  { id: 15, name: "أعمال الدهانات", minDays: 10, maxDays: 14, icon: "🖌️", color: "oklch(0.72 0.1 60)", desc: "دهانات Jotun 7 مراحل" },
+  { id: 16, name: "النجارة والفرش", minDays: 7, maxDays: 10, icon: "🪑", color: "oklch(0.78 0.12 75)", desc: "تركيب الأثاث والديكور" },
+  { id: 17, name: "التسليم النهائي", minDays: 1, maxDays: 1, icon: "🎉", color: "oklch(0.78 0.12 75)", desc: "استلام الشقة بشكل نهائي" },
+];
 
 export default function Home() {
   const [activeSection, setActiveSection] = useState<Section>("home");
@@ -657,6 +678,7 @@ export default function Home() {
   const [selectedCurtains, setSelectedCurtains] = useState<Record<string, string>>({});
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [selectedTeamMember, setSelectedTeamMember] = useState<string | null>(null);
+  const [contractDate, setContractDate] = useState<string>("");
 
   // Calculate totals
   const finishingTotal = finishingItems.filter(i => selectedFinishing.has(i.id)).reduce((s, i) => s + i.price, 0);
@@ -673,12 +695,47 @@ export default function Home() {
   }, 0);
   const grandTotal = finishingTotal + furnitureTotal + smartTotal + curtainsTotal;
 
+  // Compute timeline phases with dates based on contractDate
+  const computedTimeline = useMemo(() => {
+    if (!contractDate) return [];
+    const start = new Date(contractDate);
+    let cursor = new Date(start);
+    return timelinePhases.map(phase => {
+      const phaseStart = new Date(cursor);
+      const avgDays = phase.continuous ? 0 : Math.ceil((phase.minDays + phase.maxDays) / 2);
+      const phaseEnd = new Date(cursor);
+      if (!phase.continuous) phaseEnd.setDate(phaseEnd.getDate() + avgDays - 1);
+      if (!phase.continuous) cursor.setDate(cursor.getDate() + avgDays);
+      return { ...phase, startDate: new Date(phaseStart), endDate: phase.continuous ? null : new Date(phaseEnd) };
+    });
+  }, [contractDate]);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const currentPhaseIndex = useMemo(() => {
+    if (!contractDate || computedTimeline.length === 0) return -1;
+    for (let i = computedTimeline.length - 1; i >= 0; i--) {
+      const p = computedTimeline[i];
+      if (p.continuous) continue;
+      if (p.endDate && today >= p.startDate && today <= p.endDate) return i;
+    }
+    // find first future phase
+    for (let i = 0; i < computedTimeline.length; i++) {
+      const p = computedTimeline[i];
+      if (p.continuous) continue;
+      if (p.startDate > today) return i - 1;
+    }
+    return computedTimeline.length - 1;
+  }, [computedTimeline, contractDate]);
+
   const navItems: { id: Section; label: string; icon: string; count?: number }[] = [
     { id: "home", label: "الرئيسية", icon: "🏠" },
     { id: "finishing", label: "التشطيب", icon: "🔨", count: selectedFinishing.size },
     { id: "furniture", label: "الأثاث", icon: "🛋️", count: Object.keys(selectedFurniture).length },
     { id: "smart", label: "Smart Home", icon: "🏡", count: selectedSmart ? 1 : 0 },
     { id: "curtains", label: "الستائر", icon: "🪟", count: Object.keys(selectedCurtains).length },
+    { id: "timeline", label: "الجدول الزمني", icon: "📅" },
     { id: "summary", label: "الملخص", icon: "📊" },
   ];
 
@@ -1311,6 +1368,150 @@ export default function Home() {
         )}
 
         {/* ===== SUMMARY SECTION ===== */}
+        {/* ===== TIMELINE SECTION ===== */}
+        {activeSection === "timeline" && (
+          <div>
+            <div style={{ marginBottom: "1.5rem" }}>
+              <h2 style={{ color: GOLD, fontSize: "1.6rem", fontWeight: 900 }}>📅 الجدول الزمني للمشروع</h2>
+              <p style={{ color: TEXT_SECONDARY, fontSize: "0.9rem" }}>17 مرحلة - Project Timeline Overview - 5 Months</p>
+            </div>
+
+            {/* Contract Date Input */}
+            <div style={{ background: CARD_BG, border: `1px solid ${GOLD_BORDER}`, borderRadius: "1rem", padding: "1.25rem", marginBottom: "1.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+                <div style={{ flex: 1, minWidth: "220px" }}>
+                  <label style={{ color: GOLD, fontWeight: 700, fontSize: "0.9rem", display: "block", marginBottom: "0.5rem" }}>📋 تاريخ التعاقد</label>
+                  <input
+                    type="date"
+                    value={contractDate}
+                    onChange={e => setContractDate(e.target.value)}
+                    style={{
+                      background: CARD_BG2, border: `1px solid ${GOLD_BORDER}`, borderRadius: "0.5rem",
+                      color: TEXT_PRIMARY, padding: "0.5rem 0.75rem", fontSize: "0.9rem",
+                      fontFamily: "'Cairo', sans-serif", width: "100%", cursor: "pointer",
+                    }}
+                  />
+                </div>
+                {contractDate && computedTimeline.length > 0 && (() => {
+                  const lastPhase = computedTimeline[computedTimeline.length - 1];
+                  const endDate = lastPhase.endDate;
+                  const currentP = currentPhaseIndex >= 0 ? computedTimeline[currentPhaseIndex] : null;
+                  return (
+                    <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                      <div style={{ background: `${GOLD}15`, border: `1px solid ${GOLD}40`, borderRadius: "0.6rem", padding: "0.6rem 1rem", textAlign: "center" }}>
+                        <div style={{ color: TEXT_MUTED, fontSize: "0.72rem" }}>تاريخ التعاقد</div>
+                        <div style={{ color: GOLD, fontWeight: 700, fontSize: "0.85rem" }}>{new Date(contractDate).toLocaleDateString("ar-EG", { day: "numeric", month: "long", year: "numeric" })}</div>
+                      </div>
+                      {endDate && (
+                        <div style={{ background: "oklch(0.72 0.1 130 / 15%)", border: "1px solid oklch(0.72 0.1 130 / 40%)", borderRadius: "0.6rem", padding: "0.6rem 1rem", textAlign: "center" }}>
+                          <div style={{ color: TEXT_MUTED, fontSize: "0.72rem" }}>التسليم المتوقع</div>
+                          <div style={{ color: "oklch(0.72 0.1 130)", fontWeight: 700, fontSize: "0.85rem" }}>{endDate.toLocaleDateString("ar-EG", { day: "numeric", month: "long", year: "numeric" })}</div>
+                        </div>
+                      )}
+                      {currentP && (
+                        <div style={{ background: "oklch(0.65 0.15 25 / 20%)", border: "2px solid oklch(0.65 0.15 25 / 60%)", borderRadius: "0.6rem", padding: "0.6rem 1rem", textAlign: "center" }}>
+                          <div style={{ color: TEXT_MUTED, fontSize: "0.72rem" }}>أنتم الآن في</div>
+                          <div style={{ color: "oklch(0.78 0.15 50)", fontWeight: 900, fontSize: "0.9rem" }}>المرحلة {currentP.id}: {currentP.name}</div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+              {!contractDate && (
+                <p style={{ color: TEXT_MUTED, fontSize: "0.82rem", marginTop: "0.75rem" }}>💡 أدخل تاريخ التعاقد لحساب مواعيد كل مرحلة وتحديد المرحلة الحالية تلقائياً</p>
+              )}
+            </div>
+
+            {/* Timeline Phases */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+              {timelinePhases.map((phase, idx) => {
+                const computed = computedTimeline[idx];
+                const isCurrentPhase = currentPhaseIndex === idx;
+                const isPast = contractDate && computed && !phase.continuous && computed.endDate && computed.endDate < today;
+                const isFuture = contractDate && computed && !phase.continuous && computed.startDate > today;
+                const statusColor = isPast ? "oklch(0.72 0.1 130)" : isCurrentPhase ? "oklch(0.78 0.15 50)" : isFuture ? TEXT_MUTED : GOLD;
+                const statusBg = isPast ? "oklch(0.72 0.1 130 / 12%)" : isCurrentPhase ? "oklch(0.78 0.15 50 / 20%)" : CARD_BG;
+                const statusBorder = isPast ? "oklch(0.72 0.1 130 / 40%)" : isCurrentPhase ? "oklch(0.78 0.15 50 / 80%)" : GOLD_BORDER;
+
+                return (
+                  <div key={phase.id} style={{
+                    background: statusBg,
+                    border: `${isCurrentPhase ? 2 : 1}px solid ${statusBorder}`,
+                    borderRadius: "0.75rem",
+                    padding: "0.9rem 1.1rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "1rem",
+                    position: "relative",
+                    transition: "all 0.2s",
+                  }}>
+                    {/* Phase Number */}
+                    <div style={{
+                      width: "36px", height: "36px", borderRadius: "50%", flexShrink: 0,
+                      background: isPast ? "oklch(0.72 0.1 130)" : isCurrentPhase ? "oklch(0.78 0.15 50)" : CARD_BG2,
+                      border: `2px solid ${statusBorder}`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: "0.8rem", fontWeight: 900, color: isPast || isCurrentPhase ? DARK : statusColor,
+                    }}>
+                      {isPast ? "✓" : phase.id}
+                    </div>
+
+                    {/* Icon */}
+                    <div style={{ fontSize: "1.3rem", flexShrink: 0 }}>{phase.icon}</div>
+
+                    {/* Content */}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                        <span style={{ color: isCurrentPhase ? "oklch(0.78 0.15 50)" : isPast ? "oklch(0.72 0.1 130)" : TEXT_PRIMARY, fontWeight: 700, fontSize: "0.9rem" }}>
+                          {phase.name}
+                        </span>
+                        {isCurrentPhase && (
+                          <span style={{ background: "oklch(0.78 0.15 50)", color: DARK, fontSize: "0.65rem", fontWeight: 900, padding: "2px 8px", borderRadius: "999px" }}>أنتم هنا الآن 📍</span>
+                        )}
+                        {isPast && (
+                          <span style={{ background: "oklch(0.72 0.1 130 / 30%)", color: "oklch(0.72 0.1 130)", fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: "999px" }}>✅ مكتملة</span>
+                        )}
+                        {phase.continuous && (
+                          <span style={{ background: `${GOLD}20`, color: GOLD, fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: "999px" }}>🔄 مستمر</span>
+                        )}
+                      </div>
+                      <div style={{ color: TEXT_MUTED, fontSize: "0.78rem", marginTop: "0.2rem" }}>{phase.desc}</div>
+                    </div>
+
+                    {/* Duration & Dates */}
+                    <div style={{ textAlign: "left", flexShrink: 0 }}>
+                      {!phase.continuous && (
+                        <div style={{ color: TEXT_SECONDARY, fontSize: "0.75rem", fontWeight: 600 }}>
+                          {phase.minDays === phase.maxDays ? `${phase.minDays} يوم` : `${phase.minDays} - ${phase.maxDays} يوم`}
+                        </div>
+                      )}
+                      {computed && !phase.continuous && (
+                        <div style={{ color: TEXT_MUTED, fontSize: "0.7rem", marginTop: "0.2rem" }}>
+                          {computed.startDate.toLocaleDateString("ar-EG", { day: "numeric", month: "short" })}
+                          {computed.endDate && computed.endDate.getTime() !== computed.startDate.getTime() && (
+                            <> → {computed.endDate.toLocaleDateString("ar-EG", { day: "numeric", month: "short" })}</>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Total Duration Summary */}
+            {contractDate && computedTimeline.length > 0 && (
+              <div style={{ background: `${GOLD}15`, border: `1px solid ${GOLD}40`, borderRadius: "0.75rem", padding: "1rem", marginTop: "1.25rem", textAlign: "center" }}>
+                <div style={{ color: GOLD, fontWeight: 700, fontSize: "0.9rem" }}>
+                  ⏱️ إجمالي مدة المشروع التقديرية: ~5 أشهر (150 يوم) | التسليم المتوقع:{" "}
+                  {computedTimeline[computedTimeline.length - 1].endDate?.toLocaleDateString("ar-EG", { day: "numeric", month: "long", year: "numeric" })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {activeSection === "summary" && (
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
