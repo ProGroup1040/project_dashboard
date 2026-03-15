@@ -1,31 +1,887 @@
-import { useAuth } from "@/_core/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { getLoginUrl } from "@/const";
-import { Streamdown } from 'streamdown';
+import { useState } from "react";
 
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Workflow, Frontend Best Practices, Design Guide and Common Pitfalls
- */
+// ===================== CDN BASE =====================
+const CDN = "https://d2xsxph8kpxj0f.cloudfront.net/310519663366992461/mRvpKEsVM97L32dYU7ka6B";
+
+// ===================== DATA =====================
+
+const teamMembers = [
+  { name: "م. أحمد رجب", role: "مدير المشروع", img: `${CDN}/1000798493_818bf44a.jpg` },
+  { name: "م. حماد", role: "مهندس تنفيذ", img: null },
+  { name: "م. أحمد طنطاوي", role: "مهندس تشطيبات", img: null },
+  { name: "م. ريهام", role: "مصممة داخلية", img: null },
+  { name: "م. مارينا", role: "مصممة داخلية", img: null },
+];
+
+const projectContents = [
+  { title: "مقايسة التشطيب", icon: "🔨", desc: "11 بند تشطيب شامل", section: "finishing" as const, img: `${CDN}/1000793481_a03f7ba6.jpg` },
+  { title: "مقايسة الأثاث", icon: "🛋️", desc: "16 قطعة أثاث فاخرة", section: "furniture" as const, img: `${CDN}/2_98efd75e.png` },
+  { title: "Smart Home System", icon: "🏡", desc: "خيارين للنظام الذكي", section: "smart" as const, img: `${CDN}/pasted_file_HV1FPk_image_2c18654b.png` },
+  { title: "مقايسة الستائر", icon: "🪟", desc: "4 ستائر بخيارين لكل", section: "curtains" as const, img: `${CDN}/ستارةالاطفال_c6be4038.png` },
+];
+
+// Finishing items data
+const finishingItems = [
+  { id: "f1", name: "أعمال الجبس بورد", desc: "تقسيمات وأسقف جبس بورد عالية الجودة مع عوازل صوتية وحرارية", price: 215000, image: `${CDN}/3_a96032ee.png` },
+  { id: "f2", name: "أعمال الكهرباء", desc: "تمديدات كهربائية كاملة مع لوحات توزيع وإضاءة LED", price: 185000, image: `${CDN}/pasted_file_O763PZ_image_02340c8a.png` },
+  { id: "f3", name: "أعمال السباكة", desc: "تمديدات مياه وصرف صحي مع خلاطات وأطقم صحية مستوردة", price: 120000, image: `${CDN}/2_98efd75e.png` },
+  { id: "f4", name: "أعمال السيراميك والبورسلين", desc: "تركيب سيراميك وبورسلين عالي الجودة في جميع الأرضيات والحمامات", price: 165000, image: `${CDN}/4_b09dab89.png` },
+  { id: "f5", name: "أعمال الجبس المجسم", desc: "ديكورات جبسية مجسمة وكورنيشات وأعمال تشكيل فنية", price: 87210, image: `${CDN}/pasted_file_jmfZrK_image_860141de.png` },
+  { id: "f6", name: "أعمال الأرضيات HDF", desc: "أرضيات HDF ألماني عالي الجودة Class 32/AC4 مقاوم للخدش والرطوبة", price: 50928, image: `${CDN}/9_04993be5.png` },
+  { id: "f7", name: "أعمال الأبواب الخشبية والمصفحة", desc: "أبواب HPL عالية الجودة وباب رئيسي مصفح تركي/إيطالي بنظام غلق متعدد النقاط", price: 117385, image: `${CDN}/pasted_file_HV1FPk_image_2c18654b.png` },
+  { id: "f8", name: "أعمال النظافة والتغليف", desc: "نظافة دورية وتغليف وحماية طوال مدة المشروع", price: 13500, image: `${CDN}/pasted_file_UTop2X_image_e9c03242.png` },
+  { id: "f9", name: "أعمال الدهانات", desc: "دهانات Jotun Fenomastic 7 مراحل شاملة السيلر والمعجون والتشطيب", price: 104625, image: `${CDN}/pasted_file_NvmWqk_image_07f56c3f.png` },
+  { id: "f10", name: "أعمال كبائن الشاور", desc: "كابينتا حمام زجاج سيكوريت 10مم مع اكسسوارات ستانلس ستيل 304", price: 30173, image: `${CDN}/pasted_file_yy791x_image_6c65235e.png` },
+  { id: "f11", name: "أعمال الرخام", desc: "رخام أسود جلاكسي Black Galaxy Marble مستورد عالي الجودة", price: 9234, image: `${CDN}/pasted_file_YipdxV_image_0f73c2b2.png` },
+];
+
+// Furniture items data
+const furnitureItems = [
+  {
+    id: "fur1", room: "غرفة النوم الرئيسية",
+    image: `${CDN}/pasted_file_UTop2X_image_e9c03242.png`,
+    options: [
+      { id: "fur1_opt1", label: "الخيار الأول - فاخر", price: 104000, desc: "سرير بميكانيزم 180 سم، تنجيد قماش فلفيت مقاوم للاتساخ، شاسية حديد معدني، 2 كومود خشب كونتر طبيعي 7ply، مكتبة 200 سم HPL" },
+      { id: "fur1_opt2", label: "الخيار الثاني - عادي", price: 71000, desc: "سرير 180 سم بدون ميكانيزم بشاسيه خشب، 2 كومود خشب، مكتبة 200 سم عدلة" },
+    ]
+  },
+  {
+    id: "fur2", room: "غرفة الدريسنج",
+    image: `${CDN}/pasted_file_i8B4RA_image_a2992f8c.png`,
+    options: [
+      { id: "fur2_opt1", label: "الخيار الأول - فاخر", price: 85000, desc: "دولاب دريسنج كامل HPL مع إضاءة LED داخلية وأدراج ناعمة" },
+      { id: "fur2_opt2", label: "الخيار الثاني - عادي", price: 55000, desc: "دولاب دريسنج HPL بدون إضاءة داخلية" },
+    ]
+  },
+  {
+    id: "fur3", room: "غرفة الأطفال",
+    image: `${CDN}/pasted_file_O763PZ_image_02340c8a.png`,
+    options: [
+      { id: "fur3_opt1", label: "الخيار الأول - فاخر", price: 65000, desc: "سرير أطفال مع درج سحب، مكتب دراسة، خزانة HPL مع إضاءة" },
+      { id: "fur3_opt2", label: "الخيار الثاني - عادي", price: 42000, desc: "سرير أطفال، مكتب دراسة، خزانة عادية" },
+    ]
+  },
+  {
+    id: "fur4", room: "دريسنج الأطفال",
+    image: `${CDN}/pasted_file_yy791x_image_6c65235e.png`,
+    options: [
+      { id: "fur4_opt1", label: "الخيار الأول - فاخر", price: 35000, desc: "دولاب أطفال HPL مع أدراج ناعمة وإضاءة LED" },
+      { id: "fur4_opt2", label: "الخيار الثاني - عادي", price: 22000, desc: "دولاب أطفال HPL بدون إضاءة" },
+    ]
+  },
+  {
+    id: "fur5", room: "المدخل",
+    image: `${CDN}/pasted_file_HV1FPk_image_2c18654b.png`,
+    options: [
+      { id: "fur5_opt1", label: "الخيار الأول - فاخر", price: 28000, desc: "وحدة مدخل مع مرآة ومقعد وتعليقة مفاتيح HPL" },
+      { id: "fur5_opt2", label: "الخيار الثاني - عادي", price: 18000, desc: "وحدة مدخل بسيطة مع مرآة" },
+    ]
+  },
+  {
+    id: "fur6", room: "منطقة الطعام",
+    image: `${CDN}/4_b09dab89.png`,
+    options: [
+      { id: "fur6_opt1", label: "الخيار الأول - فاخر", price: 55000, desc: "طاولة سفرة 8 أشخاص مع كراسي تنجيد فاخر" },
+      { id: "fur6_opt2", label: "الخيار الثاني - عادي", price: 35000, desc: "طاولة سفرة 6 أشخاص مع كراسي خشب" },
+    ]
+  },
+  {
+    id: "fur7", room: "وحدة تلفزيون الريسيبشن",
+    image: `${CDN}/pasted_file_jmfZrK_image_860141de.png`,
+    options: [
+      { id: "fur7_opt1", label: "الخيار الأول - فاخر", price: 45000, desc: "وحدة تلفزيون HPL مع إضاءة LED مخفية وأدراج ناعمة" },
+      { id: "fur7_opt2", label: "الخيار الثاني - عادي", price: 28000, desc: "وحدة تلفزيون HPL بدون إضاءة" },
+    ]
+  },
+  {
+    id: "fur8", room: "وحدة المدخل",
+    image: `${CDN}/pasted_file_HV1FPk_image_2c18654b.png`,
+    options: [
+      { id: "fur8_opt1", label: "الخيار الأول - فاخر", price: 32000, desc: "وحدة مدخل كاملة مع مرايا وإضاءة LED" },
+      { id: "fur8_opt2", label: "الخيار الثاني - عادي", price: 20000, desc: "وحدة مدخل بسيطة" },
+    ]
+  },
+  {
+    id: "fur9", room: "أنتريه الليفينج - الكنبة",
+    image: `${CDN}/2_98efd75e.png`,
+    options: [
+      { id: "fur9_opt1", label: "الخيار الأول - فاخر", price: 75000, desc: "طقم كنب L شيب تنجيد قماش مستورد مع بوف" },
+      { id: "fur9_opt2", label: "الخيار الثاني - عادي", price: 48000, desc: "طقم كنب L شيب تنجيد قماش محلي" },
+    ]
+  },
+  {
+    id: "fur10", room: "طاولة القهوة والكورنر",
+    image: `${CDN}/3_a96032ee.png`,
+    options: [
+      { id: "fur10_opt1", label: "الخيار الأول - فاخر", price: 22000, desc: "طاولة قهوة رخام مع طاولة كورنر مطابقة" },
+      { id: "fur10_opt2", label: "الخيار الثاني - عادي", price: 14000, desc: "طاولة قهوة خشب مع طاولة كورنر" },
+    ]
+  },
+  {
+    id: "fur11", room: "مكتبة التلفزيون - الليفينج",
+    image: `${CDN}/pasted_file_NvmWqk_image_07f56c3f.png`,
+    options: [
+      { id: "fur11_opt1", label: "الخيار الأول - فاخر", price: 52000, desc: "مكتبة تلفزيون كاملة HPL مع إضاءة LED وأرفف زجاجية" },
+      { id: "fur11_opt2", label: "الخيار الثاني - عادي", price: 33000, desc: "مكتبة تلفزيون HPL بدون إضاءة" },
+    ]
+  },
+  {
+    id: "fur12", room: "ديكورات غرفة الماستر",
+    image: `${CDN}/pasted_file_UTop2X_image_e9c03242.png`,
+    options: [
+      { id: "fur12_opt1", label: "الخيار الأول - فاخر", price: 38000, desc: "تجاليد حائط + إضاءة LED مخفية + لوحات ديكورية" },
+      { id: "fur12_opt2", label: "الخيار الثاني - عادي", price: 24000, desc: "تجاليد حائط + إضاءة LED مخفية" },
+    ]
+  },
+  {
+    id: "fur13", room: "ديكورات غرفة الأطفال",
+    image: `${CDN}/pasted_file_O763PZ_image_02340c8a.png`,
+    options: [
+      { id: "fur13_opt1", label: "الخيار الأول - فاخر", price: 28000, desc: "تجاليد حائط ملونة + إضاءة LED + ديكورات مرسومة" },
+      { id: "fur13_opt2", label: "الخيار الثاني - عادي", price: 18000, desc: "تجاليد حائط + إضاءة LED" },
+    ]
+  },
+  {
+    id: "fur14", room: "تجاليد الريسيبشن والكوريدور",
+    image: `${CDN}/3_a96032ee.png`,
+    options: [
+      { id: "fur14_opt1", label: "الخيار الوحيد", price: 116350, desc: "Mix Decorative Panels 84,000 + LED 7,000 + خشب 15,750 + مرايا 9,600" },
+    ]
+  },
+  {
+    id: "fur15", room: "ديكورات غرفة المعيشة",
+    image: `${CDN}/9_04993be5.png`,
+    options: [
+      { id: "fur15_opt1", label: "الخيار الوحيد", price: 45600, desc: "تجاليد الحائط MDF + Sheet HPL 41,600 + إضاءة LED 4,000" },
+    ]
+  },
+  {
+    id: "fur16", room: "ديكورات حوائط المكتبات",
+    image: `${CDN}/pasted_file_jmfZrK_image_860141de.png`,
+    options: [
+      { id: "fur16_opt1", label: "مكتبة الريسيبشن", price: 18400, desc: "تجاليد تراتفنتين رخامي على بوكس خشبي بسمك 10 سم" },
+      { id: "fur16_opt2", label: "مكتبة غرفة المعيشة", price: 23000, desc: "تجاليد تراتفنتين رخامي على بوكس خشبي بسمك 10 سم" },
+    ]
+  },
+];
+
+// Smart Home data
+const smartHomeOptions = [
+  {
+    id: "smart1", label: "Option 1 - الأساسي", price: 71212,
+    image: `${CDN}/pasted_file_HV1FPk_image_2c18654b.png`,
+    items: [
+      { name: "Smart Intercom شاشة رئيسية", qty: "1 وحدة" },
+      { name: "قفل باب مصفح ذكي - بصمة إصبع", qty: "1 قفل" },
+      { name: "مفاتيح ذكية 2 خط", qty: "1 لوحة" },
+      { name: "مفاتيح ذكية 3 خط", qty: "5 لوحات" },
+      { name: "ريموت تحكم للأجهزة", qty: "2 ريموت" },
+      { name: "حساس حركة", qty: "3 حساسات" },
+      { name: "تحكم ستائر كهربائية", qty: "2 وحدة" },
+    ]
+  },
+  {
+    id: "smart2", label: "Option 2 - المتقدم", price: 140991,
+    image: `${CDN}/pasted_file_HV1FPk_image_2c18654b.png`,
+    items: [
+      { name: "Smart Intercom شاشة رئيسية", qty: "1 وحدة" },
+      { name: "قفل باب مصفح ذكي - بصمة + وجه + فيديو", qty: "1 قفل" },
+      { name: "لوحة تحكم إضاءة", qty: "1 لوحة" },
+      { name: "مفاتيح ذكية 2 خط", qty: "1 لوحة" },
+      { name: "مفاتيح ذكية 3 خط", qty: "6 لوحات" },
+      { name: "ريموت تحكم للأجهزة", qty: "3 ريموت" },
+      { name: "حساس غاز + فالف أمان", qty: "1 وحدة" },
+      { name: "Alexa للتحكم الصوتي", qty: "1 وحدة" },
+      { name: "تحكم ستائر كهربائية", qty: "6 وحدات" },
+      { name: "ستارة ذكية بطول 5.2 متر", qty: "1 ستارة" },
+    ]
+  },
+];
+
+// Curtains data
+const curtainItems = [
+  {
+    id: "cur1", room: "ستارة غرفة الأطفال",
+    options: [
+      {
+        id: "cur1_opt1", label: "Option 1 - عادي", price: 9366.19,
+        image: `${CDN}/ستارةالاطفال_c6be4038.png`,
+        items: [
+          { name: "تراك 210 ويف", price: 1354.32 }, { name: "تراك 210 عادي", price: 812.59 },
+          { name: "خشب", price: 677.16 }, { name: "بلاك أوت ألماني", price: 2286.90 },
+          { name: "كتان خفيف", price: 2821.50 }, { name: "تفصيل ويف", price: 790.02 },
+          { name: "تفصيل عادي", price: 326.70 }, { name: "تركيب", price: 297.00 },
+        ]
+      },
+      {
+        id: "cur1_opt2", label: "Option 2 - ذكي (أزورا)", price: 38544.53,
+        image: `${CDN}/ستارةالاطفال_c6be4038.png`,
+        items: [
+          { name: "موتور أزورا", price: 18130.50 }, { name: "تراك أزورا", price: 11337.30 },
+          { name: "ريموت كنترول 2 قناة", price: 2122.88 }, { name: "خشب", price: 654.07 },
+          { name: "بلاك أوت ألماني", price: 2208.94 }, { name: "كتان خفيف", price: 2725.31 },
+          { name: "تفصيل ويف", price: 763.09 }, { name: "تفصيل عادي", price: 315.56 },
+          { name: "تركيب", price: 286.88 },
+        ]
+      },
+    ]
+  },
+  {
+    id: "cur2", room: "ستارة غرفة الريسيبشن",
+    options: [
+      {
+        id: "cur2_opt1", label: "Option 1 - عادي", price: 16223.33,
+        image: `${CDN}/ستارةالريسبشن_00a3d736.png`,
+        items: [
+          { name: "تراك 210 ويف", price: 1853.28 }, { name: "تراك 210 عادي", price: 1111.97 },
+          { name: "خشب", price: 926.64 }, { name: "كتان تقيل", price: 5945.94 },
+          { name: "كتان خفيف", price: 3861.00 }, { name: "تفصيل ويف", price: 1081.08 },
+          { name: "تفصيل كرسات", price: 849.42 }, { name: "تركيب", price: 594.00 },
+        ]
+      },
+      {
+        id: "cur2_opt2", label: "Option 2 - ذكي (أزورا)", price: 68827.05,
+        image: `${CDN}/ستارةالريسبشن_00a3d736.png`,
+        items: [
+          { name: "موتور أزورا", price: 36261.00 }, { name: "تراك أزورا", price: 15514.20 },
+          { name: "ريموت كنترول 2 قناة", price: 4245.75 }, { name: "خشب", price: 895.05 },
+          { name: "كتان تقيل", price: 5743.24 }, { name: "كتان خفيف", price: 3729.38 },
+          { name: "تفصيل ويف", price: 1044.22 }, { name: "تفصيل كرسات", price: 820.46 },
+          { name: "تركيب", price: 573.75 },
+        ]
+      },
+    ]
+  },
+  {
+    id: "cur3", room: "ستارة غرفة الليفينج",
+    options: [
+      {
+        id: "cur3_opt1", label: "Option 1 - عادي", price: 25579.42,
+        image: `${CDN}/ستارةالليفنج_a982318a.png`,
+        items: [
+          { name: "تراك 210 ويف", price: 2869.02 }, { name: "تراك 210 عادي", price: 1721.41 },
+          { name: "خشب", price: 1434.51 }, { name: "كتان تقيل", price: 9604.98 },
+          { name: "كتان خفيف", price: 6237.00 }, { name: "تفصيل ويف", price: 1746.36 },
+          { name: "تفصيل كرسات", price: 1372.14 }, { name: "تركيب", price: 594.00 },
+        ]
+      },
+      {
+        id: "cur3_opt2", label: "Option 2 - ذكي (أزورا)", price: 84797.39,
+        image: `${CDN}/ستارةالليفنج_a982318a.png`,
+        items: [
+          { name: "موتور أزورا", price: 36261.00 }, { name: "تراك أزورا", price: 24017.17 },
+          { name: "ريموت كنترول 2 قناة", price: 4245.75 }, { name: "خشب", price: 1385.61 },
+          { name: "كتان تقيل", price: 9277.54 }, { name: "كتان خفيف", price: 6024.38 },
+          { name: "تفصيل ويف", price: 1686.83 }, { name: "تفصيل كرسات", price: 1325.36 },
+          { name: "تركيب", price: 573.75 },
+        ]
+      },
+    ]
+  },
+  {
+    id: "cur4", room: "ستارة غرفة الماستر",
+    options: [
+      {
+        id: "cur4_opt1", label: "Option 1 - عادي", price: 4247.10,
+        image: `${CDN}/الماستر_c2c20a6f.png`,
+        items: [
+          { name: "تراك 210 ويف", price: 534.60 }, { name: "تراك 210 عادي", price: 320.76 },
+          { name: "خشب", price: 267.30 }, { name: "بلاك أوت ألماني", price: 1143.45 },
+          { name: "كتان خفيف", price: 1188.00 }, { name: "تفصيل ويف", price: 332.64 },
+          { name: "تفصيل عادي", price: 163.35 }, { name: "تركيب", price: 297.00 },
+        ]
+      },
+      {
+        id: "cur4_opt2", label: "Option 2 - ذكي (أزورا)", price: 28004.75,
+        image: `${CDN}/الماستر_c2c20a6f.png`,
+        items: [
+          { name: "موتور أزورا", price: 18130.50 }, { name: "تراك أزورا", price: 4475.25 },
+          { name: "ريموت كنترول 2 قناة", price: 2122.88 }, { name: "خشب", price: 258.19 },
+          { name: "بلاك أوت ألماني", price: 1104.47 }, { name: "كتان خفيف", price: 1147.50 },
+          { name: "تفصيل ويف", price: 321.30 }, { name: "تفصيل عادي", price: 157.78 },
+          { name: "تركيب", price: 286.88 },
+        ]
+      },
+    ]
+  },
+];
+
+// ===================== HELPERS =====================
+function formatPrice(n: number) {
+  return n.toLocaleString("ar-EG", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+// ===================== STYLES =====================
+const GOLD = "oklch(0.78 0.12 75)";
+const DARK = "oklch(0.1 0.005 285)";
+const CARD_BG = "oklch(0.14 0.006 285)";
+const CARD_BG2 = "oklch(0.18 0.008 285)";
+const GOLD_BORDER = "oklch(0.78 0.12 75 / 25%)";
+const GOLD_BORDER_ACTIVE = "oklch(0.78 0.12 75)";
+const TEXT_PRIMARY = "oklch(0.92 0.01 75)";
+const TEXT_SECONDARY = "oklch(0.65 0.01 75)";
+const TEXT_MUTED = "oklch(0.55 0.01 75)";
+
+type Section = "home" | "finishing" | "furniture" | "smart" | "curtains" | "summary";
+
 export default function Home() {
-  // The userAuth hooks provides authentication state
-  // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
-  let { user, loading, error, isAuthenticated, logout } = useAuth();
+  const [activeSection, setActiveSection] = useState<Section>("home");
+  const [selectedFinishing, setSelectedFinishing] = useState<Set<string>>(new Set());
+  const [selectedFurniture, setSelectedFurniture] = useState<Record<string, string>>({});
+  const [selectedSmart, setSelectedSmart] = useState<string | null>(null);
+  const [selectedCurtains, setSelectedCurtains] = useState<Record<string, string>>({});
+  const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
+  // Calculate totals
+  const finishingTotal = finishingItems.filter(i => selectedFinishing.has(i.id)).reduce((s, i) => s + i.price, 0);
+  const furnitureTotal = Object.entries(selectedFurniture).reduce((s, [rId, oId]) => {
+    const r = furnitureItems.find(r => r.id === rId);
+    const o = r?.options.find(o => o.id === oId);
+    return s + (o?.price || 0);
+  }, 0);
+  const smartTotal = smartHomeOptions.find(o => o.id === selectedSmart)?.price || 0;
+  const curtainsTotal = Object.entries(selectedCurtains).reduce((s, [rId, oId]) => {
+    const r = curtainItems.find(r => r.id === rId);
+    const o = r?.options.find(o => o.id === oId);
+    return s + (o?.price || 0);
+  }, 0);
+  const grandTotal = finishingTotal + furnitureTotal + smartTotal + curtainsTotal;
+
+  const navItems: { id: Section; label: string; icon: string; count?: number }[] = [
+    { id: "home", label: "الرئيسية", icon: "🏠" },
+    { id: "finishing", label: "التشطيب", icon: "🔨", count: selectedFinishing.size },
+    { id: "furniture", label: "الأثاث", icon: "🛋️", count: Object.keys(selectedFurniture).length },
+    { id: "smart", label: "Smart Home", icon: "🏡", count: selectedSmart ? 1 : 0 },
+    { id: "curtains", label: "الستائر", icon: "🪟", count: Object.keys(selectedCurtains).length },
+    { id: "summary", label: "الملخص", icon: "📊" },
+  ];
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
-      </main>
+    <div style={{ minHeight: "100vh", background: DARK, direction: "rtl", fontFamily: "'Cairo', 'Tajawal', sans-serif" }}>
+      {/* Top Navigation */}
+      <nav style={{ background: "oklch(0.12 0.006 285)", borderBottom: `1px solid ${GOLD_BORDER}`, position: "sticky", top: 0, zIndex: 50 }}>
+        <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 1rem" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.6rem 0" }}>
+            {/* Logo */}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <img src={`${CDN}/ProfessorLogo(1)_351dfbb8.png`} alt="Professor Logo" style={{ height: "36px", objectFit: "contain" }} />
+            </div>
+            {/* Nav Items */}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
+              {navItems.map(item => (
+                <button key={item.id} onClick={() => setActiveSection(item.id)}
+                  style={{
+                    background: activeSection === item.id ? GOLD : "transparent",
+                    color: activeSection === item.id ? DARK : GOLD,
+                    border: `1px solid ${activeSection === item.id ? GOLD : GOLD_BORDER}`,
+                    borderRadius: "0.5rem", padding: "0.35rem 0.7rem",
+                    fontSize: "0.82rem", fontWeight: 600, cursor: "pointer",
+                    fontFamily: "'Cairo', sans-serif",
+                    position: "relative",
+                  }}>
+                  {item.icon} {item.label}
+                  {item.count !== undefined && item.count > 0 && (
+                    <span style={{
+                      position: "absolute", top: "-6px", left: "-6px",
+                      background: GOLD, color: DARK,
+                      borderRadius: "50%", width: "18px", height: "18px",
+                      fontSize: "0.65rem", fontWeight: 900,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>{item.count}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Grand Total Bar */}
+      {grandTotal > 0 && (
+        <div style={{ background: `linear-gradient(135deg, ${GOLD}, oklch(0.6 0.1 75))`, padding: "0.5rem 1rem" }}>
+          <div style={{ maxWidth: "1400px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ color: DARK, fontWeight: 700, fontSize: "0.85rem" }}>الإجمالي المختار حتى الآن:</span>
+            <span style={{ color: DARK, fontWeight: 900, fontSize: "1.05rem" }}>{formatPrice(grandTotal)} جنيه</span>
+          </div>
+        </div>
+      )}
+
+      <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "1.5rem 1rem" }}>
+
+        {/* ===== HOME SECTION ===== */}
+        {activeSection === "home" && (
+          <div>
+            {/* Hero Banner */}
+            <div style={{
+              background: `linear-gradient(135deg, oklch(0.14 0.006 285) 0%, oklch(0.18 0.01 75) 100%)`,
+              border: `1px solid ${GOLD_BORDER}`,
+              borderRadius: "1rem", padding: "2.5rem 2rem", marginBottom: "2rem",
+              textAlign: "center",
+              backgroundImage: `url(${CDN}/2_98efd75e.png)`,
+              backgroundSize: "cover", backgroundPosition: "center",
+              position: "relative", overflow: "hidden",
+            }}>
+              <div style={{ position: "absolute", inset: 0, background: "oklch(0.1 0.005 285 / 85%)" }} />
+              <div style={{ position: "relative", zIndex: 1 }}>
+                <img src={`${CDN}/ProfessorLogo(1)_351dfbb8.png`} alt="Professor" style={{ height: "60px", marginBottom: "1rem" }} />
+                <h1 style={{ color: GOLD, fontSize: "2.2rem", fontWeight: 900, marginBottom: "0.5rem" }}>مشروع شقة مدينتي</h1>
+                <p style={{ color: TEXT_SECONDARY, fontSize: "1rem" }}>العميل: مستر علي راشد | مدينتي | 140 متر</p>
+                <p style={{ color: TEXT_MUTED, fontSize: "0.85rem", marginTop: "0.5rem" }}>مارس 2026 | عرض تقديمي شامل للتشطيب والأثاث والأنظمة الذكية والستائر</p>
+              </div>
+            </div>
+
+            {/* About Company */}
+            <div style={{ background: CARD_BG, border: `1px solid ${GOLD_BORDER}`, borderRadius: "1rem", padding: "1.5rem", marginBottom: "1.5rem" }}>
+              <h2 style={{ color: GOLD, fontSize: "1.3rem", fontWeight: 700, marginBottom: "1rem", borderBottom: `1px solid ${GOLD_BORDER}`, paddingBottom: "0.5rem" }}>
+                🏢 نبذة عن شركة Professor
+              </h2>
+              <p style={{ color: TEXT_PRIMARY, lineHeight: 1.9, fontSize: "0.95rem" }}>
+                شركة <strong style={{ color: GOLD }}>PROFESSOR</strong> - Perfection in Every Detail، شركة رائدة متخصصة في أعمال التصميم الداخلي والتنفيذ المتكامل للمشاريع السكنية الفاخرة. نقدم خدمات شاملة تشمل التشطيب الكامل، الأثاث المصنوع بالمقاس، الأنظمة الذكية، والستائر. نلتزم بأعلى معايير الجودة والدقة في التنفيذ مع ضمان رضا العميل الكامل وتسليم المشروع في الوقت المحدد.
+              </p>
+            </div>
+
+            {/* Team */}
+            <div style={{ background: CARD_BG, border: `1px solid ${GOLD_BORDER}`, borderRadius: "1rem", padding: "1.5rem", marginBottom: "1.5rem" }}>
+              <h2 style={{ color: GOLD, fontSize: "1.3rem", fontWeight: 700, marginBottom: "1rem", borderBottom: `1px solid ${GOLD_BORDER}`, paddingBottom: "0.5rem" }}>
+                👥 فريق العمل المكلف بالمشروع
+              </h2>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "1rem" }}>
+                {teamMembers.map((m, i) => (
+                  <div key={i} style={{ background: CARD_BG2, border: `1px solid ${GOLD_BORDER}`, borderRadius: "0.75rem", padding: "1rem", textAlign: "center" }}>
+                    {m.img ? (
+                      <img src={m.img} alt={m.name} style={{ width: "70px", height: "70px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 0.5rem", display: "block", border: `2px solid ${GOLD}` }} />
+                    ) : (
+                      <div style={{ width: "70px", height: "70px", borderRadius: "50%", background: `linear-gradient(135deg, ${GOLD}, oklch(0.6 0.1 75))`, margin: "0 auto 0.5rem", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.8rem" }}>
+                        {m.role.includes("مهندس") ? "👷" : "🎨"}
+                      </div>
+                    )}
+                    <div style={{ color: GOLD, fontWeight: 700, fontSize: "0.85rem" }}>{m.name}</div>
+                    <div style={{ color: TEXT_SECONDARY, fontSize: "0.75rem", marginTop: "0.25rem" }}>{m.role}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Project Contents */}
+            <div style={{ background: CARD_BG, border: `1px solid ${GOLD_BORDER}`, borderRadius: "1rem", padding: "1.5rem" }}>
+              <h2 style={{ color: GOLD, fontSize: "1.3rem", fontWeight: 700, marginBottom: "1rem", borderBottom: `1px solid ${GOLD_BORDER}`, paddingBottom: "0.5rem" }}>
+                📋 محتويات العرض
+              </h2>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "1rem" }}>
+                {projectContents.map((c, i) => (
+                  <div key={i}
+                    style={{ borderRadius: "0.75rem", overflow: "hidden", cursor: "pointer", border: `1px solid ${GOLD_BORDER}`, transition: "all 0.2s" }}
+                    onClick={() => setActiveSection(c.section)}>
+                    <div style={{ height: "140px", backgroundImage: `url(${c.img})`, backgroundSize: "cover", backgroundPosition: "center", position: "relative" }}>
+                      <div style={{ position: "absolute", inset: 0, background: "oklch(0.1 0.005 285 / 60%)" }} />
+                      <div style={{ position: "absolute", bottom: "0.75rem", right: "0.75rem" }}>
+                        <span style={{ fontSize: "2rem" }}>{c.icon}</span>
+                      </div>
+                    </div>
+                    <div style={{ background: CARD_BG2, padding: "0.75rem" }}>
+                      <div style={{ color: GOLD, fontWeight: 700, fontSize: "0.95rem" }}>{c.title}</div>
+                      <div style={{ color: TEXT_SECONDARY, fontSize: "0.8rem", marginTop: "0.2rem" }}>{c.desc}</div>
+                      <div style={{ color: GOLD, fontSize: "0.75rem", marginTop: "0.5rem", opacity: 0.8 }}>اضغط للاستعراض ←</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ===== FINISHING SECTION ===== */}
+        {activeSection === "finishing" && (
+          <div>
+            <div style={{ marginBottom: "1.5rem" }}>
+              <h2 style={{ color: GOLD, fontSize: "1.6rem", fontWeight: 900 }}>🔨 مقايسة التشطيب</h2>
+              <p style={{ color: TEXT_SECONDARY, fontSize: "0.9rem" }}>اختر البنود التي تريد تضمينها في مقايستك (يمكن اختيار أكثر من بند)</p>
+              {finishingTotal > 0 && (
+                <div style={{ background: `${GOLD}20`, border: `1px solid ${GOLD}60`, borderRadius: "0.5rem", padding: "0.5rem 1rem", marginTop: "0.75rem", display: "inline-block" }}>
+                  <span style={{ color: GOLD, fontWeight: 700 }}>إجمالي التشطيب المختار: {formatPrice(finishingTotal)} جنيه</span>
+                </div>
+              )}
+              <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem", flexWrap: "wrap" }}>
+                <button
+                  style={{ background: "transparent", border: `1px solid ${GOLD}`, color: GOLD, borderRadius: "0.35rem", padding: "0.3rem 0.8rem", fontSize: "0.8rem", cursor: "pointer", fontFamily: "'Cairo', sans-serif" }}
+                  onClick={() => setSelectedFinishing(new Set(finishingItems.map(i => i.id)))}>
+                  ✓ اختيار الكل
+                </button>
+                <button
+                  style={{ background: "transparent", border: `1px solid oklch(0.5 0.01 75)`, color: "oklch(0.5 0.01 75)", borderRadius: "0.35rem", padding: "0.3rem 0.8rem", fontSize: "0.8rem", cursor: "pointer", fontFamily: "'Cairo', sans-serif" }}
+                  onClick={() => setSelectedFinishing(new Set())}>
+                  ✕ إلغاء الكل
+                </button>
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1rem" }}>
+              {finishingItems.map(item => {
+                const isSelected = selectedFinishing.has(item.id);
+                return (
+                  <div key={item.id}
+                    style={{
+                      background: isSelected ? `${GOLD}15` : CARD_BG,
+                      border: `${isSelected ? 2 : 1}px solid ${isSelected ? GOLD_BORDER_ACTIVE : GOLD_BORDER}`,
+                      borderRadius: "0.75rem", overflow: "hidden", cursor: "pointer", transition: "all 0.2s",
+                    }}
+                    onClick={() => {
+                      const s = new Set(selectedFinishing);
+                      if (s.has(item.id)) s.delete(item.id); else s.add(item.id);
+                      setSelectedFinishing(s);
+                    }}>
+                    <div style={{ position: "relative" }}>
+                      <img src={item.image} alt={item.name} style={{ width: "100%", height: "150px", objectFit: "cover" }} />
+                      {isSelected && (
+                        <div style={{ position: "absolute", top: "0.5rem", left: "0.5rem", background: GOLD, borderRadius: "50%", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <span style={{ color: DARK, fontWeight: 900, fontSize: "0.9rem" }}>✓</span>
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ padding: "0.9rem" }}>
+                      <h3 style={{ color: isSelected ? GOLD : TEXT_PRIMARY, fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.4rem" }}>{item.name}</h3>
+                      <p style={{ color: TEXT_MUTED, fontSize: "0.78rem", lineHeight: 1.5, marginBottom: "0.6rem" }}>{item.desc}</p>
+                      <div style={{ color: GOLD, fontWeight: 900, fontSize: "1rem" }}>{formatPrice(item.price)} <span style={{ fontSize: "0.75rem", fontWeight: 400 }}>جنيه</span></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ===== FURNITURE SECTION ===== */}
+        {activeSection === "furniture" && (
+          <div>
+            <div style={{ marginBottom: "1.5rem" }}>
+              <h2 style={{ color: GOLD, fontSize: "1.6rem", fontWeight: 900 }}>🛋️ مقايسة الأثاث</h2>
+              <p style={{ color: TEXT_SECONDARY, fontSize: "0.9rem" }}>اختر الخيار المناسب لكل غرفة</p>
+              {furnitureTotal > 0 && (
+                <div style={{ background: `${GOLD}20`, border: `1px solid ${GOLD}60`, borderRadius: "0.5rem", padding: "0.5rem 1rem", marginTop: "0.75rem", display: "inline-block" }}>
+                  <span style={{ color: GOLD, fontWeight: 700 }}>إجمالي الأثاث المختار: {formatPrice(furnitureTotal)} جنيه</span>
+                </div>
+              )}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+              {furnitureItems.map(room => (
+                <div key={room.id} style={{ background: CARD_BG, border: `1px solid ${GOLD_BORDER}`, borderRadius: "1rem", overflow: "hidden" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "0.9rem 1rem", borderBottom: `1px solid ${GOLD_BORDER}` }}>
+                    <img src={room.image} alt={room.room} style={{ width: "72px", height: "54px", objectFit: "cover", borderRadius: "0.4rem" }} />
+                    <div>
+                      <h3 style={{ color: GOLD, fontWeight: 700, fontSize: "0.95rem" }}>{room.room}</h3>
+                      {selectedFurniture[room.id] && (
+                        <span style={{ color: TEXT_SECONDARY, fontSize: "0.78rem" }}>
+                          ✓ {room.options.find(o => o.id === selectedFurniture[room.id])?.label}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "0.75rem", padding: "0.9rem" }}>
+                    {room.options.map(opt => {
+                      const isSelected = selectedFurniture[room.id] === opt.id;
+                      return (
+                        <div key={opt.id}
+                          style={{
+                            background: isSelected ? `${GOLD}12` : CARD_BG2,
+                            border: `${isSelected ? 2 : 1}px solid ${isSelected ? GOLD_BORDER_ACTIVE : GOLD_BORDER}`,
+                            borderRadius: "0.75rem", padding: "0.9rem", cursor: "pointer", transition: "all 0.2s",
+                          }}
+                          onClick={() => setSelectedFurniture(prev => ({ ...prev, [room.id]: opt.id }))}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
+                            <span style={{ color: isSelected ? GOLD : TEXT_PRIMARY, fontWeight: 700, fontSize: "0.85rem" }}>{opt.label}</span>
+                            <div style={{ width: "20px", height: "20px", borderRadius: "50%", border: `2px solid ${GOLD}`, background: isSelected ? GOLD : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                              {isSelected && <span style={{ color: DARK, fontSize: "0.65rem", fontWeight: 900 }}>✓</span>}
+                            </div>
+                          </div>
+                          <p style={{ color: TEXT_MUTED, fontSize: "0.78rem", lineHeight: 1.5, marginBottom: "0.6rem" }}>{opt.desc}</p>
+                          <div style={{ color: GOLD, fontWeight: 900, fontSize: "1rem" }}>{formatPrice(opt.price)} <span style={{ fontSize: "0.72rem", fontWeight: 400 }}>جنيه</span></div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ===== SMART HOME SECTION ===== */}
+        {activeSection === "smart" && (
+          <div>
+            <div style={{ marginBottom: "1.5rem" }}>
+              <h2 style={{ color: GOLD, fontSize: "1.6rem", fontWeight: 900 }}>🏡 Smart Home System</h2>
+              <p style={{ color: TEXT_SECONDARY, fontSize: "0.9rem" }}>اختر الباقة المناسبة لنظام المنزل الذكي</p>
+              {smartTotal > 0 && (
+                <div style={{ background: `${GOLD}20`, border: `1px solid ${GOLD}60`, borderRadius: "0.5rem", padding: "0.5rem 1rem", marginTop: "0.75rem", display: "inline-block" }}>
+                  <span style={{ color: GOLD, fontWeight: 700 }}>الباقة المختارة: {formatPrice(smartTotal)} جنيه</span>
+                </div>
+              )}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: "1.5rem" }}>
+              {smartHomeOptions.map(opt => {
+                const isSelected = selectedSmart === opt.id;
+                return (
+                  <div key={opt.id}
+                    style={{
+                      background: isSelected ? `${GOLD}10` : CARD_BG,
+                      border: `${isSelected ? 2 : 1}px solid ${isSelected ? GOLD_BORDER_ACTIVE : GOLD_BORDER}`,
+                      borderRadius: "1rem", overflow: "hidden", cursor: "pointer", transition: "all 0.2s",
+                    }}
+                    onClick={() => setSelectedSmart(isSelected ? null : opt.id)}>
+                    <div style={{ position: "relative" }}>
+                      <img src={opt.image} alt={opt.label} style={{ width: "100%", height: "180px", objectFit: "cover" }} />
+                      <div style={{ position: "absolute", inset: 0, background: "oklch(0.1 0.005 285 / 50%)" }} />
+                      <div style={{ position: "absolute", top: "1rem", right: "1rem" }}>
+                        <div style={{ width: "28px", height: "28px", borderRadius: "50%", border: `2px solid ${GOLD}`, background: isSelected ? GOLD : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {isSelected && <span style={{ color: DARK, fontWeight: 900 }}>✓</span>}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ padding: "1.25rem" }}>
+                      <h3 style={{ color: GOLD, fontWeight: 900, fontSize: "1.05rem", marginBottom: "1rem" }}>{opt.label}</h3>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", marginBottom: "1rem" }}>
+                        {opt.items.map((item, i) => (
+                          <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "0.35rem 0.6rem", background: CARD_BG2, borderRadius: "0.35rem" }}>
+                            <span style={{ color: TEXT_PRIMARY, fontSize: "0.82rem" }}>{item.name}</span>
+                            <span style={{ color: GOLD, fontSize: "0.78rem", fontWeight: 600 }}>{item.qty}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ color: GOLD, fontWeight: 900, fontSize: "1.2rem", textAlign: "center", padding: "0.7rem", background: `${GOLD}15`, borderRadius: "0.5rem" }}>
+                        {formatPrice(opt.price)} جنيه
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ===== CURTAINS SECTION ===== */}
+        {activeSection === "curtains" && (
+          <div>
+            <div style={{ marginBottom: "1.5rem" }}>
+              <h2 style={{ color: GOLD, fontSize: "1.6rem", fontWeight: 900 }}>🪟 مقايسة الستائر</h2>
+              <p style={{ color: TEXT_SECONDARY, fontSize: "0.9rem" }}>اختر الخيار المناسب لكل ستارة</p>
+              {curtainsTotal > 0 && (
+                <div style={{ background: `${GOLD}20`, border: `1px solid ${GOLD}60`, borderRadius: "0.5rem", padding: "0.5rem 1rem", marginTop: "0.75rem", display: "inline-block" }}>
+                  <span style={{ color: GOLD, fontWeight: 700 }}>إجمالي الستائر المختارة: {formatPrice(curtainsTotal)} جنيه</span>
+                </div>
+              )}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+              {curtainItems.map(room => (
+                <div key={room.id} style={{ background: CARD_BG, border: `1px solid ${GOLD_BORDER}`, borderRadius: "1rem", overflow: "hidden" }}>
+                  <div style={{ padding: "0.9rem 1rem", borderBottom: `1px solid ${GOLD_BORDER}` }}>
+                    <h3 style={{ color: GOLD, fontWeight: 700, fontSize: "1rem" }}>{room.room}</h3>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem", padding: "1rem" }}>
+                    {room.options.map(opt => {
+                      const isSelected = selectedCurtains[room.id] === opt.id;
+                      const isExpanded = expandedItem === opt.id;
+                      return (
+                        <div key={opt.id}
+                          style={{
+                            background: isSelected ? `${GOLD}10` : CARD_BG2,
+                            border: `${isSelected ? 2 : 1}px solid ${isSelected ? GOLD_BORDER_ACTIVE : GOLD_BORDER}`,
+                            borderRadius: "0.75rem", overflow: "hidden", transition: "all 0.2s",
+                          }}>
+                          <div style={{ position: "relative", cursor: "pointer" }} onClick={() => setSelectedCurtains(prev => ({ ...prev, [room.id]: opt.id }))}>
+                            <img src={opt.image} alt={opt.label} style={{ width: "100%", height: "140px", objectFit: "cover" }} />
+                            {isSelected && (
+                              <div style={{ position: "absolute", top: "0.5rem", left: "0.5rem", background: GOLD, borderRadius: "50%", width: "26px", height: "26px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                <span style={{ color: DARK, fontWeight: 900, fontSize: "0.85rem" }}>✓</span>
+                              </div>
+                            )}
+                          </div>
+                          <div style={{ padding: "0.9rem" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem", cursor: "pointer" }}
+                              onClick={() => setSelectedCurtains(prev => ({ ...prev, [room.id]: opt.id }))}>
+                              <span style={{ color: isSelected ? GOLD : TEXT_PRIMARY, fontWeight: 700, fontSize: "0.88rem" }}>{opt.label}</span>
+                              <div style={{ width: "18px", height: "18px", borderRadius: "50%", border: `2px solid ${GOLD}`, background: isSelected ? GOLD : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                {isSelected && <span style={{ color: DARK, fontSize: "0.6rem", fontWeight: 900 }}>✓</span>}
+                              </div>
+                            </div>
+                            <div style={{ color: GOLD, fontWeight: 900, fontSize: "1rem", marginBottom: "0.5rem" }}>
+                              {formatPrice(opt.price)} جنيه
+                            </div>
+                            <button
+                              style={{ background: "transparent", border: `1px solid ${GOLD_BORDER}`, color: GOLD, borderRadius: "0.35rem", padding: "0.25rem 0.65rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Cairo', sans-serif" }}
+                              onClick={() => setExpandedItem(isExpanded ? null : opt.id)}>
+                              {isExpanded ? "إخفاء التفاصيل ▲" : "عرض التفاصيل ▼"}
+                            </button>
+                            {isExpanded && (
+                              <div style={{ marginTop: "0.6rem", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                                {opt.items.map((item, i) => (
+                                  <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "0.25rem 0.5rem", background: CARD_BG, borderRadius: "0.3rem" }}>
+                                    <span style={{ color: TEXT_SECONDARY, fontSize: "0.78rem" }}>{item.name}</span>
+                                    <span style={{ color: GOLD, fontSize: "0.78rem", fontWeight: 600 }}>{formatPrice(item.price)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ===== SUMMARY SECTION ===== */}
+        {activeSection === "summary" && (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+              <div>
+                <h2 style={{ color: GOLD, fontSize: "1.6rem", fontWeight: 900 }}>📊 ملخص الاختيارات</h2>
+                <p style={{ color: TEXT_SECONDARY, fontSize: "0.9rem" }}>مراجعة جميع الاختيارات والإجمالي النهائي</p>
+              </div>
+              {grandTotal > 0 && (
+                <button onClick={handlePrint}
+                  style={{ background: GOLD, color: DARK, border: "none", borderRadius: "0.5rem", padding: "0.6rem 1.2rem", fontSize: "0.9rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Cairo', sans-serif" }}>
+                  🖨️ طباعة الملخص
+                </button>
+              )}
+            </div>
+
+            {/* Client Info */}
+            <div style={{ background: CARD_BG, border: `1px solid ${GOLD_BORDER}`, borderRadius: "1rem", padding: "1.25rem", marginBottom: "1rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "1rem" }}>
+                {[
+                  { label: "العميل", value: "مستر علي راشد" },
+                  { label: "الموقع", value: "مدينتي" },
+                  { label: "المساحة", value: "140 متر" },
+                  { label: "التاريخ", value: "مارس 2026" },
+                ].map((info, i) => (
+                  <div key={i} style={{ textAlign: "center" }}>
+                    <div style={{ color: TEXT_SECONDARY, fontSize: "0.78rem" }}>{info.label}</div>
+                    <div style={{ color: GOLD, fontWeight: 700, fontSize: "0.95rem" }}>{info.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Finishing Summary */}
+            {selectedFinishing.size > 0 && (
+              <div style={{ background: CARD_BG, border: `1px solid ${GOLD_BORDER}`, borderRadius: "1rem", padding: "1.25rem", marginBottom: "1rem" }}>
+                <h3 style={{ color: GOLD, fontWeight: 700, marginBottom: "0.75rem", fontSize: "1rem" }}>🔨 التشطيب</h3>
+                {finishingItems.filter(i => selectedFinishing.has(i.id)).map(item => (
+                  <div key={item.id} style={{ display: "flex", justifyContent: "space-between", padding: "0.4rem 0", borderBottom: `1px solid ${GOLD_BORDER}` }}>
+                    <span style={{ color: TEXT_PRIMARY, fontSize: "0.88rem" }}>{item.name}</span>
+                    <span style={{ color: GOLD, fontWeight: 600 }}>{formatPrice(item.price)} جنيه</span>
+                  </div>
+                ))}
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.75rem", paddingTop: "0.5rem", borderTop: `2px solid ${GOLD_BORDER}` }}>
+                  <span style={{ color: GOLD, fontWeight: 700 }}>إجمالي التشطيب</span>
+                  <span style={{ color: GOLD, fontWeight: 900, fontSize: "1.05rem" }}>{formatPrice(finishingTotal)} جنيه</span>
+                </div>
+              </div>
+            )}
+
+            {/* Furniture Summary */}
+            {Object.keys(selectedFurniture).length > 0 && (
+              <div style={{ background: CARD_BG, border: `1px solid ${GOLD_BORDER}`, borderRadius: "1rem", padding: "1.25rem", marginBottom: "1rem" }}>
+                <h3 style={{ color: GOLD, fontWeight: 700, marginBottom: "0.75rem", fontSize: "1rem" }}>🛋️ الأثاث</h3>
+                {Object.entries(selectedFurniture).map(([rId, oId]) => {
+                  const r = furnitureItems.find(r => r.id === rId);
+                  const o = r?.options.find(o => o.id === oId);
+                  if (!r || !o) return null;
+                  return (
+                    <div key={rId} style={{ display: "flex", justifyContent: "space-between", padding: "0.4rem 0", borderBottom: `1px solid ${GOLD_BORDER}` }}>
+                      <span style={{ color: TEXT_PRIMARY, fontSize: "0.88rem" }}>{r.room} - {o.label}</span>
+                      <span style={{ color: GOLD, fontWeight: 600 }}>{formatPrice(o.price)} جنيه</span>
+                    </div>
+                  );
+                })}
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.75rem", paddingTop: "0.5rem", borderTop: `2px solid ${GOLD_BORDER}` }}>
+                  <span style={{ color: GOLD, fontWeight: 700 }}>إجمالي الأثاث</span>
+                  <span style={{ color: GOLD, fontWeight: 900, fontSize: "1.05rem" }}>{formatPrice(furnitureTotal)} جنيه</span>
+                </div>
+              </div>
+            )}
+
+            {/* Smart Home Summary */}
+            {selectedSmart && (() => {
+              const opt = smartHomeOptions.find(o => o.id === selectedSmart);
+              return opt ? (
+                <div style={{ background: CARD_BG, border: `1px solid ${GOLD_BORDER}`, borderRadius: "1rem", padding: "1.25rem", marginBottom: "1rem" }}>
+                  <h3 style={{ color: GOLD, fontWeight: 700, marginBottom: "0.75rem", fontSize: "1rem" }}>🏡 Smart Home System</h3>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span style={{ color: TEXT_PRIMARY, fontSize: "0.88rem" }}>{opt.label}</span>
+                    <span style={{ color: GOLD, fontWeight: 900, fontSize: "1.05rem" }}>{formatPrice(opt.price)} جنيه</span>
+                  </div>
+                </div>
+              ) : null;
+            })()}
+
+            {/* Curtains Summary */}
+            {Object.keys(selectedCurtains).length > 0 && (
+              <div style={{ background: CARD_BG, border: `1px solid ${GOLD_BORDER}`, borderRadius: "1rem", padding: "1.25rem", marginBottom: "1rem" }}>
+                <h3 style={{ color: GOLD, fontWeight: 700, marginBottom: "0.75rem", fontSize: "1rem" }}>🪟 الستائر</h3>
+                {Object.entries(selectedCurtains).map(([rId, oId]) => {
+                  const r = curtainItems.find(r => r.id === rId);
+                  const o = r?.options.find(o => o.id === oId);
+                  if (!r || !o) return null;
+                  return (
+                    <div key={rId} style={{ display: "flex", justifyContent: "space-between", padding: "0.4rem 0", borderBottom: `1px solid ${GOLD_BORDER}` }}>
+                      <span style={{ color: TEXT_PRIMARY, fontSize: "0.88rem" }}>{r.room} - {o.label}</span>
+                      <span style={{ color: GOLD, fontWeight: 600 }}>{formatPrice(o.price)} جنيه</span>
+                    </div>
+                  );
+                })}
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.75rem", paddingTop: "0.5rem", borderTop: `2px solid ${GOLD_BORDER}` }}>
+                  <span style={{ color: GOLD, fontWeight: 700 }}>إجمالي الستائر</span>
+                  <span style={{ color: GOLD, fontWeight: 900, fontSize: "1.05rem" }}>{formatPrice(curtainsTotal)} جنيه</span>
+                </div>
+              </div>
+            )}
+
+            {/* Grand Total */}
+            {grandTotal > 0 ? (
+              <div style={{ background: `linear-gradient(135deg, ${GOLD}, oklch(0.6 0.1 75))`, borderRadius: "1rem", padding: "1.75rem", textAlign: "center" }}>
+                <div style={{ color: DARK, fontSize: "0.95rem", fontWeight: 600, marginBottom: "0.5rem" }}>الإجمالي النهائي لجميع الاختيارات</div>
+                <div style={{ color: DARK, fontSize: "2.8rem", fontWeight: 900, lineHeight: 1 }}>{formatPrice(grandTotal)}</div>
+                <div style={{ color: DARK, fontSize: "1.1rem", fontWeight: 600, marginTop: "0.25rem" }}>جنيه مصري</div>
+                <div style={{ marginTop: "1.25rem", display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
+                  {finishingTotal > 0 && <div style={{ background: "oklch(0.1 0.005 285 / 30%)", borderRadius: "0.5rem", padding: "0.4rem 0.8rem", fontSize: "0.82rem", color: DARK }}>تشطيب: {formatPrice(finishingTotal)}</div>}
+                  {furnitureTotal > 0 && <div style={{ background: "oklch(0.1 0.005 285 / 30%)", borderRadius: "0.5rem", padding: "0.4rem 0.8rem", fontSize: "0.82rem", color: DARK }}>أثاث: {formatPrice(furnitureTotal)}</div>}
+                  {smartTotal > 0 && <div style={{ background: "oklch(0.1 0.005 285 / 30%)", borderRadius: "0.5rem", padding: "0.4rem 0.8rem", fontSize: "0.82rem", color: DARK }}>Smart Home: {formatPrice(smartTotal)}</div>}
+                  {curtainsTotal > 0 && <div style={{ background: "oklch(0.1 0.005 285 / 30%)", borderRadius: "0.5rem", padding: "0.4rem 0.8rem", fontSize: "0.82rem", color: DARK }}>ستائر: {formatPrice(curtainsTotal)}</div>}
+                </div>
+              </div>
+            ) : (
+              <div style={{ background: CARD_BG, border: `1px solid ${GOLD_BORDER}`, borderRadius: "1rem", padding: "2rem", textAlign: "center" }}>
+                <p style={{ color: TEXT_SECONDARY, fontSize: "1rem" }}>لم يتم اختيار أي بنود بعد. يرجى الانتقال إلى الأقسام المختلفة واختيار ما يناسبك.</p>
+                <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", marginTop: "1rem", flexWrap: "wrap" }}>
+                  {(["finishing", "furniture", "smart", "curtains"] as const).map(s => (
+                    <button key={s} onClick={() => setActiveSection(s)}
+                      style={{ background: "transparent", border: `1px solid ${GOLD}`, color: GOLD, borderRadius: "0.5rem", padding: "0.4rem 0.9rem", fontSize: "0.85rem", cursor: "pointer", fontFamily: "'Cairo', sans-serif" }}>
+                      {s === "finishing" ? "🔨 التشطيب" : s === "furniture" ? "🛋️ الأثاث" : s === "smart" ? "🏡 Smart Home" : "🪟 الستائر"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+      </div>
+
+      {/* Print Styles */}
+      <style>{`
+        @media print {
+          .no-print { display: none !important; }
+          body { background: white !important; }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+      `}</style>
     </div>
   );
 }
