@@ -281,6 +281,8 @@ const teamData: TeamMember[] = [
     level: 3,
     department: "المبيعات",
     color: "oklch(0.65 0.08 75)",
+    phone: "201283355577",
+    whatsapp: "201283355577",
   },
   {
     id: "t9",
@@ -377,6 +379,8 @@ const teamData: TeamMember[] = [
     level: 4,
     department: "المبيعات",
     color: "oklch(0.58 0.06 75)",
+    phone: "201021266420",
+    whatsapp: "201021266420",
   },
   {
     id: "t15",
@@ -408,6 +412,8 @@ const teamData: TeamMember[] = [
     level: 4,
     department: "المالية",
     color: "oklch(0.58 0.06 75)",
+    phone: "201118666705",
+    whatsapp: "201118666705",
   },
   {
     id: "t17",
@@ -423,6 +429,8 @@ const teamData: TeamMember[] = [
     level: 4,
     department: "المالية",
     color: "oklch(0.58 0.06 75)",
+    phone: "201121858452",
+    whatsapp: "201121858452",
   },
   {
     id: "t18",
