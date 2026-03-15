@@ -265,6 +265,8 @@ const teamData: TeamMember[] = [
     level: 3,
     department: "التصميم",
     color: "oklch(0.65 0.08 75)",
+    phone: "201273552288",
+    whatsapp: "201273552288",
   },
   {
     id: "t8",
