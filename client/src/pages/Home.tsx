@@ -35,6 +35,43 @@ const teamData: TeamMember[] = [
     department: "القيادة",
     color: "oklch(0.78 0.12 75)",
   },
+  // Level 1.5 - Project Management (New Level 2)
+  {
+    id: "pm1",
+    name: "بشمهندس محمد محمود عبد العاطي",
+    title: "مدير المشروع",
+    role: "إدارة المشروع",
+    duties: [
+      "الإشراف الكامل على تنفيذ المشروع من البداية حتى التسليم النهائي",
+      "التنسيق بين جميع أقسام الفريق لضمان سير العمل وفق الجدول الزمني",
+      "متابعة جودة التنفيذ في الموقع ومطابقتها للمواصفات والرسومات المعتمدة",
+      "إدارة اجتماعات المشروع الدورية وإعداد تقارير التقدم للإدارة والعميل",
+      "حل المشكلات الطارئة واتخاذ القرارات التشغيلية السريعة في الموقع",
+      "ضمان الالتزام بالميزانية المحددة ومتابعة تكاليف التنفيذ",
+    ],
+    img: `${CDN}/1000794536_926d604c.jpg`,
+    level: 1.5,
+    department: "إدارة المشروع",
+    color: "oklch(0.75 0.11 75)",
+  },
+  {
+    id: "pm2",
+    name: "بشمهندس مصطفى قنديل",
+    title: "مهندس الديكور والإشراف",
+    role: "الإشراف الميداني",
+    duties: [
+      "الإشراف الميداني المباشر على أعمال المقاولين في الموقع",
+      "التسليم الدقيق لكل بند من بنود المشروع في الموقع وفق المواصفات",
+      "متابعة جودة التشطيبات والتأكد من مطابقتها للتصميم المعتمد",
+      "تنسيق جداول العمل بين المقاولين المختلفين لتفادي التعارض",
+      "رصد أي انحرافات في التنفيذ والإبلاغ الفوري لاتخاذ الإجراءات التصحيحية",
+      "إعداد محاضر الاستلام والتسليم لكل مرحلة من مراحل التنفيذ",
+    ],
+    img: `${CDN}/1000798929_85f351bb.jpg`,
+    level: 1.5,
+    department: "إدارة المشروع",
+    color: "oklch(0.75 0.11 75)",
+  },
   // Level 2 - Direct Reports
   {
     id: "t2",
@@ -767,27 +804,46 @@ export default function Home() {
 
               {/* Level 1 - Chairman */}
               <div style={{ display: "flex", justifyContent: "center", marginBottom: "1.5rem" }}>
-                {teamData.filter(m => m.level === 1).map(member => (
-                  <div key={member.id}
-                    onClick={() => setSelectedTeamMember(selectedTeamMember === member.id ? null : member.id)}
-                    style={{
-                      cursor: "pointer",
-                      background: selectedTeamMember === member.id ? `${GOLD}18` : CARD_BG2,
-                      border: `2px solid ${selectedTeamMember === member.id ? GOLD : GOLD_BORDER}`,
-                      borderRadius: "1rem",
-                      padding: "1rem 1.5rem",
-                      textAlign: "center",
-                      minWidth: "200px",
-                      maxWidth: "240px",
-                      position: "relative",
-                    }}>
-                    <div style={{ position: "absolute", top: "-10px", left: "50%", transform: "translateX(-50%)", background: GOLD, color: DARK, fontSize: "0.65rem", fontWeight: 900, padding: "2px 10px", borderRadius: "999px" }}>قيادة</div>
-                    {member.img && <img src={member.img} alt={member.name} style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", margin: "0.5rem auto 0.5rem", display: "block", border: `3px solid ${GOLD}` }} />}
-                    <div style={{ color: GOLD, fontWeight: 800, fontSize: "0.95rem" }}>{member.name}</div>
-                    <div style={{ color: TEXT_PRIMARY, fontSize: "0.78rem", marginTop: "0.2rem" }}>{member.title}</div>
-                    <div style={{ color: TEXT_MUTED, fontSize: "0.72rem", marginTop: "0.15rem" }}>{member.role}</div>
-                  </div>
-                ))}
+                {teamData.filter(m => m.level === 1).map(member => {
+                  const isSelected = selectedTeamMember === member.id;
+                  return (
+                    <div key={member.id}
+                      onClick={() => setSelectedTeamMember(isSelected ? null : member.id)}
+                      style={{
+                        cursor: "pointer",
+                        background: isSelected ? `${GOLD}18` : CARD_BG2,
+                        border: `2px solid ${isSelected ? GOLD : GOLD_BORDER}`,
+                        borderRadius: "1rem",
+                        padding: "1rem 1.5rem",
+                        textAlign: "center",
+                        minWidth: isSelected ? "340px" : "200px",
+                        maxWidth: isSelected ? "420px" : "240px",
+                        position: "relative",
+                        transition: "all 0.25s ease",
+                      }}>
+                      <div style={{ position: "absolute", top: "-10px", left: "50%", transform: "translateX(-50%)", background: GOLD, color: DARK, fontSize: "0.65rem", fontWeight: 900, padding: "2px 10px", borderRadius: "999px" }}>قيادة</div>
+                      <div style={{ display: "flex", flexDirection: isSelected ? "row" : "column", alignItems: isSelected ? "flex-start" : "center", gap: "1rem" }}>
+                        <div style={{ flexShrink: 0, textAlign: "center" }}>
+                          {member.img && <img src={member.img} alt={member.name} style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", margin: "0.5rem auto 0.5rem", display: "block", border: `3px solid ${GOLD}` }} />}
+                          <div style={{ color: GOLD, fontWeight: 800, fontSize: "0.95rem" }}>{member.name}</div>
+                          <div style={{ color: TEXT_PRIMARY, fontSize: "0.78rem", marginTop: "0.2rem" }}>{member.title}</div>
+                          <div style={{ color: TEXT_MUTED, fontSize: "0.72rem", marginTop: "0.15rem" }}>{member.role}</div>
+                        </div>
+                        {isSelected && (
+                          <div style={{ textAlign: "right", flex: 1 }}>
+                            <div style={{ color: GOLD, fontSize: "0.75rem", fontWeight: 700, marginBottom: "0.4rem" }}>📌 المهام والمسؤوليات:</div>
+                            {member.duties.map((d, i) => (
+                              <div key={i} style={{ display: "flex", gap: "0.4rem", alignItems: "flex-start", marginBottom: "0.3rem" }}>
+                                <span style={{ color: GOLD, flexShrink: 0, marginTop: "0.1rem", fontSize: "0.65rem" }}>◆</span>
+                                <span style={{ color: TEXT_PRIMARY, fontSize: "0.75rem", lineHeight: 1.6 }}>{d}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Connector line */}
@@ -795,32 +851,97 @@ export default function Home() {
                 <div style={{ width: "2px", height: "24px", background: GOLD_BORDER }} />
               </div>
 
-              {/* Level 2 - Direct Reports */}
-              <div style={{ display: "flex", justifyContent: "center", gap: "1rem", flexWrap: "wrap", marginBottom: "1.5rem", paddingTop: "0" }}>
-                {/* Horizontal line connecting level 2 */}
-                <div style={{ width: "100%", display: "flex", justifyContent: "center", alignItems: "flex-start", gap: "0" }}>
-                  {teamData.filter(m => m.level === 2).map((member, idx, arr) => (
-                    <div key={member.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1, maxWidth: "220px" }}>
-                      <div style={{ width: "2px", height: "20px", background: GOLD_BORDER }} />
-                      <div
-                        onClick={() => setSelectedTeamMember(selectedTeamMember === member.id ? null : member.id)}
+              {/* Level 1.5 - Project Management */}
+              <div style={{ marginBottom: "1.5rem" }}>
+                <div style={{ textAlign: "center", color: "oklch(0.75 0.11 75)", fontSize: "0.75rem", marginBottom: "0.75rem", fontWeight: 700, letterSpacing: "0.05em" }}>——— إدارة المشروع ———</div>
+                <div style={{ display: "flex", justifyContent: "center", gap: "1.25rem", flexWrap: "wrap" }}>
+                  {teamData.filter(m => m.level === 1.5).map(member => {
+                    const isSelected = selectedTeamMember === member.id;
+                    return (
+                      <div key={member.id}
+                        onClick={() => setSelectedTeamMember(isSelected ? null : member.id)}
                         style={{
                           cursor: "pointer",
-                          background: selectedTeamMember === member.id ? `${GOLD}18` : CARD_BG2,
-                          border: `2px solid ${selectedTeamMember === member.id ? GOLD : GOLD_BORDER}`,
-                          borderRadius: "0.85rem",
-                          padding: "0.85rem 1rem",
+                          background: isSelected ? `${GOLD}18` : CARD_BG2,
+                          border: `2px solid ${isSelected ? GOLD : "oklch(0.75 0.11 75)"}`,
+                          borderRadius: "0.9rem",
+                          padding: "0.9rem 1.1rem",
                           textAlign: "center",
-                          width: "100%",
                           position: "relative",
+                          minWidth: isSelected ? "320px" : "190px",
+                          maxWidth: isSelected ? "400px" : "230px",
+                          transition: "all 0.25s ease",
                         }}>
-                        <div style={{ position: "absolute", top: "-9px", left: "50%", transform: "translateX(-50%)", background: "oklch(0.72 0.1 75)", color: DARK, fontSize: "0.6rem", fontWeight: 900, padding: "2px 8px", borderRadius: "999px", whiteSpace: "nowrap" }}>{member.department}</div>
-                        {member.img && <img src={member.img} alt={member.name} style={{ width: "65px", height: "65px", borderRadius: "50%", objectFit: "cover", margin: "0.4rem auto 0.4rem", display: "block", border: `2px solid oklch(0.72 0.1 75)` }} />}
-                        <div style={{ color: GOLD, fontWeight: 700, fontSize: "0.85rem" }}>{member.name}</div>
-                        <div style={{ color: TEXT_PRIMARY, fontSize: "0.72rem", marginTop: "0.15rem" }}>{member.title}</div>
+                        <div style={{ position: "absolute", top: "-9px", left: "50%", transform: "translateX(-50%)", background: "oklch(0.75 0.11 75)", color: DARK, fontSize: "0.62rem", fontWeight: 900, padding: "2px 9px", borderRadius: "999px", whiteSpace: "nowrap" }}>إدارة المشروع</div>
+                        <div style={{ display: "flex", flexDirection: isSelected ? "row" : "column", alignItems: isSelected ? "flex-start" : "center", gap: "0.9rem" }}>
+                          <div style={{ flexShrink: 0, textAlign: "center" }}>
+                            {member.img && <img src={member.img} alt={member.name} style={{ width: "72px", height: "72px", borderRadius: "50%", objectFit: "cover", margin: "0.45rem auto 0.45rem", display: "block", border: `2px solid oklch(0.75 0.11 75)` }} />}
+                            <div style={{ color: GOLD, fontWeight: 800, fontSize: "0.88rem" }}>{member.name}</div>
+                            <div style={{ color: TEXT_PRIMARY, fontSize: "0.74rem", marginTop: "0.15rem" }}>{member.title}</div>
+                          </div>
+                          {isSelected && (
+                            <div style={{ flex: 1, textAlign: "right" }}>
+                              <div style={{ color: GOLD, fontSize: "0.73rem", fontWeight: 700, marginBottom: "0.38rem" }}>📌 المهام:</div>
+                              {member.duties.map((d, i) => (
+                                <div key={i} style={{ display: "flex", gap: "0.35rem", alignItems: "flex-start", marginBottom: "0.26rem" }}>
+                                  <span style={{ color: GOLD, flexShrink: 0, marginTop: "0.1rem", fontSize: "0.62rem" }}>◆</span>
+                                  <span style={{ color: TEXT_PRIMARY, fontSize: "0.72rem", lineHeight: 1.6, textAlign: "right" }}>{d}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Connector */}
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: "0" }}>
+                <div style={{ width: "2px", height: "20px", background: GOLD_BORDER }} />
+              </div>
+
+              {/* Level 2 - Direct Reports */}
+              <div style={{ display: "flex", justifyContent: "center", gap: "1rem", flexWrap: "wrap", marginBottom: "1.5rem", paddingTop: "0" }}>
+                <div style={{ width: "100%", display: "flex", justifyContent: "center", alignItems: "flex-start", gap: "0", flexWrap: "wrap" }}>
+                  {teamData.filter(m => m.level === 2).map((member) => {
+                    const isSelected = selectedTeamMember === member.id;
+                    return (
+                      <div key={member.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: isSelected ? "2 1 280px" : "1 1 160px", maxWidth: isSelected ? "360px" : "220px", transition: "all 0.25s ease" }}>
+                        <div style={{ width: "2px", height: "20px", background: GOLD_BORDER }} />
+                        <div
+                          onClick={() => setSelectedTeamMember(isSelected ? null : member.id)}
+                          style={{
+                            cursor: "pointer",
+                            background: isSelected ? `${GOLD}18` : CARD_BG2,
+                            border: `2px solid ${isSelected ? GOLD : GOLD_BORDER}`,
+                            borderRadius: "0.85rem",
+                            padding: "0.85rem 1rem",
+                            textAlign: "center",
+                            width: "100%",
+                            position: "relative",
+                            transition: "all 0.25s ease",
+                          }}>
+                          <div style={{ position: "absolute", top: "-9px", left: "50%", transform: "translateX(-50%)", background: "oklch(0.72 0.1 75)", color: DARK, fontSize: "0.6rem", fontWeight: 900, padding: "2px 8px", borderRadius: "999px", whiteSpace: "nowrap" }}>{member.department}</div>
+                          {member.img && <img src={member.img} alt={member.name} style={{ width: "65px", height: "65px", borderRadius: "50%", objectFit: "cover", margin: "0.4rem auto 0.4rem", display: "block", border: `2px solid oklch(0.72 0.1 75)` }} />}
+                          <div style={{ color: GOLD, fontWeight: 700, fontSize: "0.85rem" }}>{member.name}</div>
+                          <div style={{ color: TEXT_PRIMARY, fontSize: "0.72rem", marginTop: "0.15rem" }}>{member.title}</div>
+                          {isSelected && (
+                            <div style={{ marginTop: "0.75rem", textAlign: "right", borderTop: `1px solid ${GOLD_BORDER}`, paddingTop: "0.6rem" }}>
+                              <div style={{ color: GOLD, fontSize: "0.72rem", fontWeight: 700, marginBottom: "0.35rem" }}>📌 المهام:</div>
+                              {member.duties.map((d, i) => (
+                                <div key={i} style={{ display: "flex", gap: "0.35rem", alignItems: "flex-start", marginBottom: "0.25rem" }}>
+                                  <span style={{ color: GOLD, flexShrink: 0, marginTop: "0.1rem", fontSize: "0.6rem" }}>◆</span>
+                                  <span style={{ color: TEXT_PRIMARY, fontSize: "0.7rem", lineHeight: 1.6, textAlign: "right" }}>{d}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -833,81 +954,91 @@ export default function Home() {
               <div style={{ marginBottom: "1.5rem" }}>
                 <div style={{ textAlign: "center", color: TEXT_MUTED, fontSize: "0.75rem", marginBottom: "0.75rem", fontWeight: 600, letterSpacing: "0.05em" }}>——— الفريق التقني والتنفيذي ———</div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "0.75rem" }}>
-                  {teamData.filter(m => m.level === 3).map(member => (
-                    <div key={member.id}
-                      onClick={() => setSelectedTeamMember(selectedTeamMember === member.id ? null : member.id)}
-                      style={{
-                        cursor: "pointer",
-                        background: selectedTeamMember === member.id ? `${GOLD}18` : CARD_BG2,
-                        border: `2px solid ${selectedTeamMember === member.id ? GOLD : GOLD_BORDER}`,
-                        borderRadius: "0.75rem",
-                        padding: "0.85rem",
-                        textAlign: "center",
-                        position: "relative",
-                      }}>
-                      <div style={{ position: "absolute", top: "-9px", left: "50%", transform: "translateX(-50%)", background: "oklch(0.65 0.08 75)", color: DARK, fontSize: "0.6rem", fontWeight: 900, padding: "2px 8px", borderRadius: "999px", whiteSpace: "nowrap" }}>{member.department}</div>
-                      {member.img && <img src={member.img} alt={member.name} style={{ width: "60px", height: "60px", borderRadius: "50%", objectFit: "cover", margin: "0.4rem auto 0.4rem", display: "block", border: `2px solid oklch(0.65 0.08 75)` }} />}
-                      <div style={{ color: GOLD, fontWeight: 700, fontSize: "0.82rem" }}>{member.name}</div>
-                      <div style={{ color: TEXT_SECONDARY, fontSize: "0.7rem", marginTop: "0.1rem" }}>{member.title}</div>
-                    </div>
-                  ))}
+                  {teamData.filter(m => m.level === 3).map(member => {
+                    const isSelected = selectedTeamMember === member.id;
+                    return (
+                      <div key={member.id}
+                        onClick={() => setSelectedTeamMember(isSelected ? null : member.id)}
+                        style={{
+                          cursor: "pointer",
+                          background: isSelected ? `${GOLD}18` : CARD_BG2,
+                          border: `2px solid ${isSelected ? GOLD : GOLD_BORDER}`,
+                          borderRadius: "0.75rem",
+                          padding: "0.85rem",
+                          textAlign: "center",
+                          position: "relative",
+                          gridColumn: isSelected ? "span 2" : "span 1",
+                          transition: "all 0.25s ease",
+                        }}>
+                        <div style={{ position: "absolute", top: "-9px", left: "50%", transform: "translateX(-50%)", background: "oklch(0.65 0.08 75)", color: DARK, fontSize: "0.6rem", fontWeight: 900, padding: "2px 8px", borderRadius: "999px", whiteSpace: "nowrap" }}>{member.department}</div>
+                        <div style={{ display: "flex", flexDirection: isSelected ? "row" : "column", alignItems: isSelected ? "flex-start" : "center", gap: "0.85rem" }}>
+                          <div style={{ flexShrink: 0, textAlign: "center", minWidth: "80px" }}>
+                            {member.img && <img src={member.img} alt={member.name} style={{ width: "60px", height: "60px", borderRadius: "50%", objectFit: "cover", margin: "0.4rem auto 0.4rem", display: "block", border: `2px solid oklch(0.65 0.08 75)` }} />}
+                            <div style={{ color: GOLD, fontWeight: 700, fontSize: "0.82rem" }}>{member.name}</div>
+                            <div style={{ color: TEXT_SECONDARY, fontSize: "0.7rem", marginTop: "0.1rem" }}>{member.title}</div>
+                          </div>
+                          {isSelected && (
+                            <div style={{ flex: 1, textAlign: "right" }}>
+                              <div style={{ color: GOLD, fontSize: "0.72rem", fontWeight: 700, marginBottom: "0.35rem" }}>📌 المهام:</div>
+                              {member.duties.map((d, i) => (
+                                <div key={i} style={{ display: "flex", gap: "0.35rem", alignItems: "flex-start", marginBottom: "0.25rem" }}>
+                                  <span style={{ color: GOLD, flexShrink: 0, marginTop: "0.1rem", fontSize: "0.6rem" }}>◆</span>
+                                  <span style={{ color: TEXT_PRIMARY, fontSize: "0.7rem", lineHeight: 1.6, textAlign: "right" }}>{d}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Level 4 - Support Team */}
-              <div style={{ marginBottom: "1.5rem" }}>
+              <div style={{ marginBottom: "0.5rem" }}>
                 <div style={{ textAlign: "center", color: TEXT_MUTED, fontSize: "0.75rem", marginBottom: "0.75rem", fontWeight: 600, letterSpacing: "0.05em" }}>——— فريق الدعم والتخصصات ———</div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "0.65rem" }}>
-                  {teamData.filter(m => m.level === 4).map(member => (
-                    <div key={member.id}
-                      onClick={() => setSelectedTeamMember(selectedTeamMember === member.id ? null : member.id)}
-                      style={{
-                        cursor: "pointer",
-                        background: selectedTeamMember === member.id ? `${GOLD}18` : CARD_BG2,
-                        border: `2px solid ${selectedTeamMember === member.id ? GOLD : GOLD_BORDER}`,
-                        borderRadius: "0.65rem",
-                        padding: "0.75rem 0.65rem",
-                        textAlign: "center",
-                        position: "relative",
-                      }}>
-                      <div style={{ position: "absolute", top: "-9px", left: "50%", transform: "translateX(-50%)", background: "oklch(0.58 0.06 75)", color: DARK, fontSize: "0.58rem", fontWeight: 900, padding: "2px 7px", borderRadius: "999px", whiteSpace: "nowrap" }}>{member.department}</div>
-                      {member.img && <img src={member.img} alt={member.name} style={{ width: "52px", height: "52px", borderRadius: "50%", objectFit: "cover", margin: "0.4rem auto 0.35rem", display: "block", border: `2px solid oklch(0.58 0.06 75)` }} />}
-                      <div style={{ color: GOLD, fontWeight: 700, fontSize: "0.78rem" }}>{member.name}</div>
-                      <div style={{ color: TEXT_SECONDARY, fontSize: "0.67rem", marginTop: "0.1rem" }}>{member.title}</div>
-                    </div>
-                  ))}
+                  {teamData.filter(m => m.level === 4).map(member => {
+                    const isSelected = selectedTeamMember === member.id;
+                    return (
+                      <div key={member.id}
+                        onClick={() => setSelectedTeamMember(isSelected ? null : member.id)}
+                        style={{
+                          cursor: "pointer",
+                          background: isSelected ? `${GOLD}18` : CARD_BG2,
+                          border: `2px solid ${isSelected ? GOLD : GOLD_BORDER}`,
+                          borderRadius: "0.65rem",
+                          padding: "0.75rem 0.65rem",
+                          textAlign: "center",
+                          position: "relative",
+                          gridColumn: isSelected ? "span 2" : "span 1",
+                          transition: "all 0.25s ease",
+                        }}>
+                        <div style={{ position: "absolute", top: "-9px", left: "50%", transform: "translateX(-50%)", background: "oklch(0.58 0.06 75)", color: DARK, fontSize: "0.58rem", fontWeight: 900, padding: "2px 7px", borderRadius: "999px", whiteSpace: "nowrap" }}>{member.department}</div>
+                        <div style={{ display: "flex", flexDirection: isSelected ? "row" : "column", alignItems: isSelected ? "flex-start" : "center", gap: "0.75rem" }}>
+                          <div style={{ flexShrink: 0, textAlign: "center", minWidth: "70px" }}>
+                            {member.img && <img src={member.img} alt={member.name} style={{ width: "52px", height: "52px", borderRadius: "50%", objectFit: "cover", margin: "0.4rem auto 0.35rem", display: "block", border: `2px solid oklch(0.58 0.06 75)` }} />}
+                            <div style={{ color: GOLD, fontWeight: 700, fontSize: "0.78rem" }}>{member.name}</div>
+                            <div style={{ color: TEXT_SECONDARY, fontSize: "0.67rem", marginTop: "0.1rem" }}>{member.title}</div>
+                          </div>
+                          {isSelected && (
+                            <div style={{ flex: 1, textAlign: "right" }}>
+                              <div style={{ color: GOLD, fontSize: "0.7rem", fontWeight: 700, marginBottom: "0.3rem" }}>📌 المهام:</div>
+                              {member.duties.map((d, i) => (
+                                <div key={i} style={{ display: "flex", gap: "0.3rem", alignItems: "flex-start", marginBottom: "0.22rem" }}>
+                                  <span style={{ color: GOLD, flexShrink: 0, marginTop: "0.1rem", fontSize: "0.58rem" }}>◆</span>
+                                  <span style={{ color: TEXT_PRIMARY, fontSize: "0.68rem", lineHeight: 1.6, textAlign: "right" }}>{d}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-
-              {/* Member Detail Panel */}
-              {selectedTeamMember && (() => {
-                const m = teamData.find(x => x.id === selectedTeamMember);
-                if (!m) return null;
-                return (
-                  <div style={{ background: `${GOLD}10`, border: `1px solid ${GOLD}50`, borderRadius: "0.85rem", padding: "1.25rem", marginTop: "0.5rem" }}>
-                    <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start", flexWrap: "wrap" }}>
-                      {m.img && <img src={m.img} alt={m.name} style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", border: `3px solid ${GOLD}`, flexShrink: 0 }} />}
-                      <div style={{ flex: 1, minWidth: "200px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
-                          <span style={{ color: GOLD, fontWeight: 800, fontSize: "1rem" }}>{m.name}</span>
-                          <span style={{ background: GOLD, color: DARK, fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: "999px" }}>{m.department}</span>
-                        </div>
-                        <div style={{ color: TEXT_PRIMARY, fontSize: "0.85rem", marginBottom: "0.75rem" }}>{m.title}</div>
-                        <div style={{ color: TEXT_SECONDARY, fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.5rem" }}>📌 المهام والمسؤوليات:</div>
-                        <ul style={{ margin: 0, paddingRight: "1.2rem", listStyle: "none" }}>
-                          {m.duties.map((d, i) => (
-                            <li key={i} style={{ color: TEXT_PRIMARY, fontSize: "0.8rem", lineHeight: 1.7, marginBottom: "0.25rem", display: "flex", gap: "0.4rem", alignItems: "flex-start" }}>
-                              <span style={{ color: GOLD, flexShrink: 0, marginTop: "0.1rem" }}>◆</span>
-                              <span>{d}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      <button onClick={() => setSelectedTeamMember(null)} style={{ background: "transparent", border: "none", color: TEXT_MUTED, cursor: "pointer", fontSize: "1.2rem", padding: "0.25rem", flexShrink: 0 }}>✕</button>
-                    </div>
-                  </div>
-                );
-              })()}
             </div>
 
             {/* Project Contents */}
