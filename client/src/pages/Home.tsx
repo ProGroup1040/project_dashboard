@@ -419,18 +419,24 @@ export default function Home() {
             <div style={{
               background: `linear-gradient(135deg, oklch(0.14 0.006 285) 0%, oklch(0.18 0.01 75) 100%)`,
               border: `1px solid ${GOLD_BORDER}`,
-              borderRadius: "1rem", padding: "2.5rem 2rem", marginBottom: "2rem",
+              borderRadius: "1rem", padding: "2.5rem 1.5rem", marginBottom: "2rem",
               textAlign: "center",
               backgroundImage: `url(${CDN}/2_98efd75e.png)`,
               backgroundSize: "cover", backgroundPosition: "center",
-              position: "relative", overflow: "hidden",
+              position: "relative", overflow: "hidden", minHeight: "200px",
             }}>
               <div style={{ position: "absolute", inset: 0, background: "oklch(0.1 0.005 285 / 85%)" }} />
-              <div style={{ position: "relative", zIndex: 1 }}>
-                <img src={`${CDN}/ProfessorLogo(1)_351dfbb8.png`} alt="Professor" style={{ height: "60px", marginBottom: "1rem" }} />
-                <h1 style={{ color: GOLD, fontSize: "2.2rem", fontWeight: 900, marginBottom: "0.5rem" }}>مشروع شقة مدينتي</h1>
-                <p style={{ color: TEXT_SECONDARY, fontSize: "1rem" }}>العميل: مستر علي راشد | مدينتي | 140 متر</p>
-                <p style={{ color: TEXT_MUTED, fontSize: "0.85rem", marginTop: "0.5rem" }}>مارس 2026 | عرض تقديمي شامل للتشطيب والأثاث والأنظمة الذكية والستائر</p>
+              <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
+                {/* Logo Left */}
+                <img src={`${CDN}/ProfessorLogo(1)_351dfbb8.png`} alt="Professor" style={{ height: "160px", objectFit: "contain", flexShrink: 0, filter: "drop-shadow(0 0 12px rgba(212,175,55,0.4))" }} />
+                {/* Center Text */}
+                <div style={{ flex: 1, textAlign: "center" }}>
+                  <h1 style={{ color: GOLD, fontSize: "2.8rem", fontWeight: 900, marginBottom: "0.5rem", letterSpacing: "0.02em", textShadow: `0 0 20px ${GOLD}60` }}>مشروع شقة مدينتي</h1>
+                  <p style={{ color: TEXT_SECONDARY, fontSize: "1.05rem", marginBottom: "0.25rem" }}>العميل: مستر علي راشد | مدينتي | 140 متر</p>
+                  <p style={{ color: TEXT_MUTED, fontSize: "0.85rem" }}>مارس 2026 | عرض تقديمي شامل للتشطيب والأثاث والأنظمة الذكية والستائر</p>
+                </div>
+                {/* Logo Right */}
+                <img src={`${CDN}/ProfessorLogo(1)_351dfbb8.png`} alt="Professor" style={{ height: "160px", objectFit: "contain", flexShrink: 0, filter: "drop-shadow(0 0 12px rgba(212,175,55,0.4))" }} />
               </div>
             </div>
 
@@ -439,9 +445,28 @@ export default function Home() {
               <h2 style={{ color: GOLD, fontSize: "1.3rem", fontWeight: 700, marginBottom: "1rem", borderBottom: `1px solid ${GOLD_BORDER}`, paddingBottom: "0.5rem" }}>
                 🏢 نبذة عن شركة Professor
               </h2>
-              <p style={{ color: TEXT_PRIMARY, lineHeight: 1.9, fontSize: "0.95rem" }}>
+              <p style={{ color: TEXT_PRIMARY, lineHeight: 1.9, fontSize: "0.95rem", marginBottom: "1.5rem" }}>
                 شركة <strong style={{ color: GOLD }}>PROFESSOR</strong> - Perfection in Every Detail، شركة رائدة متخصصة في أعمال التصميم الداخلي والتنفيذ المتكامل للمشاريع السكنية الفاخرة. نقدم خدمات شاملة تشمل التشطيب الكامل، الأثاث المصنوع بالمقاس، الأنظمة الذكية، والستائر. نلتزم بأعلى معايير الجودة والدقة في التنفيذ مع ضمان رضا العميل الكامل وتسليم المشروع في الوقت المحدد.
               </p>
+              {/* Excellence Points */}
+              <h3 style={{ color: GOLD, fontSize: "1rem", fontWeight: 700, marginBottom: "0.75rem" }}>✨ لماذا نحن الخيار الأمثل؟</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "0.75rem" }}>
+                {[
+                  { icon: "🏭", title: "مصنع خاص وإدارة متكاملة", desc: "تمتلك الشركة مصنعها الخاص ومخازنها، مما يضمن التنفيذ المباشر بأيدي فنيينا والسيطرة الكاملة على الجودة، والالتزام التام بمواعيد التسليم." },
+                  { icon: "📞", title: "أنظمة متابعة ودعم 24/7", desc: "نمتلك أحدث أنظمة المتابعة (CRM) وهوت لاين على مدار 24 ساعة لخدمة ما بعد البيع، مع فرق متكاملة للمبيعات والمكتب الفني والإنتاج والدعم المالي والإداري." },
+                  { icon: "🏆", title: "الخبرة والتاريخ", desc: "سنوات من الخبرة الراسخة في مجال التصميم الداخلي والتنفيذ المتكامل للمشاريع السكنية الفاخرة." },
+                  { icon: "👨‍💼", title: "الفريق المتخصص", desc: "فريق متكامل من المهندسين والفنيين ذوي الخبرة العالية يعملون بتناغم لضمان دقة التنفيذ وتحقيق أعلى مستويات الجودة." },
+                  { icon: "💎", title: "الجودة والمعايير", desc: "نلتزم بأعلى معايير الجودة العالمية واستخدام أفضل الخامات والمواد المستوردة لضمان الفخامة والمتانة." },
+                ].map((point, i) => (
+                  <div key={i} style={{ background: CARD_BG2, border: `1px solid ${GOLD_BORDER}`, borderRadius: "0.75rem", padding: "0.85rem 1rem", display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
+                    <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>{point.icon}</span>
+                    <div>
+                      <div style={{ color: GOLD, fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.25rem" }}>{point.title}</div>
+                      <div style={{ color: TEXT_SECONDARY, fontSize: "0.8rem", lineHeight: 1.6 }}>{point.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Team */}
