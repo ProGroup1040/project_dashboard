@@ -1,4 +1,13 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { trpc } from "@/lib/trpc";
+import ProjectLogin from "./ProjectLogin";
+
+type ProjectUser = {
+  id: number;
+  username: string;
+  displayName: string;
+  role: "admin" | "engineer" | "aftersales" | "client";
+};
 
 // ===================== CDN BASE =====================
 const CDN = "https://d2xsxph8kpxj0f.cloudfront.net/310519663366992461/mRvpKEsVM97L32dYU7ka6B";
@@ -680,6 +689,67 @@ export default function Home() {
   const [selectedTeamMember, setSelectedTeamMember] = useState<string | null>(null);
   const [contractDate, setContractDate] = useState<string>("");
 
+  // ===================== PROJECT AUTH =====================
+  const [projectUser, setProjectUser] = useState<ProjectUser | null>(null);
+  const [showLogin, setShowLogin] = useState(false);
+
+  // Check existing session on mount
+  const meQuery = trpc.project.me.useQuery(undefined, { retry: false });
+  useEffect(() => {
+    if (meQuery.data) setProjectUser(meQuery.data);
+  }, [meQuery.data]);
+
+  // Phase statuses from DB
+  const phaseStatusesQuery = trpc.phases.getAll.useQuery(undefined, { refetchInterval: 30000 });
+  const phaseStatuses = phaseStatusesQuery.data ?? [];
+
+  const setStatusMutation = trpc.phases.setStatus.useMutation({
+    onSuccess: () => phaseStatusesQuery.refetch(),
+  });
+
+  // Complaints
+  const allComplaintsQuery = trpc.complaints.getAll.useQuery(undefined, { refetchInterval: 30000 });
+  const allComplaints = allComplaintsQuery.data ?? [];
+
+  const createComplaintMutation = trpc.complaints.create.useMutation({
+    onSuccess: () => allComplaintsQuery.refetch(),
+  });
+
+  const logoutMutation = trpc.project.logout.useMutation({
+    onSuccess: () => { setProjectUser(null); },
+  });
+
+  // Complaint modal state
+  const [complaintModal, setComplaintModal] = useState<{ phaseIndex: number; phaseName: string } | null>(null);
+  const [complaintTitle, setComplaintTitle] = useState("");
+  const [complaintDesc, setComplaintDesc] = useState("");
+  const [complaintImg, setComplaintImg] = useState<{ base64: string; mime: string } | null>(null);
+  const [complaintLoading, setComplaintLoading] = useState(false);
+
+  // Replies modal state
+  const [repliesModal, setRepliesModal] = useState<{ id: number; title: string; phaseIndex: number } | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [replyImg, setReplyImg] = useState<{ base64: string; mime: string } | null>(null);
+
+  const repliesQuery = trpc.complaints.getReplies.useQuery(
+    { complaintId: repliesModal?.id ?? 0 },
+    { enabled: !!repliesModal, refetchInterval: 10000 }
+  );
+  const addReplyMutation = trpc.complaints.addReply.useMutation({
+    onSuccess: () => { repliesQuery.refetch(); setReplyText(""); setReplyImg(null); },
+  });
+  const closeMutation = trpc.complaints.close.useMutation({
+    onSuccess: () => { allComplaintsQuery.refetch(); repliesQuery.refetch(); },
+  });
+
+  const fileToBase64 = (file: File): Promise<{ base64: string; mime: string }> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve({ base64: (reader.result as string).split(",")[1], mime: file.type });
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
   // Calculate totals
   const finishingTotal = finishingItems.filter(i => selectedFinishing.has(i.id)).reduce((s, i) => s + i.price, 0);
   const furnitureTotal = Object.entries(selectedFurniture).reduce((s, [rId, oId]) => {
@@ -752,6 +822,19 @@ export default function Home() {
             {/* Logo */}
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
               <img src={`${CDN}/ProfessorLogo(1)_351dfbb8.png`} alt="Professor Logo" style={{ height: "36px", objectFit: "contain" }} />
+            </div>
+            {/* Login Button */}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              {projectUser ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <span style={{ color: GOLD, fontSize: "0.78rem", fontWeight: 600 }}>
+                    {projectUser.role === "admin" ? "👑" : projectUser.role === "engineer" ? "🔧" : projectUser.role === "aftersales" ? "🎯" : "👤"} {projectUser.displayName}
+                  </span>
+                  <button onClick={() => logoutMutation.mutate()} style={{ background: "transparent", border: `1px solid ${GOLD_BORDER}`, color: TEXT_MUTED, borderRadius: "0.4rem", padding: "0.25rem 0.6rem", fontSize: "0.72rem", cursor: "pointer", fontFamily: "'Cairo', sans-serif" }}>خروج</button>
+                </div>
+              ) : (
+                <button onClick={() => setShowLogin(true)} style={{ background: `${GOLD}20`, border: `1px solid ${GOLD}60`, color: GOLD, borderRadius: "0.5rem", padding: "0.35rem 0.8rem", fontSize: "0.8rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Cairo', sans-serif" }}>🔐 دخول المهندس</button>
+              )}
             </div>
             {/* Nav Items */}
             <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
@@ -1430,9 +1513,18 @@ export default function Home() {
                 const isCurrentPhase = currentPhaseIndex === idx;
                 const isPast = contractDate && computed && !phase.continuous && computed.endDate && computed.endDate < today;
                 const isFuture = contractDate && computed && !phase.continuous && computed.startDate > today;
-                const statusColor = isPast ? "oklch(0.72 0.1 130)" : isCurrentPhase ? "oklch(0.78 0.15 50)" : isFuture ? TEXT_MUTED : GOLD;
-                const statusBg = isPast ? "oklch(0.72 0.1 130 / 12%)" : isCurrentPhase ? "oklch(0.78 0.15 50 / 20%)" : CARD_BG;
-                const statusBorder = isPast ? "oklch(0.72 0.1 130 / 40%)" : isCurrentPhase ? "oklch(0.78 0.15 50 / 80%)" : GOLD_BORDER;
+
+                // DB status
+                const dbStatus = phaseStatuses.find(s => s.phaseIndex === phase.id);
+                const isDbCompleted = dbStatus?.isCompleted ?? false;
+
+                const statusColor = isDbCompleted ? "oklch(0.72 0.1 130)" : isCurrentPhase ? "oklch(0.78 0.15 50)" : isFuture ? TEXT_MUTED : GOLD;
+                const statusBg = isDbCompleted ? "oklch(0.72 0.1 130 / 12%)" : isCurrentPhase ? "oklch(0.78 0.15 50 / 20%)" : CARD_BG;
+                const statusBorder = isDbCompleted ? "oklch(0.72 0.1 130 / 40%)" : isCurrentPhase ? "oklch(0.78 0.15 50 / 80%)" : GOLD_BORDER;
+
+                // Complaints for this phase
+                const phaseComplaints = allComplaints.filter(c => c.phaseIndex === phase.id);
+                const openComplaints = phaseComplaints.filter(c => c.status !== "closed");
 
                 return (
                   <div key={phase.id} style={{
@@ -1442,41 +1534,51 @@ export default function Home() {
                     padding: "0.9rem 1.1rem",
                     display: "flex",
                     alignItems: "center",
-                    gap: "1rem",
+                    gap: "0.75rem",
                     position: "relative",
                     transition: "all 0.2s",
+                    flexWrap: "wrap",
                   }}>
                     {/* Phase Number */}
                     <div style={{
                       width: "36px", height: "36px", borderRadius: "50%", flexShrink: 0,
-                      background: isPast ? "oklch(0.72 0.1 130)" : isCurrentPhase ? "oklch(0.78 0.15 50)" : CARD_BG2,
+                      background: isDbCompleted ? "oklch(0.72 0.1 130)" : isCurrentPhase ? "oklch(0.78 0.15 50)" : CARD_BG2,
                       border: `2px solid ${statusBorder}`,
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: "0.8rem", fontWeight: 900, color: isPast || isCurrentPhase ? DARK : statusColor,
+                      fontSize: "0.8rem", fontWeight: 900, color: isDbCompleted || isCurrentPhase ? DARK : statusColor,
                     }}>
-                      {isPast ? "✓" : phase.id}
+                      {isDbCompleted ? "✓" : phase.id}
                     </div>
 
                     {/* Icon */}
                     <div style={{ fontSize: "1.3rem", flexShrink: 0 }}>{phase.icon}</div>
 
                     {/* Content */}
-                    <div style={{ flex: 1 }}>
+                    <div style={{ flex: 1, minWidth: "120px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-                        <span style={{ color: isCurrentPhase ? "oklch(0.78 0.15 50)" : isPast ? "oklch(0.72 0.1 130)" : TEXT_PRIMARY, fontWeight: 700, fontSize: "0.9rem" }}>
+                        <span style={{ color: isCurrentPhase ? "oklch(0.78 0.15 50)" : isDbCompleted ? "oklch(0.72 0.1 130)" : TEXT_PRIMARY, fontWeight: 700, fontSize: "0.9rem" }}>
                           {phase.name}
                         </span>
-                        {isCurrentPhase && (
+                        {isCurrentPhase && !isDbCompleted && (
                           <span style={{ background: "oklch(0.78 0.15 50)", color: DARK, fontSize: "0.65rem", fontWeight: 900, padding: "2px 8px", borderRadius: "999px" }}>أنتم هنا الآن 📍</span>
                         )}
-                        {isPast && (
-                          <span style={{ background: "oklch(0.72 0.1 130 / 30%)", color: "oklch(0.72 0.1 130)", fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: "999px" }}>✅ مكتملة</span>
+                        {isDbCompleted && (
+                          <span style={{ background: "oklch(0.72 0.1 130 / 30%)", color: "oklch(0.72 0.1 130)", fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: "999px" }}>✅ تم الإنجاز</span>
+                        )}
+                        {dbStatus && !isDbCompleted && (
+                          <span style={{ background: "oklch(0.65 0.15 30 / 20%)", color: "oklch(0.65 0.15 30)", fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: "999px" }}>⏳ قيد التنفيذ</span>
                         )}
                         {phase.continuous && (
                           <span style={{ background: `${GOLD}20`, color: GOLD, fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: "999px" }}>🔄 مستمر</span>
                         )}
+                        {openComplaints.length > 0 && (
+                          <span style={{ background: "oklch(0.55 0.2 30 / 20%)", color: "oklch(0.65 0.2 30)", fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: "999px" }}>⚠️ {openComplaints.length} شكوى مفتوحة</span>
+                        )}
                       </div>
                       <div style={{ color: TEXT_MUTED, fontSize: "0.78rem", marginTop: "0.2rem" }}>{phase.desc}</div>
+                      {dbStatus?.completedBy && (
+                        <div style={{ color: TEXT_MUTED, fontSize: "0.7rem", marginTop: "0.15rem" }}>✍️ {isDbCompleted ? "أنجزه" : "تحديث بواسطة"}: {dbStatus.completedBy}</div>
+                      )}
                     </div>
 
                     {/* Duration & Dates */}
@@ -1493,6 +1595,71 @@ export default function Home() {
                             <> → {computed.endDate.toLocaleDateString("ar-EG", { day: "numeric", month: "short" })}</>
                           )}
                         </div>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", flexShrink: 0 }}>
+                      {/* Status Toggle - Engineer/Admin only */}
+                      {projectUser && (projectUser.role === "engineer" || projectUser.role === "admin") && (
+                        <button
+                          onClick={() => setStatusMutation.mutate({
+                            phaseIndex: phase.id,
+                            isCompleted: !isDbCompleted,
+                            username: projectUser.username,
+                            role: projectUser.role,
+                          })}
+                          style={{
+                            background: isDbCompleted ? "oklch(0.72 0.1 130 / 20%)" : `${GOLD}20`,
+                            border: `1px solid ${isDbCompleted ? "oklch(0.72 0.1 130)" : GOLD}`,
+                            color: isDbCompleted ? "oklch(0.72 0.1 130)" : GOLD,
+                            borderRadius: "0.4rem", padding: "0.25rem 0.6rem",
+                            fontSize: "0.72rem", fontWeight: 700, cursor: "pointer",
+                            fontFamily: "'Cairo', sans-serif", whiteSpace: "nowrap",
+                          }}
+                        >
+                          {isDbCompleted ? "↩️ إلغاء الإنجاز" : "✅ تم الإنجاز"}
+                        </button>
+                      )}
+
+                      {/* Complaint Button - Client/Anyone */}
+                      <button
+                        onClick={() => {
+                          if (!projectUser) { setShowLogin(true); return; }
+                          setComplaintModal({ phaseIndex: phase.id, phaseName: phase.name });
+                          setComplaintTitle(""); setComplaintDesc(""); setComplaintImg(null);
+                        }}
+                        style={{
+                          background: "oklch(0.55 0.2 30 / 10%)",
+                          border: "1px solid oklch(0.55 0.2 30 / 40%)",
+                          color: "oklch(0.65 0.2 30)",
+                          borderRadius: "0.4rem", padding: "0.25rem 0.6rem",
+                          fontSize: "0.72rem", fontWeight: 700, cursor: "pointer",
+                          fontFamily: "'Cairo', sans-serif", whiteSpace: "nowrap",
+                        }}
+                      >
+                        📝 شكوى / مراجعة
+                      </button>
+
+                      {/* View Complaints */}
+                      {phaseComplaints.length > 0 && (
+                        <button
+                          onClick={() => {
+                            if (!projectUser) { setShowLogin(true); return; }
+                            // Show first complaint's replies
+                            setRepliesModal({ id: phaseComplaints[0].id, title: phaseComplaints[0].title, phaseIndex: phase.id });
+                          }}
+                          style={{
+                            background: "oklch(0.5 0.15 270 / 10%)",
+                            border: "1px solid oklch(0.5 0.15 270 / 40%)",
+                            color: "oklch(0.65 0.15 270)",
+                            borderRadius: "0.4rem", padding: "0.25rem 0.6rem",
+                            fontSize: "0.72rem", fontWeight: 700, cursor: "pointer",
+                            fontFamily: "'Cairo', sans-serif", whiteSpace: "nowrap",
+                          }}
+                        >
+                          💬 عرض الشكاوى ({phaseComplaints.length})
+                        </button>
                       )}
                     </div>
                   </div>
@@ -1619,6 +1786,95 @@ export default function Home() {
               </div>
             )}
 
+            {/* Payment Schedule */}
+            {grandTotal > 0 && contractDate && computedTimeline.length > 0 && (() => {
+              // Payment milestones based on phase end dates
+              const phase11 = computedTimeline[10]; // index 10 = phase 11
+              const phase15 = computedTimeline[14]; // index 14 = phase 15
+              const phase16 = computedTimeline[15]; // index 15 = phase 16
+              const contractDateObj = new Date(contractDate);
+
+              const payments = [
+                {
+                  label: "دفعة التعاقد",
+                  pct: 50,
+                  amount: Math.round(grandTotal * 0.5),
+                  date: contractDateObj,
+                  icon: "🤝",
+                  desc: "عند توقيع العقد",
+                  color: "#d4af37",
+                },
+                {
+                  label: "الدفعة الأولى",
+                  pct: 20,
+                  amount: Math.round(grandTotal * 0.2),
+                  date: phase11?.endDate ?? null,
+                  icon: "🔧",
+                  desc: "بعد إنهاء أعمال التأسيس (المرحلة 11)",
+                  color: "#60a5fa",
+                },
+                {
+                  label: "الدفعة الثانية",
+                  pct: 20,
+                  amount: Math.round(grandTotal * 0.2),
+                  date: phase15?.endDate ?? null,
+                  icon: "🖌️",
+                  desc: "بعد إنهاء أعمال الدهانات (المرحلة 15)",
+                  color: "#a78bfa",
+                },
+                {
+                  label: "دفعة التسليم",
+                  pct: 10,
+                  amount: Math.round(grandTotal * 0.1),
+                  date: phase16?.endDate ?? null,
+                  icon: "🎉",
+                  desc: "بعد البروفة والتسليم النهائي (المرحلة 16)",
+                  color: "#34d399",
+                },
+              ];
+
+              return (
+                <div style={{ background: CARD_BG, border: `1px solid ${GOLD_BORDER}`, borderRadius: "1rem", padding: "1.25rem", marginBottom: "1rem" }}>
+                  <h3 style={{ color: GOLD, fontWeight: 700, marginBottom: "1rem", fontSize: "1rem" }}>💳 جدول الدفعات</h3>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "0.75rem" }}>
+                    {payments.map((p, i) => (
+                      <div key={i} style={{
+                        background: `${p.color}12`,
+                        border: `1px solid ${p.color}40`,
+                        borderRadius: "0.75rem",
+                        padding: "1rem",
+                        position: "relative",
+                        overflow: "hidden",
+                      }}>
+                        {/* Percentage badge */}
+                        <div style={{
+                          position: "absolute", top: "0.75rem", left: "0.75rem",
+                          background: p.color, color: "#000", borderRadius: "999px",
+                          padding: "2px 10px", fontSize: "0.72rem", fontWeight: 900,
+                        }}>{p.pct}%</div>
+                        <div style={{ fontSize: "1.5rem", marginBottom: "0.4rem" }}>{p.icon}</div>
+                        <div style={{ color: p.color, fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.25rem" }}>{p.label}</div>
+                        <div style={{ color: TEXT_PRIMARY, fontWeight: 900, fontSize: "1.3rem", marginBottom: "0.25rem" }}>
+                          {formatPrice(p.amount)} <span style={{ fontSize: "0.75rem", color: TEXT_SECONDARY }}>جنيه</span>
+                        </div>
+                        <div style={{ color: TEXT_MUTED, fontSize: "0.72rem", marginBottom: "0.4rem" }}>{p.desc}</div>
+                        {p.date && (
+                          <div style={{ background: `${p.color}20`, borderRadius: "0.4rem", padding: "4px 8px", display: "inline-block" }}>
+                            <span style={{ color: p.color, fontSize: "0.75rem", fontWeight: 700 }}>
+                              📅 {p.date.toLocaleDateString("ar-EG", { day: "numeric", month: "long", year: "numeric" })}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: "0.75rem", padding: "0.75rem", background: `${GOLD}10`, borderRadius: "0.5rem", textAlign: "center" }}>
+                    <span style={{ color: TEXT_SECONDARY, fontSize: "0.8rem" }}>⚠️ المواعيد تقديرية بناءً على تاريخ التعاقد المُدخل وقد تتغير حسب سير الأعمال</span>
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* Grand Total */}
             {grandTotal > 0 ? (
               <div style={{ background: `linear-gradient(135deg, ${GOLD}, oklch(0.6 0.1 75))`, borderRadius: "1rem", padding: "1.75rem", textAlign: "center" }}>
@@ -1658,6 +1914,257 @@ export default function Home() {
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
       `}</style>
+
+      {/* ===== LOGIN MODAL ===== */}
+      {showLogin && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 1000,
+          display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem",
+        }} onClick={() => setShowLogin(false)}>
+          <div style={{
+            background: "oklch(0.14 0.006 285)", border: `1px solid ${GOLD}60`,
+            borderRadius: "1rem", padding: "2rem", width: "100%", maxWidth: "380px",
+          }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ color: GOLD, fontSize: "1.2rem", fontWeight: 900, marginBottom: "1.5rem", textAlign: "center" }}>🔐 تسجيل الدخول</h3>
+            <ProjectLogin
+              onLogin={(user) => {
+                setProjectUser(user);
+                setShowLogin(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ===== COMPLAINT MODAL ===== */}
+      {complaintModal && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 1000,
+          display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem",
+        }} onClick={() => setComplaintModal(null)}>
+          <div style={{
+            background: "oklch(0.14 0.006 285)", border: `1px solid oklch(0.55 0.2 30 / 60%)`,
+            borderRadius: "1rem", padding: "1.5rem", width: "100%", maxWidth: "480px",
+          }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ color: "oklch(0.65 0.2 30)", fontSize: "1.1rem", fontWeight: 900, marginBottom: "0.5rem" }}>📝 شكوى / طلب مراجعة</h3>
+            <p style={{ color: TEXT_MUTED, fontSize: "0.8rem", marginBottom: "1rem" }}>المرحلة: {complaintModal.phaseName}</p>
+
+            <div style={{ marginBottom: "0.75rem" }}>
+              <label style={{ color: TEXT_SECONDARY, fontSize: "0.8rem", display: "block", marginBottom: "0.3rem" }}>عنوان الشكوى *</label>
+              <input
+                value={complaintTitle}
+                onChange={e => setComplaintTitle(e.target.value)}
+                placeholder="اكتب عنوان الشكوى..."
+                style={{
+                  width: "100%", background: CARD_BG2, border: `1px solid ${GOLD_BORDER}`,
+                  borderRadius: "0.5rem", padding: "0.5rem 0.75rem", color: TEXT_PRIMARY,
+                  fontSize: "0.85rem", fontFamily: "'Cairo', sans-serif", boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: "0.75rem" }}>
+              <label style={{ color: TEXT_SECONDARY, fontSize: "0.8rem", display: "block", marginBottom: "0.3rem" }}>تفاصيل الشكوى</label>
+              <textarea
+                value={complaintDesc}
+                onChange={e => setComplaintDesc(e.target.value)}
+                placeholder="اشرح المشكلة بالتفصيل..."
+                rows={3}
+                style={{
+                  width: "100%", background: CARD_BG2, border: `1px solid ${GOLD_BORDER}`,
+                  borderRadius: "0.5rem", padding: "0.5rem 0.75rem", color: TEXT_PRIMARY,
+                  fontSize: "0.85rem", fontFamily: "'Cairo', sans-serif", resize: "vertical", boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: "1rem" }}>
+              <label style={{ color: TEXT_SECONDARY, fontSize: "0.8rem", display: "block", marginBottom: "0.3rem" }}>📷 إرفاق صورة (اختياري)</label>
+              <input
+                type="file" accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = (ev) => {
+                    const base64 = (ev.target?.result as string).split(",")[1];
+                    setComplaintImg({ base64, mime: file.type });
+                  };
+                  reader.readAsDataURL(file);
+                }}
+                style={{ color: TEXT_SECONDARY, fontSize: "0.8rem" }}
+              />
+              {complaintImg && <p style={{ color: "oklch(0.72 0.1 130)", fontSize: "0.75rem", marginTop: "0.25rem" }}>✅ تم اختيار الصورة</p>}
+            </div>
+
+            <div style={{ display: "flex", gap: "0.75rem" }}>
+              <button
+                disabled={!complaintTitle.trim() || complaintLoading}
+                onClick={async () => {
+                  if (!projectUser || !complaintTitle.trim()) return;
+                  setComplaintLoading(true);
+                  try {
+                    await createComplaintMutation.mutateAsync({
+                      phaseIndex: complaintModal.phaseIndex,
+                      title: complaintTitle.trim(),
+                      description: complaintDesc.trim() || complaintTitle.trim(),
+                      imageBase64: complaintImg?.base64,
+                      imageMimeType: complaintImg?.mime,
+                      submittedBy: projectUser.username,
+                      submitterName: projectUser.displayName,
+                    });
+                    setComplaintModal(null);
+                  } finally {
+                    setComplaintLoading(false);
+                  }
+                }}
+                style={{
+                  flex: 1, background: complaintTitle.trim() ? "oklch(0.55 0.2 30)" : CARD_BG2,
+                  border: "none", color: complaintTitle.trim() ? "white" : TEXT_MUTED,
+                  borderRadius: "0.5rem", padding: "0.6rem", fontSize: "0.85rem",
+                  fontWeight: 700, cursor: complaintTitle.trim() ? "pointer" : "not-allowed",
+                  fontFamily: "'Cairo', sans-serif",
+                }}
+              >
+                {complaintLoading ? "جاري الإرسال..." : "📤 إرسال الشكوى"}
+              </button>
+              <button
+                onClick={() => setComplaintModal(null)}
+                style={{
+                  background: "transparent", border: `1px solid ${GOLD_BORDER}`, color: TEXT_MUTED,
+                  borderRadius: "0.5rem", padding: "0.6rem 1rem", fontSize: "0.85rem",
+                  cursor: "pointer", fontFamily: "'Cairo', sans-serif",
+                }}
+              >إلغاء</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== REPLIES MODAL ===== */}
+      {repliesModal && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 1000,
+          display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem",
+        }} onClick={() => setRepliesModal(null)}>
+          <div style={{
+            background: "oklch(0.14 0.006 285)", border: `1px solid oklch(0.5 0.15 270 / 60%)`,
+            borderRadius: "1rem", padding: "1.5rem", width: "100%", maxWidth: "520px",
+            maxHeight: "80vh", overflow: "auto",
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
+              <div>
+                <h3 style={{ color: "oklch(0.65 0.15 270)", fontSize: "1.1rem", fontWeight: 900 }}>💬 {repliesModal.title}</h3>
+                <p style={{ color: TEXT_MUTED, fontSize: "0.75rem" }}>المرحلة {repliesModal.phaseIndex}</p>
+              </div>
+              {/* Close complaint button - aftersales/admin only */}
+              {projectUser && (projectUser.role === "aftersales" || projectUser.role === "admin") && (
+                <button
+                  onClick={() => closeMutation.mutate({ complaintId: repliesModal.id, closedBy: projectUser.username, role: projectUser.role })}
+                  style={{
+                    background: "oklch(0.72 0.1 130 / 20%)", border: "1px solid oklch(0.72 0.1 130)",
+                    color: "oklch(0.72 0.1 130)", borderRadius: "0.4rem", padding: "0.3rem 0.7rem",
+                    fontSize: "0.75rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Cairo', sans-serif",
+                  }}
+                >
+                  ✅ إغلاق الشكوى
+                </button>
+              )}
+            </div>
+
+            {/* Replies list */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1rem" }}>
+              {(repliesQuery.data ?? []).length === 0 ? (
+                <p style={{ color: TEXT_MUTED, fontSize: "0.85rem", textAlign: "center" }}>لا توجد ردود بعد</p>
+              ) : (
+                (repliesQuery.data ?? []).map((reply: any) => (
+                  <div key={reply.id} style={{
+                    background: CARD_BG2, borderRadius: "0.5rem", padding: "0.75rem",
+                    border: `1px solid ${GOLD_BORDER}`,
+                  }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.3rem" }}>
+                      <span style={{ color: GOLD, fontSize: "0.78rem", fontWeight: 700 }}>{reply.authorName}</span>
+                      <span style={{ color: TEXT_MUTED, fontSize: "0.7rem" }}>{new Date(reply.createdAt).toLocaleDateString("ar-EG")}</span>
+                    </div>
+                    <p style={{ color: TEXT_PRIMARY, fontSize: "0.85rem", margin: 0 }}>{reply.content}</p>
+                    {reply.imageUrl && (
+                      <img src={reply.imageUrl} alt="مرفق" style={{ maxWidth: "100%", maxHeight: "200px", objectFit: "contain", marginTop: "0.5rem", borderRadius: "0.4rem" }} />
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Add reply - engineers/admin/aftersales */}
+            {projectUser && (projectUser.role !== "client") && (
+              <div>
+                <textarea
+                  value={replyText}
+                  onChange={e => setReplyText(e.target.value)}
+                  placeholder="اكتب ردك هنا..."
+                  rows={2}
+                  style={{
+                    width: "100%", background: CARD_BG2, border: `1px solid ${GOLD_BORDER}`,
+                    borderRadius: "0.5rem", padding: "0.5rem 0.75rem", color: TEXT_PRIMARY,
+                    fontSize: "0.85rem", fontFamily: "'Cairo', sans-serif", resize: "vertical", boxSizing: "border-box",
+                    marginBottom: "0.5rem",
+                  }}
+                />
+                <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                  <input
+                    type="file" accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = (ev) => {
+                        const base64 = (ev.target?.result as string).split(",")[1];
+                        setReplyImg({ base64, mime: file.type });
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                    style={{ color: TEXT_MUTED, fontSize: "0.75rem", flex: 1 }}
+                  />
+                  <button
+                    disabled={!replyText.trim()}
+                    onClick={() => {
+                      if (!replyText.trim() || !projectUser) return;
+                      addReplyMutation.mutate({
+                        complaintId: repliesModal.id,
+                        message: replyText.trim(),
+                        imageBase64: replyImg?.base64,
+                        imageMimeType: replyImg?.mime,
+                        repliedBy: projectUser.username,
+                        replierName: projectUser.displayName,
+                        replierRole: projectUser.role,
+                      });
+                      setReplyText(""); setReplyImg(null);
+                    }}
+                    style={{
+                      background: replyText.trim() ? GOLD : CARD_BG2, border: "none",
+                      color: replyText.trim() ? DARK : TEXT_MUTED,
+                      borderRadius: "0.5rem", padding: "0.5rem 1rem",
+                      fontSize: "0.82rem", fontWeight: 700, cursor: replyText.trim() ? "pointer" : "not-allowed",
+                      fontFamily: "'Cairo', sans-serif", whiteSpace: "nowrap",
+                    }}
+                  >
+                    إرسال الرد
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={() => setRepliesModal(null)}
+              style={{
+                marginTop: "1rem", background: "transparent", border: `1px solid ${GOLD_BORDER}`,
+                color: TEXT_MUTED, borderRadius: "0.5rem", padding: "0.4rem 1rem",
+                fontSize: "0.82rem", cursor: "pointer", fontFamily: "'Cairo', sans-serif", width: "100%",
+              }}
+            >إغلاق</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

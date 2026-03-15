@@ -1,0 +1,9 @@
+{
+  "query": "\nINSERT INTO project_users (username, passwordHash, displayName, role) VALUES\n('admin.professor', '$2b$10$aa.BNMdRuzY8s9QI3wvqb.Ui8zSrtIhUJjjhRZaYD0U0HvyOvdRS.', 'مدير النظام', 'admin'),\n('eng.mohamed', '$2b$10$aa.BNMdRuzY8s9QI3wvqb.Gm4kNf.B3hEHP2chSiRj.Nqu3tInwm2', 'بشمهندس محمد محمود عبد العاطي', 'engineer'),\n('eng.mostafa', '$2b$10$aa.BNMdRuzY8s9QI3wvqb.Gm4kNf.B3hEHP2chSiRj.Nqu3tInwm2', 'بشمهندس مصطفى قنديل', 'engineer'),\n('malek.aftersales', '$2b$10$aa.BNMdRuzY8s9QI3wvqb.aV7ghzWWUjsF3rv2SD6KEDl0lapuwCK', 'أ. ملك - After Sales', 'aftersales'),\n('ali.rashed', '$2b$10$aa.BNMdRuzY8s9QI3wvqb.L7qR1BhGBO0mn6CpoKvFJo8Jg5MA3DO', 'مستر علي راشد', 'client');\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user fZydmv6Jueen1GW.cfb05311e4af --database mRvpKEsVM97L32dYU7ka6B --execute \nINSERT INTO project_users (username, passwordHash, displayName, role) VALUES\n('admin.professor', '$2b$10$aa.BNMdRuzY8s9QI3wvqb.Ui8zSrtIhUJjjhRZaYD0U0HvyOvdRS.', 'مدير النظام', 'admin'),\n('eng.mohamed', '$2b$10$aa.BNMdRuzY8s9QI3wvqb.Gm4kNf.B3hEHP2chSiRj.Nqu3tInwm2', 'بشمهندس محمد محمود عبد العاطي', 'engineer'),\n('eng.mostafa', '$2b$10$aa.BNMdRuzY8s9QI3wvqb.Gm4kNf.B3hEHP2chSiRj.Nqu3tInwm2', 'بشمهندس مصطفى قنديل', 'engineer'),\n('malek.aftersales', '$2b$10$aa.BNMdRuzY8s9QI3wvqb.aV7ghzWWUjsF3rv2SD6KEDl0lapuwCK', 'أ. ملك - After Sales', 'aftersales'),\n('ali.rashed', '$2b$10$aa.BNMdRuzY8s9QI3wvqb.L7qR1BhGBO0mn6CpoKvFJo8Jg5MA3DO', 'مستر علي راشد', 'client');\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1531
+}

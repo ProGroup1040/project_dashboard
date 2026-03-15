@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, projectUsers, phaseStatuses, complaints, complaintReplies } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,94 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// ===================== PROJECT QUERIES =====================
+
+export async function getProjectUserByUsername(username: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(projectUsers).where(eq(projectUsers.username, username)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getAllPhaseStatuses() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(phaseStatuses);
+}
+
+export async function upsertPhaseStatus(phaseIndex: number, isCompleted: boolean, completedBy: string) {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await db.select().from(phaseStatuses).where(eq(phaseStatuses.phaseIndex, phaseIndex)).limit(1);
+  if (existing.length > 0) {
+    await db.update(phaseStatuses)
+      .set({ isCompleted, completedBy, completedAt: isCompleted ? new Date() : null })
+      .where(eq(phaseStatuses.phaseIndex, phaseIndex));
+  } else {
+    await db.insert(phaseStatuses).values({
+      phaseIndex,
+      isCompleted,
+      completedBy,
+      completedAt: isCompleted ? new Date() : null,
+    });
+  }
+}
+
+export async function getComplaintsByPhase(phaseIndex: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(complaints).where(eq(complaints.phaseIndex, phaseIndex)).orderBy(desc(complaints.createdAt));
+}
+
+export async function getAllComplaints() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(complaints).orderBy(desc(complaints.createdAt));
+}
+
+export async function createComplaint(data: {
+  phaseIndex: number;
+  submittedBy: string;
+  submitterName: string;
+  title: string;
+  description: string;
+  imageUrl?: string;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(complaints).values(data);
+  return result;
+}
+
+export async function getComplaintReplies(complaintId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(complaintReplies).where(eq(complaintReplies.complaintId, complaintId)).orderBy(complaintReplies.createdAt);
+}
+
+export async function addComplaintReply(data: {
+  complaintId: number;
+  repliedBy: string;
+  replierName: string;
+  replierRole: "admin" | "engineer" | "aftersales" | "client";
+  message: string;
+  imageUrl?: string;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  return db.insert(complaintReplies).values(data);
+}
+
+export async function closeComplaint(complaintId: number, closedBy: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(complaints)
+    .set({ status: "closed", closedBy, closedAt: new Date() })
+    .where(eq(complaints.id, complaintId));
+}
+
+export async function updateComplaintStatus(complaintId: number, status: "open" | "in_review" | "closed") {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(complaints).set({ status }).where(eq(complaints.id, complaintId));
+}
