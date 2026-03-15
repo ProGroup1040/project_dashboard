@@ -1557,6 +1557,9 @@ export default function Home() {
             <div style={{ marginBottom: "1.5rem" }}>
               <h2 style={{ color: GOLD, fontSize: "1.6rem", fontWeight: 900 }}>🔨 مقايسة التشطيب</h2>
               <p style={{ color: TEXT_SECONDARY, fontSize: "0.9rem" }}>اختر البنود التي تريد تضمينها في مقايستك (يمكن اختيار أكثر من بند)</p>
+              <p style={{ color: `${GOLD}cc`, fontSize: "0.82rem", marginTop: "0.5rem", lineHeight: 1.7, background: `${GOLD}0a`, border: `1px solid ${GOLD}30`, borderRadius: "0.6rem", padding: "0.6rem 1rem" }}>
+                ✦ السعر يشمل التوريد والتنفيذ الكامل للبند، وجميع أعمال التأسيس والتركيب، وتوريد العمالة المتخصصة، والإشراف الفني والمتابعة الدورية من قبل الشركة، حتى تسليم البند جاهزاً للعميل طبقاً للأصول الفنية والهندسية، مع ضمان الأعمال المنفذة ضد عيوب التنفيذ.
+              </p>
               {finishingTotal > 0 && (
                 <div style={{ background: `${GOLD}20`, border: `1px solid ${GOLD}60`, borderRadius: "0.5rem", padding: "0.5rem 1rem", marginTop: "0.75rem", display: "inline-block" }}>
                   <span style={{ color: GOLD, fontWeight: 700 }}>إجمالي التشطيب المختار: {formatPrice(finishingTotal)} جنيه</span>
