@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
+import jsPDF from "jspdf";
 import { trpc } from "@/lib/trpc";
 import ProjectLogin from "./ProjectLogin";
 
@@ -1125,6 +1126,356 @@ export default function Home() {
     window.print();
   };
 
+  const handleExportPDF = async () => {
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const W = 210;
+    const goldR = 212, goldG = 175, goldB = 55;
+    const darkR = 18, darkG = 18, darkB = 24;
+    let y = 0;
+
+    const addPage = () => {
+      doc.addPage();
+      doc.setFillColor(darkR, darkG, darkB);
+      doc.rect(0, 0, W, 297, "F");
+      y = 15;
+    };
+
+    const checkY = (needed: number) => {
+      if (y + needed > 280) addPage();
+    };
+
+    // ---- Page 1: Cover ----
+    doc.setFillColor(darkR, darkG, darkB);
+    doc.rect(0, 0, W, 297, "F");
+
+    // Gold top bar
+    doc.setFillColor(goldR, goldG, goldB);
+    doc.rect(0, 0, W, 2, "F");
+
+    // Logo text (since we can't embed image easily)
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(28);
+    doc.setTextColor(goldR, goldG, goldB);
+    doc.text("PROFESSOR", W / 2, 40, { align: "center" });
+
+    doc.setFontSize(11);
+    doc.setTextColor(180, 160, 100);
+    doc.text("Perfection in Every Detail", W / 2, 50, { align: "center" });
+
+    // Divider
+    doc.setDrawColor(goldR, goldG, goldB);
+    doc.setLineWidth(0.5);
+    doc.line(30, 58, W - 30, 58);
+
+    // Title
+    doc.setFontSize(20);
+    doc.setTextColor(goldR, goldG, goldB);
+    doc.text("Project Quotation Summary", W / 2, 75, { align: "center" });
+    doc.setFontSize(14);
+    doc.setTextColor(200, 185, 130);
+    doc.text("\u0645\u0644\u062e\u0635 \u0645\u0642\u0627\u064a\u0633\u0629 \u0645\u0634\u0631\u0648\u0639 \u0634\u0642\u0629 \u0645\u062f\u064a\u0646\u062a\u064a", W / 2, 85, { align: "center" });
+
+    // Client info box
+    doc.setFillColor(30, 28, 38);
+    doc.roundedRect(20, 100, W - 40, 55, 3, 3, "F");
+    doc.setDrawColor(goldR, goldG, goldB);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(20, 100, W - 40, 55, 3, 3, "S");
+
+    const clientInfoItems = [
+      ["Client", "Mr. Ali Rashed"],
+      ["Location", "Madinaty"],
+      ["Area", "140 sqm"],
+      ["Date", "March 2026"],
+    ];
+    doc.setFontSize(10);
+    clientInfoItems.forEach(([label, value], i) => {
+      const cx = 30 + (i % 2) * 85;
+      const cy = 115 + Math.floor(i / 2) * 18;
+      doc.setTextColor(150, 140, 100);
+      doc.text(label + ":", cx, cy);
+      doc.setTextColor(goldR, goldG, goldB);
+      doc.setFont("helvetica", "bold");
+      doc.text(value, cx + 22, cy);
+      doc.setFont("helvetica", "normal");
+    });
+
+    // Grand total on cover
+    if (grandTotal > 0) {
+      doc.setFillColor(goldR, goldG, goldB);
+      doc.roundedRect(20, 168, W - 40, 28, 3, 3, "F");
+      doc.setFontSize(11);
+      doc.setTextColor(darkR, darkG, darkB);
+      doc.setFont("helvetica", "bold");
+      doc.text("Total Project Value", W / 2, 179, { align: "center" });
+      doc.setFontSize(18);
+      doc.text(formatPrice(grandTotal) + " EGP", W / 2, 190, { align: "center" });
+      doc.setFont("helvetica", "normal");
+    }
+
+    // Gold bottom bar
+    doc.setFillColor(goldR, goldG, goldB);
+    doc.rect(0, 295, W, 2, "F");
+
+    // ---- Page 2: Finishing Items ----
+    if (selectedFinishing.size > 0) {
+      addPage();
+      doc.setFontSize(16);
+      doc.setTextColor(goldR, goldG, goldB);
+      doc.setFont("helvetica", "bold");
+      doc.text("Finishing Works", 15, y);
+      doc.setFontSize(9);
+      doc.setTextColor(150, 140, 100);
+      doc.text("\u0623\u0639\u0645\u0627\u0644 \u0627\u0644\u062a\u0634\u0637\u064a\u0628", 15, y + 7);
+      doc.setFont("helvetica", "normal");
+      y += 18;
+
+      // Header row
+      doc.setFillColor(40, 38, 50);
+      doc.rect(15, y, W - 30, 8, "F");
+      doc.setFontSize(9);
+      doc.setTextColor(goldR, goldG, goldB);
+      doc.text("Item", 20, y + 5.5);
+      doc.text("Price (EGP)", W - 50, y + 5.5);
+      y += 10;
+
+      const selectedItems = finishingItems.filter(i => selectedFinishing.has(i.id));
+      selectedItems.forEach((item, idx) => {
+        checkY(10);
+        if (idx % 2 === 0) {
+          doc.setFillColor(25, 24, 32);
+          doc.rect(15, y - 1, W - 30, 9, "F");
+        }
+        doc.setFontSize(9);
+        doc.setTextColor(220, 210, 180);
+        const itemName = item.name.length > 45 ? item.name.substring(0, 42) + "..." : item.name;
+        doc.text(itemName, 20, y + 5);
+        doc.setTextColor(goldR, goldG, goldB);
+        doc.setFont("helvetica", "bold");
+        doc.text(formatPrice(item.price), W - 50, y + 5);
+        doc.setFont("helvetica", "normal");
+        if (item.paid) {
+          doc.setFillColor(34, 197, 94);
+          doc.roundedRect(W - 42, y + 0.5, 24, 5, 1, 1, "F");
+          doc.setFontSize(6);
+          doc.setTextColor(255, 255, 255);
+          doc.text("PAID", W - 33, y + 4.5);
+          doc.setFontSize(9);
+        }
+        y += 9;
+      });
+
+      // Total row
+      checkY(12);
+      doc.setFillColor(goldR, goldG, goldB);
+      doc.rect(15, y, W - 30, 10, "F");
+      doc.setFontSize(10);
+      doc.setTextColor(darkR, darkG, darkB);
+      doc.setFont("helvetica", "bold");
+      doc.text("Finishing Total", 20, y + 7);
+      doc.text(formatPrice(finishingTotal) + " EGP", W - 50, y + 7);
+      doc.setFont("helvetica", "normal");
+      y += 18;
+
+      // Warranty note
+      checkY(20);
+      doc.setFillColor(30, 28, 38);
+      doc.roundedRect(15, y, W - 30, 18, 2, 2, "F");
+      doc.setFontSize(7.5);
+      doc.setTextColor(180, 160, 100);
+      const warrantyText = "All prices include full supply, installation, specialized labor, technical supervision, and warranty against execution defects.";
+      const warrantyLines = doc.splitTextToSize(warrantyText, W - 40);
+      doc.text(warrantyLines, 20, y + 6);
+      y += 22;
+    }
+
+    // ---- Furniture Section ----
+    if (Object.keys(selectedFurniture).length > 0) {
+      checkY(30);
+      doc.setFontSize(14);
+      doc.setTextColor(goldR, goldG, goldB);
+      doc.setFont("helvetica", "bold");
+      doc.text("Furniture", 15, y);
+      doc.setFont("helvetica", "normal");
+      y += 12;
+
+      Object.entries(selectedFurniture).forEach(([rId, oId]) => {
+        const r = furnitureItems.find(r => r.id === rId);
+        const o = r?.options.find(o => o.id === oId);
+        if (!r || !o) return;
+        checkY(9);
+        doc.setFontSize(9);
+        doc.setTextColor(220, 210, 180);
+        doc.text(r.room + " - " + o.label, 20, y);
+        doc.setTextColor(goldR, goldG, goldB);
+        doc.setFont("helvetica", "bold");
+        doc.text(formatPrice(o.price) + " EGP", W - 50, y);
+        doc.setFont("helvetica", "normal");
+        y += 9;
+      });
+
+      doc.setFillColor(goldR, goldG, goldB);
+      doc.rect(15, y, W - 30, 8, "F");
+      doc.setFontSize(9);
+      doc.setTextColor(darkR, darkG, darkB);
+      doc.setFont("helvetica", "bold");
+      doc.text("Furniture Total", 20, y + 5.5);
+      doc.text(formatPrice(furnitureTotal) + " EGP", W - 50, y + 5.5);
+      doc.setFont("helvetica", "normal");
+      y += 16;
+    }
+
+    // ---- Smart Home Section ----
+    if (selectedSmart) {
+      const opt = smartHomeOptions.find(o => o.id === selectedSmart);
+      if (opt) {
+        checkY(25);
+        doc.setFontSize(14);
+        doc.setTextColor(goldR, goldG, goldB);
+        doc.setFont("helvetica", "bold");
+        doc.text("Smart Home System", 15, y);
+        doc.setFont("helvetica", "normal");
+        y += 10;
+        doc.setFontSize(9);
+        doc.setTextColor(220, 210, 180);
+        doc.text(opt.label, 20, y);
+        doc.setTextColor(goldR, goldG, goldB);
+        doc.setFont("helvetica", "bold");
+        doc.text(formatPrice(opt.price) + " EGP", W - 50, y);
+        doc.setFont("helvetica", "normal");
+        y += 16;
+      }
+    }
+
+    // ---- Curtains Section ----
+    if (Object.keys(selectedCurtains).length > 0) {
+      checkY(30);
+      doc.setFontSize(14);
+      doc.setTextColor(goldR, goldG, goldB);
+      doc.setFont("helvetica", "bold");
+      doc.text("Curtains", 15, y);
+      doc.setFont("helvetica", "normal");
+      y += 12;
+
+      Object.entries(selectedCurtains).forEach(([rId, oId]) => {
+        const r = curtainItems.find(r => r.id === rId);
+        const o = r?.options.find(o => o.id === oId);
+        if (!r || !o) return;
+        checkY(9);
+        doc.setFontSize(9);
+        doc.setTextColor(220, 210, 180);
+        doc.text(r.room + " - " + o.label, 20, y);
+        doc.setTextColor(goldR, goldG, goldB);
+        doc.setFont("helvetica", "bold");
+        doc.text(formatPrice(o.price) + " EGP", W - 50, y);
+        doc.setFont("helvetica", "normal");
+        y += 9;
+      });
+
+      doc.setFillColor(goldR, goldG, goldB);
+      doc.rect(15, y, W - 30, 8, "F");
+      doc.setFontSize(9);
+      doc.setTextColor(darkR, darkG, darkB);
+      doc.setFont("helvetica", "bold");
+      doc.text("Curtains Total", 20, y + 5.5);
+      doc.text(formatPrice(curtainsTotal) + " EGP", W - 50, y + 5.5);
+      doc.setFont("helvetica", "normal");
+      y += 16;
+    }
+
+    // ---- Grand Total Page ----
+    if (grandTotal > 0) {
+      addPage();
+      doc.setFontSize(16);
+      doc.setTextColor(goldR, goldG, goldB);
+      doc.setFont("helvetica", "bold");
+      doc.text("Grand Total Summary", W / 2, y, { align: "center" });
+      doc.setFont("helvetica", "normal");
+      y += 18;
+
+      const totals = [
+        finishingTotal > 0 && { label: "Finishing Works", value: finishingTotal },
+        furnitureTotal > 0 && { label: "Furniture", value: furnitureTotal },
+        smartTotal > 0 && { label: "Smart Home", value: smartTotal },
+        curtainsTotal > 0 && { label: "Curtains", value: curtainsTotal },
+      ].filter(Boolean) as { label: string; value: number }[];
+
+      totals.forEach(t => {
+        checkY(10);
+        doc.setFillColor(30, 28, 38);
+        doc.rect(30, y - 1, W - 60, 9, "F");
+        doc.setFontSize(10);
+        doc.setTextColor(200, 185, 130);
+        doc.text(t.label, 35, y + 5.5);
+        doc.setTextColor(goldR, goldG, goldB);
+        doc.setFont("helvetica", "bold");
+        doc.text(formatPrice(t.value) + " EGP", W - 60, y + 5.5);
+        doc.setFont("helvetica", "normal");
+        y += 11;
+      });
+
+      checkY(20);
+      doc.setFillColor(goldR, goldG, goldB);
+      doc.roundedRect(20, y, W - 40, 20, 3, 3, "F");
+      doc.setFontSize(14);
+      doc.setTextColor(darkR, darkG, darkB);
+      doc.setFont("helvetica", "bold");
+      doc.text("TOTAL: " + formatPrice(grandTotal) + " EGP", W / 2, y + 13, { align: "center" });
+      doc.setFont("helvetica", "normal");
+      y += 30;
+    }
+
+    // ---- Team Page ----
+    addPage();
+    doc.setFontSize(16);
+    doc.setTextColor(goldR, goldG, goldB);
+    doc.setFont("helvetica", "bold");
+    doc.text("Project Team", W / 2, y, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    y += 15;
+
+    teamData.forEach(member => {
+      checkY(16);
+      doc.setFillColor(28, 26, 36);
+      doc.roundedRect(15, y, W - 30, 13, 2, 2, "F");
+
+      // Level indicator dot
+      const levelColors: Record<number, [number, number, number]> = {
+        1: [212, 175, 55],
+        1.5: [180, 150, 50],
+        2: [150, 130, 60],
+        3: [120, 110, 70],
+        4: [100, 90, 70],
+      };
+      const lc = levelColors[member.level] || [100, 90, 70];
+      doc.setFillColor(lc[0], lc[1], lc[2]);
+      doc.circle(22, y + 6.5, 2, "F");
+
+      doc.setFontSize(9);
+      doc.setTextColor(220, 210, 180);
+      doc.text(member.name, 28, y + 5.5);
+      doc.setFontSize(7.5);
+      doc.setTextColor(150, 140, 100);
+      doc.text(member.title, 28, y + 10.5);
+
+      if (member.phone) {
+        doc.setTextColor(goldR, goldG, goldB);
+        doc.setFontSize(7.5);
+        doc.text(member.phone, W - 50, y + 7);
+      }
+      y += 15;
+    });
+
+    // Footer on last page
+    doc.setFillColor(goldR, goldG, goldB);
+    doc.rect(0, 293, W, 2, "F");
+    doc.setFontSize(7);
+    doc.setTextColor(150, 140, 100);
+    doc.text("PROFESSOR - Perfection in Every Detail | Madinaty Project | March 2026", W / 2, 291, { align: "center" });
+
+    doc.save("Professor-Quotation-MrAliRashed.pdf");
+  };
+
   return (
     <div style={{ minHeight: "100vh", background: DARK, direction: "rtl", fontFamily: "'Cairo', 'Tajawal', sans-serif" }}>
       {/* Top Navigation */}
@@ -2059,10 +2410,16 @@ export default function Home() {
                 <p style={{ color: TEXT_SECONDARY, fontSize: "0.9rem" }}>مراجعة جميع الاختيارات والإجمالي النهائي</p>
               </div>
               {grandTotal > 0 && (
-                <button onClick={handlePrint}
-                  style={{ background: GOLD, color: DARK, border: "none", borderRadius: "0.5rem", padding: "0.6rem 1.2rem", fontSize: "0.9rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Cairo', sans-serif" }}>
-                  🖨️ طباعة الملخص
-                </button>
+                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+                  <button onClick={handlePrint}
+                    style={{ background: "transparent", color: GOLD, border: `1px solid ${GOLD}`, borderRadius: "0.5rem", padding: "0.6rem 1.2rem", fontSize: "0.9rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Cairo', sans-serif" }}>
+                    🖨️ طباعة الملخص
+                  </button>
+                  <button onClick={handleExportPDF}
+                    style={{ background: GOLD, color: DARK, border: "none", borderRadius: "0.5rem", padding: "0.6rem 1.4rem", fontSize: "0.9rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Cairo', sans-serif", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                    📄 تصدير PDF
+                  </button>
+                </div>
               )}
             </div>
 
