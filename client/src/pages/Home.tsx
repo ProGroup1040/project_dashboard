@@ -673,15 +673,37 @@ const finishingItems = [
     id: "f16", name: "أعمال النجارة والديكورات", price: 0, icon: "🪵",
     slideImage: "/finishing_slides_render/slide-23.png",
     desc: "أعمال النجارة والديكورات: تجاليد الحوائط وإضاءة LED والديكورات الخشبية في جميع الغرف",
+    hasOptions: true,
+    options: [
+      {
+        id: "f16_opt1",
+        label: "الخيار الأول - فاخر",
+        price: 271350,
+        details: [
+          "🟡 ديكورات غرفة الماستر: تجاليد حائط فاخرة + إضاءة LED مخفية + لوحات ديكورية فنية | 38,000 جنيه",
+          "🟡 ديكورات غرفة الأطفال: خشب طبيعي 7 م² + إضاءة LED 4 أمتار + تشطيب فاخر جودة عالية | 30,000 جنيه",
+          "🟡 ديكورات الريسبشن والكوريدور: Mix Decorative Panels 84,000 + إضاءة LED مخفية 7,000 + Wooden Strips 15,750 + مرآة ديكورية 9,600 | 116,350 جنيه",
+          "🟡 ديكورات غرفة المعيشة: تجاليد حائط MDF + Sheet HPL 6 م² (41,600) + إضاءة LED مخفية 8 م.ط (4,000) | 45,600 جنيه",
+          "🟡 ديكورات حوائط المكتبات: مكتبة الريسبشن ترافنتين رخامي فاخر على بوكس 10 سم (18,400) + مكتبة المعيشة ترافنتين رخامي على بوكس 10 سم (23,000) | 41,400 جنيه",
+        ]
+      },
+      {
+        id: "f16_opt2",
+        label: "الخيار الثاني - بريميم",
+        price: 257300,
+        details: [
+          "🟡 ديكورات غرفة الماستر: MDF + HPL 5 م² (14,250) + كرونوسيان 5 م² (14,250) + إضاءة LED 7 م.ط (3,500) | 32,000 جنيه",
+          "🟡 ديكورات غرفة الأطفال: HPL Panel 7 م² (19,950) + إضاءة LED 4 أمتار (2,000) + متوازن بين الجودة والسعر | 21,950 جنيه",
+          "🟡 ديكورات الريسبشن والكوريدور: Mix Decorative Panels 84,000 + إضاءة LED مخفية 7,000 + Wooden Strips 15,750 + مرآة ديكورية 9,600 | 116,350 جنيه",
+          "🟡 ديكورات غرفة المعيشة: تجاليد حائط MDF + Sheet HPL 6 م² (41,600) + إضاءة LED مخفية 8 م.ط (4,000) | 45,600 جنيه",
+          "🟡 ديكورات حوائط المكتبات: مكتبة الريسبشن ترافنتين رخامي على بوكس 10 سم (18,400) + مكتبة المعيشة ترافنتين رخامي على بوكس 10 سم (23,000) | 41,400 جنيه",
+        ]
+      },
+    ],
     details: [
-      "ديكورات غرفة الماستر - الخيار الأول (فاخر): تجاليد حائط + إضاءة LED مخفية + لوحات ديكورية | 38,000 جنيه",
-      "ديكورات غرفة الماستر - الخيار الثاني (عادي): تجاليد حائط + إضاءة LED مخفية | 24,000 جنيه",
-      "ديكورات غرفة الأطفال - الخيار الأول (فاخر): تجاليد حائط ملونة + إضاءة LED + ديكورات مرسومة | 28,000 جنيه",
-      "ديكورات غرفة الأطفال - الخيار الثاني (عادي): تجاليد حائط + إضاءة LED | 18,000 جنيه",
-      "تجاليد الريسيبشن والكوريدور: Mix Decorative Panels 84,000 + LED 7,000 + خشب 15,750 + مرايا 9,600 | الإجمالي: 116,350 جنيه",
-      "ديكورات غرفة المعيشة: تجاليد الحائط MDF + Sheet HPL 41,600 + إضاءة LED 4,000 | الإجمالي: 45,600 جنيه",
-      "ديكورات حوائط المكتبات - مكتبة الريسيبشن: تجاليد ترافنتين رخامي على بوكس خشبي بسمك 10 سم | 18,400 جنيه",
-      "ديكورات حوائط المكتبات - مكتبة غرفة المعيشة: تجاليد ترافنتين رخامي على بوكس خشبي بسمك 10 سم | 23,000 جنيه",
+      "ديكورات غرفة الماستر | ديكورات غرفة الأطفال",
+      "ديكورات الريسبشن والكوريدور | ديكورات غرفة المعيشة",
+      "ديكورات حوائط المكتبات",
     ]
   },
   {
@@ -971,6 +993,7 @@ const timelinePhases = [
 export default function Home() {
   const [activeSection, setActiveSection] = useState<Section>("home");
   const [selectedFinishing, setSelectedFinishing] = useState<Set<string>>(new Set());
+  const [selectedDecorOption, setSelectedDecorOption] = useState<string | null>(null); // for f16 options
   const [selectedFurniture, setSelectedFurniture] = useState<Record<string, string>>({});
   const [selectedSmart, setSelectedSmart] = useState<string | null>(null);
   const [selectedCurtains, setSelectedCurtains] = useState<Record<string, string>>({});
@@ -1040,7 +1063,13 @@ export default function Home() {
     });
 
   // Calculate totals
-  const finishingTotal = finishingItems.filter(i => selectedFinishing.has(i.id)).reduce((s, i) => s + i.price, 0);
+  const finishingTotal = finishingItems.filter(i => selectedFinishing.has(i.id)).reduce((s, i) => {
+    if (i.hasOptions && i.options) {
+      const sel = i.options.find(o => o.id === selectedDecorOption);
+      return s + (sel?.price || 0);
+    }
+    return s + i.price;
+  }, 0);
   const furnitureTotal = Object.entries(selectedFurniture).reduce((s, [rId, oId]) => {
     const r = furnitureItems.find(r => r.id === rId);
     const o = r?.options.find(o => o.id === oId);
@@ -1224,11 +1253,19 @@ export default function Home() {
         }
         doc.setFontSize(9);
         doc.setTextColor(220, 210, 180);
-        const itemName = item.name.length > 45 ? item.name.substring(0, 42) + "..." : item.name;
+        let pdfItemName = item.name;
+        let pdfItemPrice = item.price;
+        if (item.hasOptions && item.options) {
+          const selOpt = item.options.find(o => o.id === selectedDecorOption);
+          if (!selOpt) return; // skip if no option selected
+          pdfItemName = `${item.name} - ${selOpt.label}`;
+          pdfItemPrice = selOpt.price;
+        }
+        const itemName = pdfItemName.length > 45 ? pdfItemName.substring(0, 42) + "..." : pdfItemName;
         doc.text(itemName, 20, y + 5);
         doc.setTextColor(goldR, goldG, goldB);
         doc.setFont("helvetica", "bold");
-        doc.text(formatPrice(item.price), W - 50, y + 5);
+        doc.text(formatPrice(pdfItemPrice), W - 50, y + 5);
         doc.setFont("helvetica", "normal");
         if (item.paid) {
           doc.setFillColor(34, 197, 94);
@@ -1933,7 +1970,9 @@ export default function Home() {
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <h3 style={{ color: isSelected ? GOLD : TEXT_PRIMARY, fontWeight: 800, fontSize: "1.05rem", margin: "0 0 0.3rem 0", lineHeight: 1.3 }}>{item.name}</h3>
                         <div style={{ color: item.paid ? "#22c55e" : GOLD, fontWeight: 700, fontSize: "1rem" }}>
-                          {item.paid ? "✓ مدفوع بالكامل" : `${formatPrice(item.price)} جنيه`}
+                          {item.paid ? "✓ مدفوع بالكامل" : item.hasOptions && item.options ? (
+                            selectedDecorOption ? `${formatPrice(item.options.find(o => o.id === selectedDecorOption)?.price || 0)} جنيه` : "اختر الخيار"
+                          ) : `${formatPrice(item.price)} جنيه`}
                         </div>
                       </div>
                       {/* Select indicator */}
@@ -1941,7 +1980,45 @@ export default function Home() {
                         {isSelected && <span style={{ color: DARK, fontSize: "0.7rem", fontWeight: 900 }}>✓</span>}
                       </div>
                     </div>
+                    {/* Options selector for items with options (f16) */}
+                    {item.hasOptions && item.options && isSelected && (
+                      <div style={{ borderTop: `1px solid ${GOLD_BORDER}`, padding: "0.75rem 1.2rem", background: `${GOLD}08` }}>
+                        <div style={{ color: GOLD, fontSize: "0.82rem", fontWeight: 700, marginBottom: "0.5rem" }}>اختر الخيار:</div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                          {item.options.map(opt => {
+                            const isOptSelected = selectedDecorOption === opt.id;
+                            return (
+                              <div key={opt.id}
+                                onClick={e => { e.stopPropagation(); setSelectedDecorOption(isOptSelected ? null : opt.id); }}
+                                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.6rem 0.8rem", borderRadius: "0.5rem", cursor: "pointer", border: `${isOptSelected ? 2 : 1}px solid ${isOptSelected ? GOLD_BORDER_ACTIVE : GOLD_BORDER}`, background: isOptSelected ? `${GOLD}20` : "transparent", transition: "all 0.15s" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                                  <div style={{ width: "16px", height: "16px", borderRadius: "50%", border: `2px solid ${GOLD}`, background: isOptSelected ? GOLD : "transparent", flexShrink: 0 }} />
+                                  <span style={{ color: isOptSelected ? GOLD : TEXT_PRIMARY, fontSize: "0.85rem", fontWeight: isOptSelected ? 700 : 400 }}>{opt.label}</span>
+                                </div>
+                                <span style={{ color: GOLD, fontWeight: 700, fontSize: "0.9rem" }}>{formatPrice(opt.price)} جنيه</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {/* Show selected option details */}
+                        {selectedDecorOption && (() => {
+                          const selOpt = item.options!.find(o => o.id === selectedDecorOption);
+                          if (!selOpt) return null;
+                          return (
+                            <div style={{ marginTop: "0.75rem", paddingTop: "0.5rem", borderTop: `1px solid ${GOLD_BORDER}` }}>
+                              {selOpt.details.map((d, idx) => (
+                                <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", padding: "0.25rem 0" }}>
+                                  <span style={{ color: GOLD, flexShrink: 0, fontSize: "0.7rem", marginTop: "0.2rem" }}>◆</span>
+                                  <span style={{ color: TEXT_SECONDARY, fontSize: "0.78rem", lineHeight: 1.5 }}>{d}</span>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
                     {/* Details toggle button */}
+                    {!item.hasOptions && (
                     <div style={{ borderTop: `1px solid ${GOLD_BORDER}`, padding: "0.5rem 1.2rem" }}>
                       <button
                         style={{ background: "transparent", border: "none", color: GOLD, fontSize: "0.8rem", cursor: "pointer", fontFamily: "'Cairo', sans-serif", padding: 0 }}
@@ -1949,8 +2026,9 @@ export default function Home() {
                         {isExpanded ? "▲ إخفاء التفاصيل" : "▼ عرض التفاصيل"}
                       </button>
                     </div>
+                    )}
                     {/* Expandable details */}
-                    {isExpanded && item.details && (
+                    {!item.hasOptions && isExpanded && item.details && (
                       <div style={{ padding: "0.75rem 1.2rem 1rem", borderTop: `1px solid ${GOLD_BORDER}`, background: `${GOLD}08` }}>
                         {item.details.map((d, idx) => (
                           <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", padding: "0.3rem 0", borderBottom: idx < item.details.length - 1 ? `1px solid ${GOLD_BORDER}` : "none" }}>
@@ -2420,12 +2498,25 @@ export default function Home() {
             {selectedFinishing.size > 0 && (
               <div style={{ background: CARD_BG, border: `1px solid ${GOLD_BORDER}`, borderRadius: "1rem", padding: "1.25rem", marginBottom: "1rem" }}>
                 <h3 style={{ color: GOLD, fontWeight: 700, marginBottom: "0.75rem", fontSize: "1rem" }}>🔨 التشطيب</h3>
-                {finishingItems.filter(i => selectedFinishing.has(i.id)).map(item => (
+                {finishingItems.filter(i => selectedFinishing.has(i.id)).map(item => {
+                  let displayPrice = item.price;
+                  let displayLabel = item.name;
+                  if (item.hasOptions && item.options) {
+                    const selOpt = item.options.find(o => o.id === selectedDecorOption);
+                    if (selOpt) {
+                      displayPrice = selOpt.price;
+                      displayLabel = `${item.name} - ${selOpt.label}`;
+                    } else {
+                      return null; // don't show in summary if no option selected
+                    }
+                  }
+                  return (
                   <div key={item.id} style={{ display: "flex", justifyContent: "space-between", padding: "0.4rem 0", borderBottom: `1px solid ${GOLD_BORDER}` }}>
-                    <span style={{ color: TEXT_PRIMARY, fontSize: "0.88rem" }}>{item.name}</span>
-                    <span style={{ color: GOLD, fontWeight: 600 }}>{formatPrice(item.price)} جنيه</span>
+                    <span style={{ color: TEXT_PRIMARY, fontSize: "0.88rem" }}>{displayLabel}</span>
+                    <span style={{ color: GOLD, fontWeight: 600 }}>{formatPrice(displayPrice)} جنيه</span>
                   </div>
-                ))}
+                  );
+                })}
                 <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.75rem", paddingTop: "0.5rem", borderTop: `2px solid ${GOLD_BORDER}` }}>
                   <span style={{ color: GOLD, fontWeight: 700 }}>إجمالي التشطيب</span>
                   <span style={{ color: GOLD, fontWeight: 900, fontSize: "1.05rem" }}>{formatPrice(finishingTotal)} جنيه</span>
