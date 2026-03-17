@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import { trpc } from "@/lib/trpc";
 import ProjectLogin from "./ProjectLogin";
 
@@ -456,7 +457,7 @@ const teamData: TeamMember[] = [
 
 const projectContents = [
   { title: "مقايسة التشطيب", icon: "🔨", desc: "16 بند تشطيب شامل", section: "finishing" as const, img: `${CDN}/1000793481_a03f7ba6.jpg` },
-  { title: "مقايسة الأثاث", icon: "🛋️", desc: "16 قطعة أثاث فاخرة", section: "furniture" as const, img: `${CDN}/2_98efd75e.png` },
+  { title: "مقايسة الأثاث", icon: "🛋️", desc: "16 قطعة أثاث Luxury", section: "furniture" as const, img: `${CDN}/2_98efd75e.png` },
   { title: "Smart Home System", icon: "🏡", desc: "خيارين للنظام الذكي", section: "smart" as const, img: `${CDN}/pasted_file_HV1FPk_image_2c18654b.png` },
   { title: "مقايسة الستائر", icon: "🪟", desc: "4 ستائر بخيارين لكل", section: "curtains" as const, img: `${CDN}/ستارةالاطفال_c6be4038.png` },
 ];
@@ -677,14 +678,14 @@ const finishingItems = [
     options: [
       {
         id: "f16_opt1",
-        label: "الخيار الأول - فاخر",
+        label: "الخيار الأول - Luxury",
         price: 271350,
         details: [
-          "🟡 ديكورات غرفة الماستر: تجاليد حائط فاخرة + إضاءة LED مخفية + لوحات ديكورية فنية | 38,000 جنيه",
-          "🟡 ديكورات غرفة الأطفال: خشب طبيعي 7 م² + إضاءة LED 4 أمتار + تشطيب فاخر جودة عالية | 30,000 جنيه",
+          "🟡 ديكورات غرفة الماستر: تجاليد حائط Luxury + إضاءة LED مخفية + لوحات ديكورية فنية | 38,000 جنيه",
+          "🟡 ديكورات غرفة الأطفال: خشب طبيعي 7 م² + إضاءة LED 4 أمتار + تشطيب Luxury عالي الجودة | 30,000 جنيه",
           "🟡 ديكورات الريسبشن والكوريدور: Mix Decorative Panels 84,000 + إضاءة LED مخفية 7,000 + Wooden Strips 15,750 + مرآة ديكورية 9,600 | 116,350 جنيه",
           "🟡 ديكورات غرفة المعيشة: تجاليد حائط MDF + Sheet HPL 6 م² (41,600) + إضاءة LED مخفية 8 م.ط (4,000) | 45,600 جنيه",
-          "🟡 ديكورات حوائط المكتبات: مكتبة الريسبشن ترافنتين رخامي فاخر على بوكس 10 سم (18,400) + مكتبة المعيشة ترافنتين رخامي على بوكس 10 سم (23,000) | 41,400 جنيه",
+          "🟡 ديكورات حوائط المكتبات: مكتبة الريسبشن ترافنتين رخامي على بوكس 10 سم (18,400) + مكتبة المعيشة ترافنتين رخامي على بوكس 10 سم (23,000) | 41,400 جنيه",
         ]
       },
       {
@@ -725,7 +726,7 @@ const furnitureItems = [
     id: "fur1", room: "غرفة النوم الرئيسية",
     image: `${CDN}/pasted_file_UTop2X_image_e9c03242.png`,
     options: [
-      { id: "fur1_opt1", label: "الخيار الأول - فاخر", price: 104000, desc: "سرير بميكانيزم 180 سم، تنجيد قماش فلفيت مقاوم للاتساخ، شاسية حديد معدني، وحدات تقسيم داخلية | عدد 2 كومود خشب كونتر طبيعي، 7ply دورانات، HPL | مكتبة 200 سم، HPL بدوران هندي" },
+      { id: "fur1_opt1", label: "الخيار الأول - Luxury", price: 104000, desc: "سرير بميكانيزم 180 سم، تنجيد قماش فلفيت مقاوم للاتساخ، شاسية حديد معدني، وحدات تقسيم داخلية | عدد 2 كومود خشب كونتر طبيعي، 7ply دورانات، HPL | مكتبة 200 سم، HPL بدوران هندي" },
       { id: "fur1_opt2", label: "الخيار الثاني - بريميم", price: 71000, desc: "سرير 180 سم بدون ميكانيزم بشاسيه خشب | 2 كومود خشب كونتر طبيعي | مكتبة 200 سم، عدلة بدون دورانات" },
     ]
   },
@@ -733,7 +734,7 @@ const furnitureItems = [
     id: "fur2", room: "غرفة الدريسنج",
     image: `${CDN}/pasted_file_i8B4RA_image_a2992f8c.png`,
     options: [
-      { id: "fur2_opt1", label: "الخيار الأول - فاخر", price: 127100, desc: "دولاب دريسنج كامل كونتر طبيعي HPL | مع إضاءة LED داخلية | جميع أدراج سوفت كلوز | عدد 7 ضلف زجاج | مع ميكانزم خزنة سمارت | ميكانزم تعليق بناطيل" },
+      { id: "fur2_opt1", label: "الخيار الأول - Luxury", price: 127100, desc: "دولاب دريسنج كامل كونتر طبيعي HPL | مع إضاءة LED داخلية | جميع أدراج سوفت كلوز | عدد 7 ضلف زجاج | مع ميكانزم خزنة سمارت | ميكانزم تعليق بناطيل" },
       { id: "fur2_opt2", label: "الخيار الثاني - بريميم", price: 89200, desc: "دولاب دريسنج ميلامين أوبن | مع إضاءة داخلية | أدراج عادية بدون سوفت | بدون خزينة سمارت | شماعة تعليق بناطيل يدوي" },
     ]
   },
@@ -741,7 +742,7 @@ const furnitureItems = [
     id: "fur3", room: "غرفة الأطفال",
     image: `${CDN}/pasted_file_O763PZ_image_02340c8a.png`,
     options: [
-      { id: "fur3_opt1", label: "الخيار الأول - فاخر", price: 89200, desc: "عدد 2 سرير أطفال مع ميكانزم قلاب وتقسيم داخلي وإضاءة حروف السرير على النحو المبين في التصميم | مكتب دراسة مع أدراج سوفت كلوز مدمجة داخل المكتب | عدد 1 كمود دوران بدون حروف مع عدد 2 درج سوفت كلوز وقرصة من الرخام البريشيا الايطالي على النحو المبين في التصميم" },
+      { id: "fur3_opt1", label: "الخيار الأول - Luxury", price: 89200, desc: "عدد 2 سرير أطفال مع ميكانزم قلاب وتقسيم داخلي وإضاءة حروف السرير على النحو المبين في التصميم | مكتب دراسة مع أدراج سوفت كلوز مدمجة داخل المكتب | عدد 1 كمود دوران بدون حروف مع عدد 2 درج سوفت كلوز وقرصة من الرخام البريشيا الايطالي على النحو المبين في التصميم" },
       { id: "fur3_opt2", label: "الخيار الثاني - بريميم", price: 69700, desc: "عدد 2 سرير أطفال بدون ميكانزم قلاب وبدون إضاءة | مكتب دراسة مع أدراج سوفت كلوز مدمجة داخل المكتب | عدد 1 كمود عدل مع عدد 2 درج بدون رخام" },
     ]
   },
@@ -749,7 +750,7 @@ const furnitureItems = [
     id: "fur4", room: "دريسنج الأطفال",
     image: `${CDN}/pasted_file_yy791x_image_6c65235e.png`,
     options: [
-      { id: "fur4_opt1", label: "الخيار الأول - فاخر", price: 79500, desc: "دولاب دريسنج كامل كونتر طبيعي HPL | مع إضاءة LED داخلية | جميع أدراج سوفت كلوز | عدد 4 ضلف زجاج سوكوريت مقاوم للكسر" },
+      { id: "fur4_opt1", label: "الخيار الأول - Luxury", price: 79500, desc: "دولاب دريسنج كامل كونتر طبيعي HPL | مع إضاءة LED داخلية | جميع أدراج سوفت كلوز | عدد 4 ضلف زجاج سوكوريت مقاوم للكسر" },
       { id: "fur4_opt2", label: "الخيار الثاني - بريميم", price: 51500, desc: "دولاب دريسنج ميلامين أوبن | مع إضاءة داخلية | أدراج عادية بدون سوفت | بدون خزينة سمارت | شماعة تعليق بناطيل يدوي" },
     ]
   },
@@ -757,7 +758,7 @@ const furnitureItems = [
     id: "fur5", room: "وحدة الجزامة مع البوف للريسبشن",
     image: `${CDN}/pasted_file_HV1FPk_image_2c18654b.png`,
     options: [
-      { id: "fur5_opt1", label: "الخيار الأول - فاخر", price: 28000, desc: "وحدة مدخل مع مرآة ومقعد وتعليقة مفاتيح HPL" },
+      { id: "fur5_opt1", label: "الخيار الأول - Luxury", price: 28000, desc: "وحدة مدخل مع مرآة ومقعد وتعليقة مفاتيح HPL" },
       { id: "fur5_opt2", label: "الخيار الثاني - بريميم", price: 22500, desc: "وحدة جزامة من كونتر ميلامين وتنجيد قماش نجيب سليم" },
     ]
   },
@@ -765,7 +766,7 @@ const furnitureItems = [
     id: "fur6", room: "السفرة",
     image: `${CDN}/4_b09dab89.png`,
     options: [
-      { id: "fur6_opt1", label: "الخيار الأول - فاخر", price: 89800, desc: "قرصة ترابيزة بورسلين إسباني 2 سم | قوائم رخام ترافنتين نصف دائرة | 6 كراسي قماش فلفت مقاوم للاتساخ | بوفيه + مرايا مضاءة" },
+      { id: "fur6_opt1", label: "الخيار الأول - Luxury", price: 89800, desc: "قرصة ترابيزة بورسلين إسباني 2 سم | قوائم رخام ترافنتين نصف دائرة | 6 كراسي قماش فلفت مقاوم للاتساخ | بوفيه + مرايا مضاءة" },
       { id: "fur6_opt2", label: "الخيار الثاني - بريميم", price: 76200, desc: "قرصة ترابيزة رخام إسباني طبيعي | قوائم خشبي | 6 كراسي قماش نجيب سليم | بوفيه + مرايا مضاءة" },
     ]
   },
@@ -773,7 +774,7 @@ const furnitureItems = [
     id: "fur7", room: "وحدة تلفزيون الريسيبشن",
     image: `${CDN}/pasted_file_jmfZrK_image_860141de.png`,
     options: [
-      { id: "fur7_opt1", label: "الخيار الأول - فاخر", price: 32800, desc: "وحدة تلفزيون HPL مع إضاءة LED مخفية وعدد 4 أدراج سوفت كلوز ودوران خشبي جلسة ديكور من الترافنتين" },
+      { id: "fur7_opt1", label: "الخيار الأول - Luxury", price: 32800, desc: "وحدة تلفزيون HPL مع إضاءة LED مخفية وعدد 4 أدراج سوفت كلوز ودوران خشبي جلسة ديكور من الترافنتين" },
       { id: "fur7_opt2", label: "الخيار الثاني - بريميم", price: 17800, desc: "وحدة تلفزيون HPL مع إضاءة LED مخفية وعدد 4 ضلف سوفت كلوز بدون جلسة ديكور" },
     ]
   },
@@ -781,7 +782,7 @@ const furnitureItems = [
     id: "fur9", room: "أنتريه الريسبشن",
     image: `${CDN}/2_98efd75e.png`,
     options: [
-      { id: "fur9_opt1", label: "الخيار الأول - فاخر", price: 68000, desc: "هيكل خشب زان أحمر روماني 5×5 | قماش Velvet مقاوم للاتساخ | إسفنج عالي الكثافة + ميموري فوم طبي" },
+      { id: "fur9_opt1", label: "الخيار الأول - Luxury", price: 68000, desc: "هيكل خشب زان أحمر روماني 5×5 | قماش Velvet مقاوم للاتساخ | إسفنج عالي الكثافة + ميموري فوم طبي" },
       { id: "fur9_opt2", label: "الخيار الثاني - بريميم", price: 48000, desc: "خشب زان + سوست + قماش نجيب سليم" },
     ]
   },
@@ -789,7 +790,7 @@ const furnitureItems = [
     id: "fur10", room: "طاولة قهوة رخامية مع أنتريه الريسبشن",
     image: `${CDN}/3_a96032ee.png`,
     options: [
-      { id: "fur10_opt1", label: "الخيار الأول - فاخر", price: 22000, desc: "طاولة قهوة رخام مع طاولة كورنر مطابقة" },
+      { id: "fur10_opt1", label: "الخيار الأول - Luxury", price: 22000, desc: "طاولة قهوة رخام مع طاولة كورنر مطابقة" },
       { id: "fur10_opt2", label: "الخيار الثاني - عادي", price: 14000, desc: "طاولة قهوة خشب مع طاولة كورنر" },
     ]
   },
@@ -797,7 +798,7 @@ const furnitureItems = [
     id: "fur11", room: "مكتبة التلفزيون - الليفينج",
     image: `${CDN}/pasted_file_NvmWqk_image_07f56c3f.png`,
     options: [
-      { id: "fur11_opt1", label: "الخيار الأول - فاخر", price: 32800, desc: "مكتبة تلفزيون كاملة HPL | عدد 4 أدراج تاتش | جلسة ديكور خشبية ترافنتين دوران" },
+      { id: "fur11_opt1", label: "الخيار الأول - Luxury", price: 32800, desc: "مكتبة تلفزيون كاملة HPL | عدد 4 أدراج تاتش | جلسة ديكور خشبية ترافنتين دوران" },
       { id: "fur11_opt2", label: "الخيار الثاني - استاندرد", price: 18000, desc: "مكتبة تلفزيون كاملة ميلامين | عدد 4 ضلف تاتش | بدون جلسة ترافنتين" },
     ]
   },
@@ -805,7 +806,7 @@ const furnitureItems = [
     id: "fur12", room: "ركنة الليفنج",
     image: `/living_sofa.png`,
     options: [
-      { id: "fur12_opt1", label: "Luxury فاخر", price: 80000, desc: "ركنة بنفس التصميم الموضح | هيكل زان روماني | تنجيد قماش ميلتون فاخر | إسفنج عالي الكثافة + طبقات ميموري فوم 3 حشوة | طاولة قهوة 100×60 سم: هيكل خشب كونتر أو HPL بالتشطيب + تصميم بنفس الشكل الموضح" },
+      { id: "fur12_opt1", label: "Luxury", price: 80000, desc: "ركنة بنفس التصميم الموضح | هيكل زان روماني | تنجيد قماش ميلتون فاخر | إسفنج عالي الكثافة + طبقات ميموري فوم 3 حشوة | طاولة قهوة 100×60 سم: هيكل خشب كونتر أو HPL بالتشطيب + تصميم بنفس الشكل الموضح" },
       { id: "fur12_opt2", label: "بريميم", price: 55000, desc: "ركنة بنفس التصميم الموضح | هيكل خشب زان | تنجيد قماش نجيب سليم | إسفنج على الكثافة | طاولة قهوة 100×60 سم: هيكل خشب كونتر أو HPL بالتشطيب" },
     ]
   },
@@ -813,20 +814,7 @@ const furnitureItems = [
 // Smart Home data
 const smartHomeOptions = [
   {
-    id: "smart1", label: "Option 1 - الأساسي", price: 71212,
-    image: `${CDN}/pasted_file_HV1FPk_image_2c18654b.png`,
-    items: [
-      { name: "Smart Intercom شاشة رئيسية", qty: "1 وحدة" },
-      { name: "قفل باب مصفح ذكي - بصمة إصبع", qty: "1 قفل" },
-      { name: "مفاتيح ذكية 2 خط", qty: "1 لوحة" },
-      { name: "مفاتيح ذكية 3 خط", qty: "5 لوحات" },
-      { name: "ريموت تحكم للأجهزة", qty: "2 ريموت" },
-      { name: "حساس حركة", qty: "3 حساسات" },
-      { name: "تحكم ستائر كهربائية", qty: "2 وحدة" },
-    ]
-  },
-  {
-    id: "smart2", label: "Option 2 - المتقدم", price: 140991,
+    id: "smart1", label: "Option 1 - المتقدم", price: 140991,
     image: `${CDN}/pasted_file_HV1FPk_image_2c18654b.png`,
     items: [
       { name: "Smart Intercom شاشة رئيسية", qty: "1 وحدة" },
@@ -841,6 +829,19 @@ const smartHomeOptions = [
       { name: "ستارة ذكية بطول 5.2 متر", qty: "1 ستارة" },
     ]
   },
+  {
+    id: "smart2", label: "Option 2 - الأساسي", price: 71212,
+    image: `${CDN}/pasted_file_HV1FPk_image_2c18654b.png`,
+    items: [
+      { name: "Smart Intercom شاشة رئيسية", qty: "1 وحدة" },
+      { name: "قفل باب مصفح ذكي - بصمة إصبع", qty: "1 قفل" },
+      { name: "مفاتيح ذكية 2 خط", qty: "1 لوحة" },
+      { name: "مفاتيح ذكية 3 خط", qty: "5 لوحات" },
+      { name: "ريموت تحكم للأجهزة", qty: "2 ريموت" },
+      { name: "حساس حركة", qty: "3 حساسات" },
+      { name: "تحكم ستائر كهربائية", qty: "2 وحدة" },
+    ]
+  },
 ];
 
 // Curtains data
@@ -849,17 +850,7 @@ const curtainItems = [
     id: "cur1", room: "ستارة غرفة الأطفال",
     options: [
       {
-        id: "cur1_opt1", label: "Option 1 - عادي", price: 9366.19,
-        image: `${CDN}/ستارةالاطفال_c6be4038.png`,
-        items: [
-          { name: "تراك 210 ويف", price: 1354.32 }, { name: "تراك 210 عادي", price: 812.59 },
-          { name: "خشب", price: 677.16 }, { name: "بلاك أوت ألماني", price: 2286.90 },
-          { name: "كتان خفيف", price: 2821.50 }, { name: "تفصيل ويف", price: 790.02 },
-          { name: "تفصيل عادي", price: 326.70 }, { name: "تركيب", price: 297.00 },
-        ]
-      },
-      {
-        id: "cur1_opt2", label: "Option 2 - ذكي (أزورا)", price: 38544.53,
+        id: "cur1_opt1", label: "Option 1 - ذكي (أزورا)", price: 38544.53,
         image: `${CDN}/ستارةالاطفال_c6be4038.png`,
         items: [
           { name: "موتور أزورا", price: 18130.50 }, { name: "تراك أزورا", price: 11337.30 },
@@ -869,23 +860,23 @@ const curtainItems = [
           { name: "تركيب", price: 286.88 },
         ]
       },
+      {
+        id: "cur1_opt2", label: "Option 2 - عادي", price: 9366.19,
+        image: `${CDN}/ستارةالاطفال_c6be4038.png`,
+        items: [
+          { name: "تراك 210 ويف", price: 1354.32 }, { name: "تراك 210 عادي", price: 812.59 },
+          { name: "خشب", price: 677.16 }, { name: "بلاك أوت ألماني", price: 2286.90 },
+          { name: "كتان خفيف", price: 2821.50 }, { name: "تفصيل ويف", price: 790.02 },
+          { name: "تفصيل عادي", price: 326.70 }, { name: "تركيب", price: 297.00 },
+        ]
+      },
     ]
   },
   {
     id: "cur2", room: "ستارة غرفة الريسيبشن",
     options: [
       {
-        id: "cur2_opt1", label: "Option 1 - عادي", price: 16223.33,
-        image: `${CDN}/ستارةالريسبشن_00a3d736.png`,
-        items: [
-          { name: "تراك 210 ويف", price: 1853.28 }, { name: "تراك 210 عادي", price: 1111.97 },
-          { name: "خشب", price: 926.64 }, { name: "كتان تقيل", price: 5945.94 },
-          { name: "كتان خفيف", price: 3861.00 }, { name: "تفصيل ويف", price: 1081.08 },
-          { name: "تفصيل كرسات", price: 849.42 }, { name: "تركيب", price: 594.00 },
-        ]
-      },
-      {
-        id: "cur2_opt2", label: "Option 2 - ذكي (أزورا)", price: 68827.05,
+        id: "cur2_opt1", label: "Option 1 - ذكي (أزورا)", price: 68827.05,
         image: `${CDN}/ستارةالريسبشن_00a3d736.png`,
         items: [
           { name: "موتور أزورا", price: 36261.00 }, { name: "تراك أزورا", price: 15514.20 },
@@ -895,23 +886,23 @@ const curtainItems = [
           { name: "تركيب", price: 573.75 },
         ]
       },
+      {
+        id: "cur2_opt2", label: "Option 2 - عادي", price: 16223.33,
+        image: `${CDN}/ستارةالريسبشن_00a3d736.png`,
+        items: [
+          { name: "تراك 210 ويف", price: 1853.28 }, { name: "تراك 210 عادي", price: 1111.97 },
+          { name: "خشب", price: 926.64 }, { name: "كتان تقيل", price: 5945.94 },
+          { name: "كتان خفيف", price: 3861.00 }, { name: "تفصيل ويف", price: 1081.08 },
+          { name: "تفصيل كرسات", price: 849.42 }, { name: "تركيب", price: 594.00 },
+        ]
+      },
     ]
   },
   {
     id: "cur3", room: "ستارة غرفة الليفينج",
     options: [
       {
-        id: "cur3_opt1", label: "Option 1 - عادي", price: 25579.42,
-        image: `${CDN}/ستارةالليفنج_a982318a.png`,
-        items: [
-          { name: "تراك 210 ويف", price: 2869.02 }, { name: "تراك 210 عادي", price: 1721.41 },
-          { name: "خشب", price: 1434.51 }, { name: "كتان تقيل", price: 9604.98 },
-          { name: "كتان خفيف", price: 6237.00 }, { name: "تفصيل ويف", price: 1746.36 },
-          { name: "تفصيل كرسات", price: 1372.14 }, { name: "تركيب", price: 594.00 },
-        ]
-      },
-      {
-        id: "cur3_opt2", label: "Option 2 - ذكي (أزورا)", price: 84797.39,
+        id: "cur3_opt1", label: "Option 1 - ذكي (أزورا)", price: 84797.39,
         image: `${CDN}/ستارةالليفنج_a982318a.png`,
         items: [
           { name: "موتور أزورا", price: 36261.00 }, { name: "تراك أزورا", price: 24017.17 },
@@ -921,23 +912,23 @@ const curtainItems = [
           { name: "تركيب", price: 573.75 },
         ]
       },
+      {
+        id: "cur3_opt2", label: "Option 2 - عادي", price: 25579.42,
+        image: `${CDN}/ستارةالليفنج_a982318a.png`,
+        items: [
+          { name: "تراك 210 ويف", price: 2869.02 }, { name: "تراك 210 عادي", price: 1721.41 },
+          { name: "خشب", price: 1434.51 }, { name: "كتان تقيل", price: 9604.98 },
+          { name: "كتان خفيف", price: 6237.00 }, { name: "تفصيل ويف", price: 1746.36 },
+          { name: "تفصيل كرسات", price: 1372.14 }, { name: "تركيب", price: 594.00 },
+        ]
+      },
     ]
   },
   {
     id: "cur4", room: "ستارة غرفة الماستر",
     options: [
       {
-        id: "cur4_opt1", label: "Option 1 - عادي", price: 4247.10,
-        image: `${CDN}/الماستر_c2c20a6f.png`,
-        items: [
-          { name: "تراك 210 ويف", price: 534.60 }, { name: "تراك 210 عادي", price: 320.76 },
-          { name: "خشب", price: 267.30 }, { name: "بلاك أوت ألماني", price: 1143.45 },
-          { name: "كتان خفيف", price: 1188.00 }, { name: "تفصيل ويف", price: 332.64 },
-          { name: "تفصيل عادي", price: 163.35 }, { name: "تركيب", price: 297.00 },
-        ]
-      },
-      {
-        id: "cur4_opt2", label: "Option 2 - ذكي (أزورا)", price: 28004.75,
+        id: "cur4_opt1", label: "Option 1 - ذكي (أزورا)", price: 28004.75,
         image: `${CDN}/الماستر_c2c20a6f.png`,
         items: [
           { name: "موتور أزورا", price: 18130.50 }, { name: "تراك أزورا", price: 4475.25 },
@@ -945,6 +936,16 @@ const curtainItems = [
           { name: "بلاك أوت ألماني", price: 1104.47 }, { name: "كتان خفيف", price: 1147.50 },
           { name: "تفصيل ويف", price: 321.30 }, { name: "تفصيل عادي", price: 157.78 },
           { name: "تركيب", price: 286.88 },
+        ]
+      },
+      {
+        id: "cur4_opt2", label: "Option 2 - عادي", price: 4247.10,
+        image: `${CDN}/الماستر_c2c20a6f.png`,
+        items: [
+          { name: "تراك 210 ويف", price: 534.60 }, { name: "تراك 210 عادي", price: 320.76 },
+          { name: "خشب", price: 267.30 }, { name: "بلاك أوت ألماني", price: 1143.45 },
+          { name: "كتان خفيف", price: 1188.00 }, { name: "تفصيل ويف", price: 332.64 },
+          { name: "تفصيل عادي", price: 163.35 }, { name: "تركيب", price: 297.00 },
         ]
       },
     ]
@@ -1037,6 +1038,7 @@ export default function Home() {
   const [complaintDesc, setComplaintDesc] = useState("");
   const [complaintImg, setComplaintImg] = useState<{ base64: string; mime: string } | null>(null);
   const [complaintLoading, setComplaintLoading] = useState(false);
+  const [pdfExporting, setPdfExporting] = useState(false);
 
   // Replies modal state
   const [repliesModal, setRepliesModal] = useState<{ id: number; title: string; phaseIndex: number } | null>(null);
@@ -1081,8 +1083,10 @@ export default function Home() {
     const o = r?.options.find(o => o.id === oId);
     return s + (o?.price || 0);
   }, 0);
-  const grandTotal = finishingTotal + furnitureTotal + smartTotal + curtainsTotal;
-
+   const grandTotal = finishingTotal + furnitureTotal + smartTotal + curtainsTotal;
+  // Deduct paid items (f0 = التصميم والتحضير الهندسي = 25,000)
+  const paidDeduction = finishingItems.filter(i => i.paid && selectedFinishing.has(i.id)).reduce((s, i) => s + i.price, 0);
+  const netTotal = grandTotal - paidDeduction;
   // Compute timeline phases with dates based on contractDate
   const computedTimeline = useMemo(() => {
     if (!contractDate) return [];
@@ -1132,17 +1136,310 @@ export default function Home() {
   };
 
   const handleExportPDF = async () => {
+    setPdfExporting(true);
+    try {
+      await handleExportPDFCanvas();
+    } finally {
+      setPdfExporting(false);
+    }
+  };
+
+  const handleExportPDFCanvas = async () => {
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const W = 210;
+    const H = 297;
+    const GOLD = "#D4AF37";
+    const DARK = "#0f0e14";
+
+    // Helper: render an HTML element to a PDF page using html2canvas
+    const addHtmlPage = async (el: HTMLElement) => {
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: DARK,
+        logging: false,
+      });
+      const imgData = canvas.toDataURL("image/jpeg", 0.92);
+      const ratio = canvas.height / canvas.width;
+      const imgH = Math.min(H, W * ratio);
+      doc.addImage(imgData, "JPEG", 0, 0, W, imgH);
+    };
+
+    // Build a hidden off-screen container with all PDF content
+    const container = document.createElement("div");
+    container.style.cssText = `position:fixed;left:-9999px;top:0;width:794px;background:${DARK};font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#e8dfc0;`;
+    document.body.appendChild(container);
+
+    const goldStyle = `color:${GOLD};font-weight:900;`;
+    const sectionTitle = (text: string) =>
+      `<div style="${goldStyle}font-size:22px;margin-bottom:12px;border-bottom:2px solid ${GOLD};padding-bottom:6px;">${text}</div>`;
+    const row = (label: string, price: string, paid = false, muted = false) =>
+      `<div style="display:flex;justify-content:space-between;padding:7px 12px;background:rgba(255,255,255,0.04);border-radius:6px;margin-bottom:4px;font-size:13px;">
+        <span style="color:${muted ? "#9a8f6a" : "#e8dfc0"}">${label}</span>
+        <span style="${goldStyle}">${paid ? '<span style="color:#22c55e;font-size:11px;margin-left:8px;">✓ مدفوع</span>' : ""}${price}</span>
+      </div>`;
+
+    // --- Page 1: Cover ---
+    const coverEl = document.createElement("div");
+    coverEl.style.cssText = `width:794px;min-height:1123px;background:${DARK};display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px;box-sizing:border-box;`;
+    coverEl.innerHTML = `
+      <div style="${goldStyle}font-size:42px;margin-bottom:8px;">PROFESSOR</div>
+      <div style="color:#9a8f6a;font-size:16px;margin-bottom:40px;">Perfection in Every Detail</div>
+      <div style="background:rgba(212,175,55,0.1);border:1px solid ${GOLD}40;border-radius:16px;padding:40px;width:100%;text-align:center;">
+        <div style="color:#9a8f6a;font-size:14px;margin-bottom:8px;">عرض سعر مشروع</div>
+        <div style="${goldStyle}font-size:28px;margin-bottom:6px;">مستر علي راشد</div>
+        <div style="color:#9a8f6a;font-size:13px;">مدينتي - 140 م² - مارس 2026</div>
+      </div>
+      ${grandTotal > 0 ? `
+      <div style="background:${GOLD};border-radius:12px;padding:24px 40px;margin-top:32px;text-align:center;">
+        <div style="color:${DARK};font-size:14px;font-weight:600;margin-bottom:4px;">إجمالي قيمة المشروع</div>
+        <div style="color:${DARK};font-size:36px;font-weight:900;">${formatPrice(netTotal > 0 ? netTotal : grandTotal)}</div>
+        <div style="color:${DARK};font-size:14px;font-weight:600;">جنيه مصري</div>
+      </div>` : ""}
+    `;
+    container.appendChild(coverEl);
+    await addHtmlPage(coverEl);
+    container.removeChild(coverEl);
+
+    // --- Page 2: Finishing Items ---
+    const selectedItems = finishingItems.filter(i => selectedFinishing.has(i.id));
+    if (selectedItems.length > 0) {
+      doc.addPage();
+      const finEl = document.createElement("div");
+      finEl.style.cssText = `width:794px;min-height:1123px;background:${DARK};padding:40px;box-sizing:border-box;`;
+      let finHtml = sectionTitle("أعمال التشطيب");
+      selectedItems.forEach(item => {
+        let name = item.name;
+        let price = item.price;
+        if (item.hasOptions && item.options) {
+          const selOpt = item.options.find(o => o.id === selectedDecorOption);
+          if (!selOpt) return;
+          name = `${item.name} - ${selOpt.label}`;
+          price = selOpt.price;
+        }
+        finHtml += row(name, formatPrice(price) + " جنيه", item.paid);
+        if (item.details && item.details.length > 0) {
+          finHtml += `<div style="padding:4px 16px 8px;">`;
+          item.details.forEach((d: string) => {
+            finHtml += `<div style="color:#9a8f6a;font-size:11px;margin-bottom:2px;">• ${d}</div>`;
+          });
+          finHtml += `</div>`;
+        }
+      });
+      finHtml += `<div style="background:${GOLD};border-radius:8px;padding:10px 16px;display:flex;justify-content:space-between;margin-top:12px;">
+        <span style="color:${DARK};font-weight:700;">إجمالي التشطيب</span>
+        <span style="color:${DARK};font-weight:900;">${formatPrice(finishingTotal)} جنيه</span>
+      </div>`;
+      finEl.innerHTML = finHtml;
+      container.appendChild(finEl);
+      await addHtmlPage(finEl);
+      container.removeChild(finEl);
+    }
+
+    // --- Page 3: Furniture ---
+    const selectedFurnitureItems = furnitureItems.filter(i => selectedFurniture[i.id]);
+    if (selectedFurnitureItems.length > 0) {
+      doc.addPage();
+      const furEl = document.createElement("div");
+      furEl.style.cssText = `width:794px;min-height:1123px;background:${DARK};padding:40px;box-sizing:border-box;`;
+      let furHtml = sectionTitle("الأثاث");
+      selectedFurnitureItems.forEach(item => {
+        const optId = selectedFurniture[item.id];
+        const opt = item.options.find((o: {id:string}) => o.id === optId);
+        if (!opt) return;
+        furHtml += row(`${item.room} - ${opt.label}`, formatPrice(opt.price) + " جنيه");
+        if (opt.desc) {
+          const descParts = (opt.desc as string).split(" | ");
+          furHtml += `<div style="padding:4px 16px 8px;">`;
+          descParts.forEach((part: string) => {
+            furHtml += `<div style="color:#9a8f6a;font-size:11px;margin-bottom:2px;">• ${part}</div>`;
+          });
+          furHtml += `</div>`;
+        }
+      });
+      furHtml += `<div style="background:${GOLD};border-radius:8px;padding:10px 16px;display:flex;justify-content:space-between;margin-top:12px;">
+        <span style="color:${DARK};font-weight:700;">إجمالي الأثاث</span>
+        <span style="color:${DARK};font-weight:900;">${formatPrice(furnitureTotal)} جنيه</span>
+      </div>`;
+      furEl.innerHTML = furHtml;
+      container.appendChild(furEl);
+      await addHtmlPage(furEl);
+      container.removeChild(furEl);
+    }
+
+    // --- Page 4: Smart Home + Curtains ---
+    if (selectedSmart || Object.keys(selectedCurtains).length > 0) {
+      doc.addPage();
+      const scEl = document.createElement("div");
+      scEl.style.cssText = `width:794px;min-height:1123px;background:${DARK};padding:40px;box-sizing:border-box;`;
+      let scHtml = "";
+      if (selectedSmart) {
+        const smartOpt = smartHomeOptions.find((o: {id:string}) => o.id === selectedSmart);
+        if (smartOpt) {
+          scHtml += sectionTitle("Smart Home System");
+          scHtml += row((smartOpt as {label:string}).label, formatPrice((smartOpt as {price:number}).price) + " جنيه");
+          scHtml += `<div style="background:${GOLD};border-radius:8px;padding:10px 16px;display:flex;justify-content:space-between;margin-top:8px;margin-bottom:24px;">
+            <span style="color:${DARK};font-weight:700;">إجمالي Smart Home</span>
+            <span style="color:${DARK};font-weight:900;">${formatPrice(smartTotal)} جنيه</span>
+          </div>`;
+        }
+      }
+      if (Object.keys(selectedCurtains).length > 0) {
+        scHtml += sectionTitle("الستائر");
+        Object.entries(selectedCurtains).forEach(([rId, oId]) => {
+          const r = curtainItems.find((r: {id:string}) => r.id === rId);
+          const o = r?.options.find((o: {id:string}) => o.id === oId);
+          if (!r || !o) return;
+          scHtml += row(`${(r as {room:string}).room} - ${o.label}`, formatPrice(o.price) + " جنيه");
+        });
+        scHtml += `<div style="background:${GOLD};border-radius:8px;padding:10px 16px;display:flex;justify-content:space-between;margin-top:8px;">
+          <span style="color:${DARK};font-weight:700;">إجمالي الستائر</span>
+          <span style="color:${DARK};font-weight:900;">${formatPrice(curtainsTotal)} جنيه</span>
+        </div>`;
+      }
+      scEl.innerHTML = scHtml;
+      container.appendChild(scEl);
+      await addHtmlPage(scEl);
+      container.removeChild(scEl);
+    }
+
+    // --- Page 5: Team ---
+    doc.addPage();
+    const teamEl = document.createElement("div");
+    teamEl.style.cssText = `width:794px;min-height:1123px;background:${DARK};padding:40px;box-sizing:border-box;`;
+    let teamHtml = sectionTitle("فريق العمل المكلف بالمشروع");
+    teamHtml += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px;">`;
+    for (const member of teamData) {
+      teamHtml += `<div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:14px;text-align:center;">
+        ${member.img ? `<img src="${member.img}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid ${GOLD};margin-bottom:8px;" crossorigin="anonymous" />` : `<div style="width:64px;height:64px;border-radius:50%;background:${GOLD}30;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:24px;">👤</div>`}
+        <div style="${goldStyle}font-size:13px;">${member.name}</div>
+        <div style="color:#9a8f6a;font-size:11px;margin-top:4px;">${member.title}</div>
+        ${member.phone ? `<div style="color:${GOLD};font-size:11px;margin-top:4px;direction:ltr;">${member.phone}</div>` : ""}
+      </div>`;
+    }
+    teamHtml += `</div>`;
+    teamEl.innerHTML = teamHtml;
+    container.appendChild(teamEl);
+    await addHtmlPage(teamEl);
+    container.removeChild(teamEl);
+
+    // --- Page 6: Grand Total ---
+    if (grandTotal > 0) {
+      doc.addPage();
+      const totEl = document.createElement("div");
+      totEl.style.cssText = `width:794px;min-height:1123px;background:${DARK};padding:40px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;`;
+      let totHtml = sectionTitle("ملخص الإجمالي");
+      if (finishingTotal > 0) totHtml += row("أعمال التشطيب", formatPrice(finishingTotal) + " جنيه");
+      if (furnitureTotal > 0) totHtml += row("الأثاث", formatPrice(furnitureTotal) + " جنيه");
+      if (smartTotal > 0) totHtml += row("Smart Home", formatPrice(smartTotal) + " جنيه");
+      if (curtainsTotal > 0) totHtml += row("الستائر", formatPrice(curtainsTotal) + " جنيه");
+      totHtml += `<div style="background:rgba(212,175,55,0.15);border:1px solid ${GOLD}40;border-radius:8px;padding:10px 16px;display:flex;justify-content:space-between;margin-top:8px;">
+        <span style="color:#e8dfc0;font-weight:700;">الإجمالي الكلي</span>
+        <span style="${goldStyle}">${formatPrice(grandTotal)} جنيه</span>
+      </div>`;
+      if (paidDeduction > 0) {
+        totHtml += `<div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:10px 16px;display:flex;justify-content:space-between;margin-top:6px;">
+          <span style="color:#22c55e;font-weight:700;">خصم التصميم والتحضير الهندسي (مدفوع مسبقاً)</span>
+          <span style="color:#22c55e;font-weight:900;">- ${formatPrice(paidDeduction)} جنيه</span>
+        </div>`;
+        totHtml += `<div style="background:${GOLD};border-radius:12px;padding:20px 24px;display:flex;justify-content:space-between;margin-top:12px;">
+          <span style="color:${DARK};font-size:18px;font-weight:900;">صافي المبلغ المطلوب</span>
+          <span style="color:${DARK};font-size:24px;font-weight:900;">${formatPrice(netTotal)} جنيه</span>
+        </div>`;
+      } else {
+        totHtml += `<div style="background:${GOLD};border-radius:12px;padding:20px 24px;display:flex;justify-content:space-between;margin-top:12px;">
+          <span style="color:${DARK};font-size:18px;font-weight:900;">الإجمالي النهائي</span>
+          <span style="color:${DARK};font-size:24px;font-weight:900;">${formatPrice(grandTotal)} جنيه</span>
+        </div>`;
+      }
+        // Add 7-day validity notice
+      const today = new Date();
+      const expiryDate = new Date(today);
+      expiryDate.setDate(today.getDate() + 7);
+      const formatDate = (d: Date) => d.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+      totHtml += `<div style="background:rgba(255,165,0,0.1);border:1px solid rgba(255,165,0,0.3);border-radius:8px;padding:12px 16px;margin-top:16px;text-align:center;">
+        <div style="color:#FFA500;font-weight:700;font-size:13px;margin-bottom:4px;">⏰ صلاحية عرض السعر</div>
+        <div style="color:#e8dfc0;font-size:12px;">hهذا العرض ساري لمدة <strong style="color:#FFA500;">7 أيام</strong> من تاريخ إصداره</div>
+        <div style="color:#9a8f6a;font-size:11px;margin-top:4px;">نظراً لاختلاف الأسعار وعدم استقرار تسعير بعض البنود</div>
+        <div style="color:#9a8f6a;font-size:11px;margin-top:2px;">تاريخ الإصدار: ${formatDate(today)} — آخر موعد للقبول: ${formatDate(expiryDate)}</div>
+      </div>`;
+      totEl.innerHTML = totHtml;
+      container.appendChild(totEl);
+      await addHtmlPage(totEl);
+      container.removeChild(totEl);
+    }
+
+    // --- Page 7: Why Professor (Contract Benefits) ---
+    doc.addPage();
+    const benefitsEl = document.createElement("div");
+    benefitsEl.style.cssText = `width:794px;min-height:1123px;background:${DARK};padding:40px;box-sizing:border-box;`;
+    const benefits = [
+      { icon: "🏗️", title: "مصنع خاص وإدارة متكاملة", desc: "تمتلك الشركة مصنعها الخاص ومخازنها، مما يضمن التنفيذ المباشر بأيدي فنيينا والسيطرة الكاملة على الجودة، والالتزام التام بمواعيد التسليم." },
+      { icon: "📞", title: "أنظمة متابعة ودعم 24/7", desc: "نمتلك أحدث أنظمة المتابعة (CRM) وهوت لاين على مدار 24 ساعة لخدمة ما بعد البيع، مع فرق متكاملة للمبيعات والمكتب الفني والإنتاج والدعم المالي والإداري." },
+      { icon: "🏆", title: "الخبرة والتاريخ", desc: "سنوات من الخبرة الراسخة في مجال التصميم الداخلي والتنفيذ المتكامل للمشاريع السكنية الLuxury." },
+      { icon: "👨‍💼", title: "الفريق المتخصص", desc: "فريق متكامل من المهندسين والفنيين ذوي الخبرة العالية يعملون بتناغم لضمان دقة التنفيذ وتحقيق أعلى مستويات الجودة." },
+      { icon: "💎", title: "الجودة والمعايير", desc: "نلتزم بأعلى معايير الجودة العالمية واستخدام أفضل الخامات والمواد المستوردة لضمان الفخامة والمتانة." },
+    ];
+    let benHtml = sectionTitle("لماذا نحن الخيار الأمثل؟");
+    benHtml += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px;">`;
+    benefits.forEach(b => {
+      benHtml += `<div style="background:rgba(255,255,255,0.04);border:1px solid ${GOLD}30;border-radius:12px;padding:20px;display:flex;gap:14px;align-items:flex-start;">
+        <span style="font-size:28px;flex-shrink:0;">${b.icon}</span>
+        <div>
+          <div style="${goldStyle}font-size:14px;margin-bottom:6px;">${b.title}</div>
+          <div style="color:#9a8f6a;font-size:12px;line-height:1.7;">${b.desc}</div>
+        </div>
+      </div>`;
+    });
+    benHtml += `</div>`;
+    benHtml += `<div style="margin-top:32px;text-align:center;border-top:1px solid ${GOLD}30;padding-top:24px;">
+      <div style="${goldStyle}font-size:18px;margin-bottom:8px;">PROFESSOR</div>
+      <div style="color:#9a8f6a;font-size:13px;">Perfection in Every Detail</div>
+    </div>`;
+    benefitsEl.innerHTML = benHtml;
+    container.appendChild(benefitsEl);
+    await addHtmlPage(benefitsEl);
+    container.removeChild(benefitsEl);
+
+    document.body.removeChild(container);
+    doc.save("Professor-Quotation-MrAliRashed.pdf");
+  };
+
+  const handleExportPDF_OLD = async () => {
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    // Load and embed Amiri Arabic font for proper Arabic rendering
+    try {
+      const fontResp = await fetch("/Amiri-Regular.ttf");
+      const fontBoldResp = await fetch("/Amiri-Bold.ttf");
+      if (fontResp.ok && fontBoldResp.ok) {
+        const fontBuf = await fontResp.arrayBuffer();
+        const fontBoldBuf = await fontBoldResp.arrayBuffer();
+        const fontB64 = btoa(Array.from(new Uint8Array(fontBuf)).map(b => String.fromCharCode(b)).join(""));
+        const fontBoldB64 = btoa(Array.from(new Uint8Array(fontBoldBuf)).map(b => String.fromCharCode(b)).join(""));
+        doc.addFileToVFS("Amiri-Regular.ttf", fontB64);
+        doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
+        doc.addFileToVFS("Amiri-Bold.ttf", fontBoldB64);
+        doc.addFont("Amiri-Bold.ttf", "Amiri", "bold");
+      }
+    } catch (_) { /* fallback to helvetica */ }
+    const arabicFont = doc.getFontList()["Amiri"] ? "Amiri" : "helvetica";
+    const setAr = (style: "normal" | "bold" = "normal") => {
+      doc.setFont(arabicFont, style);
+      if (arabicFont === "Amiri") doc.setR2L(true);
+    };
+    const setEn = (style: "normal" | "bold" = "normal") => {
+      doc.setFont("helvetica", style);
+      doc.setR2L(false);
+    };
     const W = 210;
     const goldR = 212, goldG = 175, goldB = 55;
     const darkR = 18, darkG = 18, darkB = 24;
     let y = 0;
-
     const addPage = () => {
       doc.addPage();
       doc.setFillColor(darkR, darkG, darkB);
       doc.rect(0, 0, W, 297, "F");
-      y = 15;
+      y = 15;;
     };
 
     const checkY = (needed: number) => {
@@ -1435,7 +1732,28 @@ export default function Home() {
       doc.setFont("helvetica", "bold");
       doc.text("TOTAL: " + formatPrice(grandTotal) + " EGP", W / 2, y + 13, { align: "center" });
       doc.setFont("helvetica", "normal");
-      y += 30;
+      y += 28;
+      // Show deduction if paid items exist
+      if (paidDeduction > 0) {
+        checkY(28);
+        doc.setFillColor(20, 50, 30);
+        doc.roundedRect(20, y, W - 40, 12, 2, 2, "F");
+        doc.setFontSize(9);
+        doc.setTextColor(80, 200, 120);
+        doc.setFont("helvetica", "bold");
+        doc.text("- PAID (Design & Engineering Prep): " + formatPrice(paidDeduction) + " EGP", W / 2, y + 8, { align: "center" });
+        doc.setFont("helvetica", "normal");
+        y += 14;
+        checkY(22);
+        doc.setFillColor(goldR, goldG, goldB);
+        doc.roundedRect(20, y, W - 40, 20, 3, 3, "F");
+        doc.setFontSize(14);
+        doc.setTextColor(darkR, darkG, darkB);
+        doc.setFont("helvetica", "bold");
+        doc.text("NET TOTAL: " + formatPrice(netTotal) + " EGP", W / 2, y + 13, { align: "center" });
+        doc.setFont("helvetica", "normal");
+        y += 28;
+      }
     }
 
     // ---- Team Page ----
@@ -1447,11 +1765,10 @@ export default function Home() {
     doc.setFont("helvetica", "normal");
     y += 15;
 
-    teamData.forEach(member => {
-      checkY(16);
+    for (const member of teamData) {
+      checkY(18);
       doc.setFillColor(28, 26, 36);
-      doc.roundedRect(15, y, W - 30, 13, 2, 2, "F");
-
+      doc.roundedRect(15, y, W - 30, 15, 2, 2, "F");
       // Level indicator dot
       const levelColors: Record<number, [number, number, number]> = {
         1: [212, 175, 55],
@@ -1461,23 +1778,38 @@ export default function Home() {
         4: [100, 90, 70],
       };
       const lc = levelColors[member.level] || [100, 90, 70];
-      doc.setFillColor(lc[0], lc[1], lc[2]);
-      doc.circle(22, y + 6.5, 2, "F");
-
+      // Try to add member photo
+      let photoAdded = false;
+      if (member.img) {
+        try {
+          const imgResp = await fetch(member.img);
+          if (imgResp.ok) {
+            const imgBuf = await imgResp.arrayBuffer();
+            const imgB64 = btoa(Array.from(new Uint8Array(imgBuf)).map(b => String.fromCharCode(b)).join(""));
+            const ext = member.img.toLowerCase().includes(".png") ? "PNG" : "JPEG";
+            doc.addImage("data:image/" + ext.toLowerCase() + ";base64," + imgB64, ext, 17, y + 1.5, 12, 12);
+            photoAdded = true;
+          }
+        } catch (_) { /* skip photo */ }
+      }
+      const textX = photoAdded ? 32 : 22;
+      if (!photoAdded) {
+        doc.setFillColor(lc[0], lc[1], lc[2]);
+        doc.circle(22, y + 7.5, 2.5, "F");
+      }
       doc.setFontSize(9);
       doc.setTextColor(220, 210, 180);
-      doc.text(member.name, 28, y + 5.5);
+      doc.text(member.name, textX, y + 6);
       doc.setFontSize(7.5);
       doc.setTextColor(150, 140, 100);
-      doc.text(member.title, 28, y + 10.5);
-
+      doc.text(member.title, textX, y + 11);
       if (member.phone) {
         doc.setTextColor(goldR, goldG, goldB);
         doc.setFontSize(7.5);
-        doc.text(member.phone, W - 50, y + 7);
+        doc.text(member.phone, W - 50, y + 8);
       }
-      y += 15;
-    });
+      y += 17;
+    }
 
     // Footer on last page
     doc.setFillColor(goldR, goldG, goldB);
@@ -2469,9 +2801,9 @@ export default function Home() {
                     style={{ background: "transparent", color: GOLD, border: `1px solid ${GOLD}`, borderRadius: "0.5rem", padding: "0.6rem 1.2rem", fontSize: "0.9rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Cairo', sans-serif" }}>
                     🖨️ طباعة الملخص
                   </button>
-                  <button onClick={handleExportPDF}
-                    style={{ background: GOLD, color: DARK, border: "none", borderRadius: "0.5rem", padding: "0.6rem 1.4rem", fontSize: "0.9rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Cairo', sans-serif", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                    📄 تصدير PDF
+                  <button onClick={handleExportPDF} disabled={pdfExporting}
+                    style={{ background: GOLD, color: DARK, border: "none", borderRadius: "0.5rem", padding: "0.6rem 1.4rem", fontSize: "0.9rem", fontWeight: 700, cursor: pdfExporting ? "not-allowed" : "pointer", fontFamily: "'Cairo', sans-serif", display: "flex", alignItems: "center", gap: "0.4rem", opacity: pdfExporting ? 0.7 : 1 }}>
+                    {pdfExporting ? "⏳ جاري إنشاء PDF..." : "📄 تصدير PDF"}
                   </button>
                 </div>
               )}
@@ -2674,14 +3006,23 @@ export default function Home() {
             {/* Grand Total */}
             {grandTotal > 0 ? (
               <div style={{ background: `linear-gradient(135deg, ${GOLD}, oklch(0.6 0.1 75))`, borderRadius: "1rem", padding: "1.75rem", textAlign: "center" }}>
-                <div style={{ color: DARK, fontSize: "0.95rem", fontWeight: 600, marginBottom: "0.5rem" }}>الإجمالي النهائي لجميع الاختيارات</div>
-                <div style={{ color: DARK, fontSize: "2.8rem", fontWeight: 900, lineHeight: 1 }}>{formatPrice(grandTotal)}</div>
-                <div style={{ color: DARK, fontSize: "1.1rem", fontWeight: 600, marginTop: "0.25rem" }}>جنيه مصري</div>
+                <div style={{ color: DARK, fontSize: "0.95rem", fontWeight: 600, marginBottom: "0.5rem" }}>الإجمالي الكلي لجميع الاختيارات</div>
+                <div style={{ color: DARK, fontSize: "2.2rem", fontWeight: 900, lineHeight: 1, textDecoration: paidDeduction > 0 ? "line-through" : "none", opacity: paidDeduction > 0 ? 0.7 : 1 }}>{formatPrice(grandTotal)}</div>
+                {paidDeduction > 0 && (
+                  <>
+                    <div style={{ color: "oklch(0.3 0.15 145)", fontSize: "0.85rem", fontWeight: 700, marginTop: "0.3rem" }}>
+                      − {formatPrice(paidDeduction)} جنيه (خصم التصميم والتحضير الهندسي المدفوع مسبقاً)
+                    </div>
+                    <div style={{ color: DARK, fontSize: "2.8rem", fontWeight: 900, lineHeight: 1, marginTop: "0.4rem" }}>{formatPrice(netTotal)}</div>
+                  </>
+                )}
+                <div style={{ color: DARK, fontSize: "1.1rem", fontWeight: 600, marginTop: "0.25rem" }}>جنيه مصري (صافي المطلوب)</div>
                 <div style={{ marginTop: "1.25rem", display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
                   {finishingTotal > 0 && <div style={{ background: "oklch(0.1 0.005 285 / 30%)", borderRadius: "0.5rem", padding: "0.4rem 0.8rem", fontSize: "0.82rem", color: DARK }}>تشطيب: {formatPrice(finishingTotal)}</div>}
                   {furnitureTotal > 0 && <div style={{ background: "oklch(0.1 0.005 285 / 30%)", borderRadius: "0.5rem", padding: "0.4rem 0.8rem", fontSize: "0.82rem", color: DARK }}>أثاث: {formatPrice(furnitureTotal)}</div>}
                   {smartTotal > 0 && <div style={{ background: "oklch(0.1 0.005 285 / 30%)", borderRadius: "0.5rem", padding: "0.4rem 0.8rem", fontSize: "0.82rem", color: DARK }}>Smart Home: {formatPrice(smartTotal)}</div>}
                   {curtainsTotal > 0 && <div style={{ background: "oklch(0.1 0.005 285 / 30%)", borderRadius: "0.5rem", padding: "0.4rem 0.8rem", fontSize: "0.82rem", color: DARK }}>ستائر: {formatPrice(curtainsTotal)}</div>}
+                  {paidDeduction > 0 && <div style={{ background: "oklch(0.25 0.1 145 / 50%)", borderRadius: "0.5rem", padding: "0.4rem 0.8rem", fontSize: "0.82rem", color: DARK }}>✓ مدفوع مسبقاً: {formatPrice(paidDeduction)}</div>}
                 </div>
               </div>
             ) : (
