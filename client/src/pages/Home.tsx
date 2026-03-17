@@ -756,14 +756,6 @@ const furnitureItems = [
     ]
   },
   {
-    id: "fur8", room: "وحدة المدخل",
-    image: `${CDN}/pasted_file_HV1FPk_image_2c18654b.png`,
-    options: [
-      { id: "fur8_opt1", label: "الخيار الأول - فاخر", price: 32000, desc: "وحدة مدخل كاملة مع مرايا وإضاءة LED" },
-      { id: "fur8_opt2", label: "الخيار الثاني - عادي", price: 20000, desc: "وحدة مدخل بسيطة" },
-    ]
-  },
-  {
     id: "fur9", room: "أنتريه الريسبشن",
     image: `${CDN}/2_98efd75e.png`,
     options: [
