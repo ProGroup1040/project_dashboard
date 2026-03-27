@@ -36,3 +36,37 @@
 - [x] إضافة نظام الشكاوى مع رفع الصور (للعميل) والرد (للمهندس) والإغلاق (لملك/admin)
 - [x] إضافة جدول الدفعات التلقائي في تاب الملخص (50% تعاقد، 20% بعد مؑ11، 20% بعد مؑ15، 10% بعد مؑ16)
 - [ ] إضافة أيقونات واتساب وأرقام التليفون على كارد كل عضو في فريق العمل
+
+---
+
+## Pro Group Integrated Pricing System (NEW MODULE)
+
+### Phase 1: Database & Data Setup
+- [x] Add schema tables: brands, modules, spaces, products, product_types, variables, pricing_rules, basket_items, quotations
+- [x] Generate and apply migration SQL
+- [x] Seed pricing data: Pro Furniture → Bedroom → Bed (full working example)
+
+### Phase 2: Wizard UI (Step-by-step)
+- [x] Brand selector (Layer 1)
+- [x] Space/Category selector (Layer 2-3)
+- [x] Product selector (Layer 4)
+- [x] Product type selector (Layer 5)
+- [x] Specifications form (Layer 6): dimensions, materials, fabric, finish, add-ons
+- [x] Design complexity selector: Basic / Standard / Premium / Custom
+- [x] Quantity input + live price display
+
+### Phase 3: Pricing Engine & Basket
+- [x] Formula: (Base + Materials + Add-ons) × Complexity × Quantity
+- [x] Real-time price update
+- [x] Basket: add, edit, remove items
+- [x] Running total
+
+### Phase 4: Quotation Generator
+- [x] Structured quotation from basket
+- [x] Quick Estimate + Refined Estimate
+- [x] Print/export view
+
+### Phase 5: Polish & Delivery
+- [ ] Arabic RTL, responsive desktop UI
+- [x] Vitest tests for pricing engine (9 tests passing)
+- [ ] Checkpoint and delivery

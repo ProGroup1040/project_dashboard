@@ -17,6 +17,20 @@ import {
   updateComplaintStatus,
 } from "./db";
 import { storagePut } from "./storage";
+import {
+  getAllBrands,
+  getSpacesByBrand,
+  getProductsBySpace,
+  getProductTypesByProduct,
+  getVariablesByProductType,
+  getComplexityByProductType,
+  getBasketItems,
+  addBasketItem,
+  removeBasketItem,
+  clearBasket,
+  saveQuotation,
+  getQuotationsBySession,
+} from "./db-pricing";
 
 // Simple project session cookie name
 const PROJECT_SESSION_COOKIE = "proj_session";
@@ -96,7 +110,78 @@ export const appRouter = router({
       }),
   }),
 
-  // ===================== COMPLAINTS =====================
+  // ===================== PRICING SYSTEM =====================
+  pricing: router({
+    getBrands: publicProcedure.query(async () => getAllBrands()),
+
+    getSpaces: publicProcedure
+      .input(z.object({ brandId: z.number() }))
+      .query(async ({ input }) => getSpacesByBrand(input.brandId)),
+
+    getProducts: publicProcedure
+      .input(z.object({ spaceId: z.number() }))
+      .query(async ({ input }) => getProductsBySpace(input.spaceId)),
+
+    getProductTypes: publicProcedure
+      .input(z.object({ productId: z.number() }))
+      .query(async ({ input }) => getProductTypesByProduct(input.productId)),
+
+    getVariables: publicProcedure
+      .input(z.object({ productTypeId: z.number() }))
+      .query(async ({ input }) => getVariablesByProductType(input.productTypeId)),
+
+    getComplexity: publicProcedure
+      .input(z.object({ productTypeId: z.number() }))
+      .query(async ({ input }) => getComplexityByProductType(input.productTypeId)),
+
+    getBasket: publicProcedure
+      .input(z.object({ sessionId: z.string() }))
+      .query(async ({ input }) => getBasketItems(input.sessionId)),
+
+    addToBasket: publicProcedure
+      .input(z.object({
+        sessionId: z.string(),
+        brandId: z.number(),
+        spaceId: z.number(),
+        productId: z.number(),
+        productTypeId: z.number(),
+        selectedVariables: z.string(),
+        complexityLevel: z.enum(["basic", "standard", "premium", "custom"]),
+        quantity: z.number().min(1),
+        basePrice: z.number(),
+        materialsTotal: z.number(),
+        addonsTotal: z.number(),
+        complexityMultiplier: z.string(),
+        finalPrice: z.number(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => addBasketItem(input)),
+
+    removeFromBasket: publicProcedure
+      .input(z.object({ id: z.number(), sessionId: z.string() }))
+      .mutation(async ({ input }) => removeBasketItem(input.id, input.sessionId)),
+
+    clearBasket: publicProcedure
+      .input(z.object({ sessionId: z.string() }))
+      .mutation(async ({ input }) => clearBasket(input.sessionId)),
+
+    saveQuotation: publicProcedure
+      .input(z.object({
+        sessionId: z.string(),
+        quotationNumber: z.string(),
+        clientName: z.string().optional(),
+        projectName: z.string().optional(),
+        engineerName: z.string().optional(),
+        totalAmount: z.number(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => saveQuotation(input)),
+
+    getQuotations: publicProcedure
+      .input(z.object({ sessionId: z.string() }))
+      .query(async ({ input }) => getQuotationsBySession(input.sessionId)),
+  }),
+
   complaints: router({
     getByPhase: publicProcedure
       .input(z.object({ phaseIndex: z.number() }))

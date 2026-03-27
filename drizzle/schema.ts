@@ -86,3 +86,140 @@ export const complaintReplies = mysqlTable("complaint_replies", {
 });
 
 export type ComplaintReply = typeof complaintReplies.$inferSelect;
+
+// ===================== PRO GROUP PRICING SYSTEM TABLES =====================
+
+/**
+ * Brands: Professor, ProMax, Pro Dressing, Pro Porcelain, Pro Design Studio
+ */
+export const pricingBrands = mysqlTable("pricing_brands", {
+  id: int("id").autoincrement().primaryKey(),
+  code: varchar("code", { length: 32 }).notNull().unique(), // e.g. "PRO_FURNITURE"
+  nameAr: varchar("nameAr", { length: 128 }).notNull(),
+  nameEn: varchar("nameEn", { length: 128 }).notNull(),
+  systemType: mysqlEnum("systemType", ["product", "modular", "area", "catalog"]).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+});
+
+export type PricingBrand = typeof pricingBrands.$inferSelect;
+
+/**
+ * Spaces / Categories within a brand (e.g. Bedroom, Living Room)
+ */
+export const pricingSpaces = mysqlTable("pricing_spaces", {
+  id: int("id").autoincrement().primaryKey(),
+  brandId: int("brandId").notNull(),
+  code: varchar("code", { length: 32 }).notNull(),
+  nameAr: varchar("nameAr", { length: 128 }).notNull(),
+  nameEn: varchar("nameEn", { length: 128 }).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+});
+
+export type PricingSpace = typeof pricingSpaces.$inferSelect;
+
+/**
+ * Products within a space (e.g. Bed, Wardrobe, Nightstand)
+ */
+export const pricingProducts = mysqlTable("pricing_products", {
+  id: int("id").autoincrement().primaryKey(),
+  spaceId: int("spaceId").notNull(),
+  code: varchar("code", { length: 32 }).notNull(),
+  nameAr: varchar("nameAr", { length: 128 }).notNull(),
+  nameEn: varchar("nameEn", { length: 128 }).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+});
+
+export type PricingProduct = typeof pricingProducts.$inferSelect;
+
+/**
+ * Product types (e.g. Upholstered Bed, Wooden Bed, Hydraulic Bed)
+ */
+export const pricingProductTypes = mysqlTable("pricing_product_types", {
+  id: int("id").autoincrement().primaryKey(),
+  productId: int("productId").notNull(),
+  code: varchar("code", { length: 32 }).notNull(),
+  nameAr: varchar("nameAr", { length: 128 }).notNull(),
+  nameEn: varchar("nameEn", { length: 128 }).notNull(),
+  basePrice: int("basePrice").notNull().default(0), // in EGP
+  sortOrder: int("sortOrder").default(0).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+});
+
+export type PricingProductType = typeof pricingProductTypes.$inferSelect;
+
+/**
+ * Variable options (dimensions, materials, fabric, finish, add-ons, hardware)
+ * Each option has a price modifier (added to base price)
+ */
+export const pricingVariables = mysqlTable("pricing_variables", {
+  id: int("id").autoincrement().primaryKey(),
+  productTypeId: int("productTypeId").notNull(),
+  category: mysqlEnum("category", ["dimension", "material", "fabric", "finish", "hardware", "addon"]).notNull(),
+  code: varchar("code", { length: 64 }).notNull(),
+  nameAr: varchar("nameAr", { length: 128 }).notNull(),
+  nameEn: varchar("nameEn", { length: 128 }).notNull(),
+  priceModifier: int("priceModifier").notNull().default(0), // added to base price in EGP
+  isDefault: boolean("isDefault").default(false).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+});
+
+export type PricingVariable = typeof pricingVariables.$inferSelect;
+
+/**
+ * Design complexity levels with multipliers
+ */
+export const pricingComplexity = mysqlTable("pricing_complexity", {
+  id: int("id").autoincrement().primaryKey(),
+  productTypeId: int("productTypeId").notNull(),
+  level: mysqlEnum("level", ["basic", "standard", "premium", "custom"]).notNull(),
+  nameAr: varchar("nameAr", { length: 64 }).notNull(),
+  multiplier: varchar("multiplier", { length: 8 }).notNull(), // stored as string e.g. "1.00", "1.25"
+  description: text("description"),
+});
+
+export type PricingComplexity = typeof pricingComplexity.$inferSelect;
+
+/**
+ * Basket items — saved selections per engineer session/quotation
+ */
+export const pricingBasketItems = mysqlTable("pricing_basket_items", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: varchar("sessionId", { length: 64 }).notNull(), // UUID per engineer session
+  brandId: int("brandId").notNull(),
+  spaceId: int("spaceId").notNull(),
+  productId: int("productId").notNull(),
+  productTypeId: int("productTypeId").notNull(),
+  selectedVariables: text("selectedVariables").notNull(), // JSON array of variable IDs
+  complexityLevel: mysqlEnum("complexityLevel", ["basic", "standard", "premium", "custom"]).notNull(),
+  quantity: int("quantity").notNull().default(1),
+  basePrice: int("basePrice").notNull(),
+  materialsTotal: int("materialsTotal").notNull().default(0),
+  addonsTotal: int("addonsTotal").notNull().default(0),
+  complexityMultiplier: varchar("complexityMultiplier", { length: 8 }).notNull(),
+  finalPrice: int("finalPrice").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type PricingBasketItem = typeof pricingBasketItems.$inferSelect;
+
+/**
+ * Saved quotations
+ */
+export const pricingQuotations = mysqlTable("pricing_quotations", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: varchar("sessionId", { length: 64 }).notNull(),
+  quotationNumber: varchar("quotationNumber", { length: 32 }).notNull(),
+  clientName: varchar("clientName", { length: 128 }),
+  projectName: varchar("projectName", { length: 128 }),
+  engineerName: varchar("engineerName", { length: 128 }),
+  totalAmount: int("totalAmount").notNull(),
+  notes: text("notes"),
+  status: mysqlEnum("status", ["draft", "sent", "approved"]).default("draft").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type PricingQuotation = typeof pricingQuotations.$inferSelect;

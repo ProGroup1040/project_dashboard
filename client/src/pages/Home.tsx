@@ -1145,245 +1145,185 @@ export default function Home() {
   };
 
   const handleExportPDFCanvas = async () => {
-    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-    const W = 210;
-    const H = 297;
+    // Use print window approach - avoids html2canvas oklch color issues
+    // Build full HTML document with all content and open in new window for printing
     const GOLD = "#D4AF37";
     const DARK = "#0f0e14";
-
-    // Helper: render an HTML element to a PDF page using html2canvas
-    const addHtmlPage = async (el: HTMLElement) => {
-      const canvas = await html2canvas(el, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: DARK,
-        logging: false,
-      });
-      const imgData = canvas.toDataURL("image/jpeg", 0.92);
-      const ratio = canvas.height / canvas.width;
-      const imgH = Math.min(H, W * ratio);
-      doc.addImage(imgData, "JPEG", 0, 0, W, imgH);
-    };
-
-    // Build a hidden off-screen container with all PDF content
-    const container = document.createElement("div");
-    container.style.cssText = `position:fixed;left:-9999px;top:0;width:794px;background:${DARK};font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#e8dfc0;`;
-    document.body.appendChild(container);
-
     const goldStyle = `color:${GOLD};font-weight:900;`;
     const sectionTitle = (text: string) =>
-      `<div style="${goldStyle}font-size:22px;margin-bottom:12px;border-bottom:2px solid ${GOLD};padding-bottom:6px;">${text}</div>`;
+      `<div style="${goldStyle}font-size:22px;margin-bottom:12px;border-bottom:2px solid ${GOLD};padding-bottom:6px;page-break-after:avoid;">${text}</div>`;
     const row = (label: string, price: string, paid = false, muted = false) =>
       `<div style="display:flex;justify-content:space-between;padding:7px 12px;background:rgba(255,255,255,0.04);border-radius:6px;margin-bottom:4px;font-size:13px;">
         <span style="color:${muted ? "#9a8f6a" : "#e8dfc0"}">${label}</span>
         <span style="${goldStyle}">${paid ? '<span style="color:#22c55e;font-size:11px;margin-left:8px;">✓ مدفوع</span>' : ""}${price}</span>
       </div>`;
+    const formatPrice = (n: number) => n.toLocaleString("ar-EG");
+    const pageStyle = `width:794px;min-height:1123px;background:${DARK};padding:40px;box-sizing:border-box;page-break-after:always;`;
+
+    let html = `<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+      * { margin:0; padding:0; box-sizing:border-box; }
+      body { background:${DARK}; font-family:'Cairo',sans-serif; direction:rtl; color:#e8dfc0; }
+      @media print {
+        @page { size: A4; margin: 0; }
+        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      }
+    </style></head><body>`;
 
     // --- Page 1: Cover ---
-    const coverEl = document.createElement("div");
-    coverEl.style.cssText = `width:794px;min-height:1123px;background:${DARK};display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px;box-sizing:border-box;`;
-    coverEl.innerHTML = `
+    html += `<div style="${pageStyle}display:flex;flex-direction:column;align-items:center;justify-content:center;">
       <div style="${goldStyle}font-size:42px;margin-bottom:8px;">PROFESSOR</div>
       <div style="color:#9a8f6a;font-size:16px;margin-bottom:40px;">Perfection in Every Detail</div>
-      <div style="background:rgba(212,175,55,0.1);border:1px solid ${GOLD}40;border-radius:16px;padding:40px;width:100%;text-align:center;">
-        <div style="color:#9a8f6a;font-size:14px;margin-bottom:8px;">عرض سعر مشروع</div>
-        <div style="${goldStyle}font-size:28px;margin-bottom:6px;">مستر علي راشد</div>
-        <div style="color:#9a8f6a;font-size:13px;">مدينتي - 140 م² - مارس 2026</div>
-      </div>
-      ${grandTotal > 0 ? `
-      <div style="background:${GOLD};border-radius:12px;padding:24px 40px;margin-top:32px;text-align:center;">
-        <div style="color:${DARK};font-size:14px;font-weight:600;margin-bottom:4px;">إجمالي قيمة المشروع</div>
-        <div style="color:${DARK};font-size:36px;font-weight:900;">${formatPrice(netTotal > 0 ? netTotal : grandTotal)}</div>
-        <div style="color:${DARK};font-size:14px;font-weight:600;">جنيه مصري</div>
-      </div>` : ""}
-    `;
-    container.appendChild(coverEl);
-    await addHtmlPage(coverEl);
-    container.removeChild(coverEl);
+      <div style="${goldStyle}font-size:28px;text-align:center;margin-bottom:16px;">عرض تكلفة تنفيذ</div>
+      <div style="color:#e8dfc0;font-size:20px;text-align:center;margin-bottom:8px;">مشروع شقة مدينتي</div>
+      <div style="color:#9a8f6a;font-size:15px;text-align:center;margin-bottom:4px;">العميل: مستر علي راشد | مدينتي | 140 متر</div>
+      <div style="color:#9a8f6a;font-size:13px;text-align:center;">${new Date().toLocaleDateString("ar-EG", { year: "numeric", month: "long", day: "numeric" })}</div>
+    </div>`;
 
     // --- Page 2: Finishing Items ---
-    const selectedItems = finishingItems.filter(i => selectedFinishing.has(i.id));
-    if (selectedItems.length > 0) {
-      doc.addPage();
-      const finEl = document.createElement("div");
-      finEl.style.cssText = `width:794px;min-height:1123px;background:${DARK};padding:40px;box-sizing:border-box;`;
+    const selectedFinishingItems = finishingItems.filter(i => selectedFinishing.has(i.id));
+    if (selectedFinishingItems.length > 0) {
       let finHtml = sectionTitle("أعمال التشطيب");
-      selectedItems.forEach(item => {
-        let name = item.name;
-        let price = item.price;
-        if (item.hasOptions && item.options) {
-          const selOpt = item.options.find(o => o.id === selectedDecorOption);
-          if (!selOpt) return;
-          name = `${item.name} - ${selOpt.label}`;
-          price = selOpt.price;
+      selectedFinishingItems.forEach(item => {
+        const isF16 = item.id === "f16";
+        let itemPrice = item.price;
+        let itemLabel = item.name;
+        let itemDetails = item.details || "";
+        if (isF16 && item.options) {
+          const selOpt = item.options.find((o: {id: string}) => o.id === selectedDecorOption) || item.options[0];
+          itemPrice = selOpt.price;
+          itemLabel = `${item.name} - ${selOpt.label}`;
+          itemDetails = selOpt.details || "";
         }
-        finHtml += row(name, formatPrice(price) + " جنيه", item.paid);
-        if (item.details && item.details.length > 0) {
-          finHtml += `<div style="padding:4px 16px 8px;">`;
-          item.details.forEach((d: string) => {
-            finHtml += `<div style="color:#9a8f6a;font-size:11px;margin-bottom:2px;">• ${d}</div>`;
-          });
-          finHtml += `</div>`;
-        }
+        finHtml += `<div style="margin-bottom:12px;">`;
+        finHtml += row(itemLabel, formatPrice(itemPrice) + " جنيه", item.paid);
+        if (itemDetails) finHtml += `<div style="color:#9a8f6a;font-size:11px;padding:4px 12px;">${itemDetails}</div>`;
+        finHtml += `</div>`;
       });
-      finHtml += `<div style="background:${GOLD};border-radius:8px;padding:10px 16px;display:flex;justify-content:space-between;margin-top:12px;">
-        <span style="color:${DARK};font-weight:700;">إجمالي التشطيب</span>
-        <span style="color:${DARK};font-weight:900;">${formatPrice(finishingTotal)} جنيه</span>
+      finHtml += `<div style="background:rgba(212,175,55,0.15);border:1px solid ${GOLD}40;border-radius:8px;padding:10px 16px;display:flex;justify-content:space-between;margin-top:8px;">
+        <span style="color:#e8dfc0;font-weight:700;">إجمالي التشطيب</span>
+        <span style="${goldStyle}">${formatPrice(finishingTotal)} جنيه</span>
       </div>`;
-      finEl.innerHTML = finHtml;
-      container.appendChild(finEl);
-      await addHtmlPage(finEl);
-      container.removeChild(finEl);
+      html += `<div style="${pageStyle}">${finHtml}</div>`;
     }
 
     // --- Page 3: Furniture ---
-    const selectedFurnitureItems = furnitureItems.filter(i => selectedFurniture[i.id]);
+    const selectedFurnitureItems = furnitureItems.filter(i => selectedFurniture[i.id] !== undefined);
     if (selectedFurnitureItems.length > 0) {
-      doc.addPage();
-      const furEl = document.createElement("div");
-      furEl.style.cssText = `width:794px;min-height:1123px;background:${DARK};padding:40px;box-sizing:border-box;`;
       let furHtml = sectionTitle("الأثاث");
       selectedFurnitureItems.forEach(item => {
-        const optId = selectedFurniture[item.id];
-        const opt = item.options.find((o: {id:string}) => o.id === optId);
-        if (!opt) return;
-        furHtml += row(`${item.room} - ${opt.label}`, formatPrice(opt.price) + " جنيه");
-        if (opt.desc) {
-          const descParts = (opt.desc as string).split(" | ");
-          furHtml += `<div style="padding:4px 16px 8px;">`;
-          descParts.forEach((part: string) => {
-            furHtml += `<div style="color:#9a8f6a;font-size:11px;margin-bottom:2px;">• ${part}</div>`;
-          });
-          furHtml += `</div>`;
-        }
+        const selOpt = item.options.find((o) => o.id === selectedFurniture[item.id]) || item.options[0];
+        furHtml += `<div style="margin-bottom:12px;">`;
+        furHtml += row(`${item.room} - ${selOpt.label}`, formatPrice(selOpt.price) + " جنيه");
+        const optItems = (selOpt as {items?: {name: string; price: number}[]}).items;
+        if (optItems && optItems.length > 0) furHtml += `<div style="color:#9a8f6a;font-size:11px;padding:4px 12px;">${optItems.map(it => it.name).join(' | ')}</div>`;
+        furHtml += `</div>`;
       });
-      furHtml += `<div style="background:${GOLD};border-radius:8px;padding:10px 16px;display:flex;justify-content:space-between;margin-top:12px;">
-        <span style="color:${DARK};font-weight:700;">إجمالي الأثاث</span>
-        <span style="color:${DARK};font-weight:900;">${formatPrice(furnitureTotal)} جنيه</span>
+      furHtml += `<div style="background:rgba(212,175,55,0.15);border:1px solid ${GOLD}40;border-radius:8px;padding:10px 16px;display:flex;justify-content:space-between;margin-top:8px;">
+        <span style="color:#e8dfc0;font-weight:700;">إجمالي الأثاث</span>
+        <span style="${goldStyle}">${formatPrice(furnitureTotal)} جنيه</span>
       </div>`;
-      furEl.innerHTML = furHtml;
-      container.appendChild(furEl);
-      await addHtmlPage(furEl);
-      container.removeChild(furEl);
+      html += `<div style="${pageStyle}">${furHtml}</div>`;
     }
 
     // --- Page 4: Smart Home + Curtains ---
-    if (selectedSmart || Object.keys(selectedCurtains).length > 0) {
-      doc.addPage();
-      const scEl = document.createElement("div");
-      scEl.style.cssText = `width:794px;min-height:1123px;background:${DARK};padding:40px;box-sizing:border-box;`;
-      let scHtml = "";
-      if (selectedSmart) {
-        const smartOpt = smartHomeOptions.find((o: {id:string}) => o.id === selectedSmart);
-        if (smartOpt) {
-          scHtml += sectionTitle("Smart Home System");
-          scHtml += row((smartOpt as {label:string}).label, formatPrice((smartOpt as {price:number}).price) + " جنيه");
-          scHtml += `<div style="background:${GOLD};border-radius:8px;padding:10px 16px;display:flex;justify-content:space-between;margin-top:8px;margin-bottom:24px;">
-            <span style="color:${DARK};font-weight:700;">إجمالي Smart Home</span>
-            <span style="color:${DARK};font-weight:900;">${formatPrice(smartTotal)} جنيه</span>
-          </div>`;
-        }
+    let scHtml = "";
+    if (smartTotal > 0) {
+      scHtml += sectionTitle("Smart Home System");
+      const selSmart = smartHomeOptions.find((o: {id: string}) => o.id === selectedSmart);
+      if (selSmart) {
+        scHtml += row(selSmart.label, formatPrice(selSmart.price) + " جنيه");
+        if ((selSmart as {desc?: string}).desc) scHtml += `<div style="color:#9a8f6a;font-size:11px;padding:4px 12px;">${(selSmart as {desc?: string}).desc}</div>`;
       }
-      if (Object.keys(selectedCurtains).length > 0) {
-        scHtml += sectionTitle("الستائر");
-        Object.entries(selectedCurtains).forEach(([rId, oId]) => {
-          const r = curtainItems.find((r: {id:string}) => r.id === rId);
-          const o = r?.options.find((o: {id:string}) => o.id === oId);
-          if (!r || !o) return;
-          scHtml += row(`${(r as {room:string}).room} - ${o.label}`, formatPrice(o.price) + " جنيه");
-        });
-        scHtml += `<div style="background:${GOLD};border-radius:8px;padding:10px 16px;display:flex;justify-content:space-between;margin-top:8px;">
-          <span style="color:${DARK};font-weight:700;">إجمالي الستائر</span>
-          <span style="color:${DARK};font-weight:900;">${formatPrice(curtainsTotal)} جنيه</span>
-        </div>`;
-      }
-      scEl.innerHTML = scHtml;
-      container.appendChild(scEl);
-      await addHtmlPage(scEl);
-      container.removeChild(scEl);
+      scHtml += `<div style="background:rgba(212,175,55,0.15);border:1px solid ${GOLD}40;border-radius:8px;padding:10px 16px;display:flex;justify-content:space-between;margin-top:8px;">
+        <span style="color:#e8dfc0;font-weight:700;">إجمالي Smart Home</span>
+        <span style="${goldStyle}">${formatPrice(smartTotal)} جنيه</span>
+      </div>`;
     }
+    if (curtainsTotal > 0) {
+      scHtml += `<div style="margin-top:24px;">` + sectionTitle("الستائر") + `</div>`;
+      const selectedCurtainItems = curtainItems.filter((i) => selectedCurtains[i.id] !== undefined);
+      selectedCurtainItems.forEach((item) => {
+        const selOpt = item.options.find((o) => o.id === selectedCurtains[item.id]) || item.options[0];
+        scHtml += `<div style="margin-bottom:8px;">`;
+        scHtml += row(`${item.room} - ${selOpt.label}`, formatPrice(selOpt.price) + " جنيه");
+        const curtOptItems = (selOpt as {items?: {name: string; price: number}[]}).items;
+        if (curtOptItems && curtOptItems.length > 0) scHtml += `<div style="color:#9a8f6a;font-size:11px;padding:4px 12px;">${curtOptItems.map(it => it.name).join(' | ')}</div>`;
+        scHtml += `</div>`;
+      });
+      scHtml += `<div style="background:rgba(212,175,55,0.15);border:1px solid ${GOLD}40;border-radius:8px;padding:10px 16px;display:flex;justify-content:space-between;margin-top:8px;">
+        <span style="color:#e8dfc0;font-weight:700;">إجمالي الستائر</span>
+        <span style="${goldStyle}">${formatPrice(curtainsTotal)} جنيه</span>
+      </div>`;
+    }
+    if (scHtml) html += `<div style="${pageStyle}">${scHtml}</div>`;
 
     // --- Page 5: Team ---
-    doc.addPage();
-    const teamEl = document.createElement("div");
-    teamEl.style.cssText = `width:794px;min-height:1123px;background:${DARK};padding:40px;box-sizing:border-box;`;
-    let teamHtml = sectionTitle("فريق العمل المكلف بالمشروع");
-    teamHtml += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px;">`;
-    for (const member of teamData) {
-      teamHtml += `<div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:14px;text-align:center;">
-        ${member.img ? `<img src="${member.img}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid ${GOLD};margin-bottom:8px;" crossorigin="anonymous" />` : `<div style="width:64px;height:64px;border-radius:50%;background:${GOLD}30;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:24px;">👤</div>`}
+    let teamHtml2 = sectionTitle("فريق العمل المكلف بالمشروع");
+    teamHtml2 += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px;">`;
+    teamData.forEach(member => {
+      teamHtml2 += `<div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:14px;text-align:center;">
+        ${member.img ? `<img src="${member.img}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid ${GOLD};margin-bottom:8px;" crossorigin="anonymous" />` : `<div style="width:64px;height:64px;border-radius:50%;background:rgba(212,175,55,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:24px;">👤</div>`}
         <div style="${goldStyle}font-size:13px;">${member.name}</div>
         <div style="color:#9a8f6a;font-size:11px;margin-top:4px;">${member.title}</div>
         ${member.phone ? `<div style="color:${GOLD};font-size:11px;margin-top:4px;direction:ltr;">${member.phone}</div>` : ""}
       </div>`;
-    }
-    teamHtml += `</div>`;
-    teamEl.innerHTML = teamHtml;
-    container.appendChild(teamEl);
-    await addHtmlPage(teamEl);
-    container.removeChild(teamEl);
+    });
+    teamHtml2 += `</div>`;
+    html += `<div style="${pageStyle}">${teamHtml2}</div>`;
 
     // --- Page 6: Grand Total ---
     if (grandTotal > 0) {
-      doc.addPage();
-      const totEl = document.createElement("div");
-      totEl.style.cssText = `width:794px;min-height:1123px;background:${DARK};padding:40px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;`;
-      let totHtml = sectionTitle("ملخص الإجمالي");
-      if (finishingTotal > 0) totHtml += row("أعمال التشطيب", formatPrice(finishingTotal) + " جنيه");
-      if (furnitureTotal > 0) totHtml += row("الأثاث", formatPrice(furnitureTotal) + " جنيه");
-      if (smartTotal > 0) totHtml += row("Smart Home", formatPrice(smartTotal) + " جنيه");
-      if (curtainsTotal > 0) totHtml += row("الستائر", formatPrice(curtainsTotal) + " جنيه");
-      totHtml += `<div style="background:rgba(212,175,55,0.15);border:1px solid ${GOLD}40;border-radius:8px;padding:10px 16px;display:flex;justify-content:space-between;margin-top:8px;">
+      let totHtml2 = sectionTitle("ملخص الإجمالي");
+      if (finishingTotal > 0) totHtml2 += row("التشطيب", formatPrice(finishingTotal) + " جنيه");
+      if (furnitureTotal > 0) totHtml2 += row("الأثاث", formatPrice(furnitureTotal) + " جنيه");
+      if (smartTotal > 0) totHtml2 += row("Smart Home", formatPrice(smartTotal) + " جنيه");
+      if (curtainsTotal > 0) totHtml2 += row("الستائر", formatPrice(curtainsTotal) + " جنيه");
+      totHtml2 += `<div style="background:rgba(212,175,55,0.15);border:1px solid ${GOLD}40;border-radius:8px;padding:10px 16px;display:flex;justify-content:space-between;margin-top:8px;">
         <span style="color:#e8dfc0;font-weight:700;">الإجمالي الكلي</span>
         <span style="${goldStyle}">${formatPrice(grandTotal)} جنيه</span>
       </div>`;
       if (paidDeduction > 0) {
-        totHtml += `<div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:10px 16px;display:flex;justify-content:space-between;margin-top:6px;">
+        totHtml2 += `<div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:10px 16px;display:flex;justify-content:space-between;margin-top:6px;">
           <span style="color:#22c55e;font-weight:700;">خصم التصميم والتحضير الهندسي (مدفوع مسبقاً)</span>
           <span style="color:#22c55e;font-weight:900;">- ${formatPrice(paidDeduction)} جنيه</span>
         </div>`;
-        totHtml += `<div style="background:${GOLD};border-radius:12px;padding:20px 24px;display:flex;justify-content:space-between;margin-top:12px;">
+        totHtml2 += `<div style="background:${GOLD};border-radius:12px;padding:20px 24px;display:flex;justify-content:space-between;margin-top:12px;">
           <span style="color:${DARK};font-size:18px;font-weight:900;">صافي المبلغ المطلوب</span>
           <span style="color:${DARK};font-size:24px;font-weight:900;">${formatPrice(netTotal)} جنيه</span>
         </div>`;
       } else {
-        totHtml += `<div style="background:${GOLD};border-radius:12px;padding:20px 24px;display:flex;justify-content:space-between;margin-top:12px;">
+        totHtml2 += `<div style="background:${GOLD};border-radius:12px;padding:20px 24px;display:flex;justify-content:space-between;margin-top:12px;">
           <span style="color:${DARK};font-size:18px;font-weight:900;">الإجمالي النهائي</span>
           <span style="color:${DARK};font-size:24px;font-weight:900;">${formatPrice(grandTotal)} جنيه</span>
         </div>`;
       }
-        // Add 7-day validity notice
-      const today = new Date();
-      const expiryDate = new Date(today);
-      expiryDate.setDate(today.getDate() + 7);
-      const formatDate = (d: Date) => d.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
-      totHtml += `<div style="background:rgba(255,165,0,0.1);border:1px solid rgba(255,165,0,0.3);border-radius:8px;padding:12px 16px;margin-top:16px;text-align:center;">
+      const today2 = new Date();
+      const expiryDate2 = new Date(today2);
+      expiryDate2.setDate(today2.getDate() + 7);
+      const fmt = (d: Date) => d.toLocaleDateString("ar-EG", { year: "numeric", month: "long", day: "numeric" });
+      totHtml2 += `<div style="background:rgba(255,165,0,0.1);border:1px solid rgba(255,165,0,0.3);border-radius:8px;padding:12px 16px;margin-top:16px;text-align:center;">
         <div style="color:#FFA500;font-weight:700;font-size:13px;margin-bottom:4px;">⏰ صلاحية عرض السعر</div>
-        <div style="color:#e8dfc0;font-size:12px;">hهذا العرض ساري لمدة <strong style="color:#FFA500;">7 أيام</strong> من تاريخ إصداره</div>
+        <div style="color:#e8dfc0;font-size:12px;">هذا العرض ساري لمدة <strong style="color:#FFA500;">7 أيام</strong> من تاريخ إصداره</div>
         <div style="color:#9a8f6a;font-size:11px;margin-top:4px;">نظراً لاختلاف الأسعار وعدم استقرار تسعير بعض البنود</div>
-        <div style="color:#9a8f6a;font-size:11px;margin-top:2px;">تاريخ الإصدار: ${formatDate(today)} — آخر موعد للقبول: ${formatDate(expiryDate)}</div>
+        <div style="color:#9a8f6a;font-size:11px;margin-top:2px;">تاريخ الإصدار: ${fmt(today2)} — آخر موعد للقبول: ${fmt(expiryDate2)}</div>
       </div>`;
-      totEl.innerHTML = totHtml;
-      container.appendChild(totEl);
-      await addHtmlPage(totEl);
-      container.removeChild(totEl);
+      html += `<div style="${pageStyle}">${totHtml2}</div>`;
     }
 
     // --- Page 7: Why Professor (Contract Benefits) ---
-    doc.addPage();
-    const benefitsEl = document.createElement("div");
-    benefitsEl.style.cssText = `width:794px;min-height:1123px;background:${DARK};padding:40px;box-sizing:border-box;`;
-    const benefits = [
+    const benefits2 = [
       { icon: "🏗️", title: "مصنع خاص وإدارة متكاملة", desc: "تمتلك الشركة مصنعها الخاص ومخازنها، مما يضمن التنفيذ المباشر بأيدي فنيينا والسيطرة الكاملة على الجودة، والالتزام التام بمواعيد التسليم." },
       { icon: "📞", title: "أنظمة متابعة ودعم 24/7", desc: "نمتلك أحدث أنظمة المتابعة (CRM) وهوت لاين على مدار 24 ساعة لخدمة ما بعد البيع، مع فرق متكاملة للمبيعات والمكتب الفني والإنتاج والدعم المالي والإداري." },
       { icon: "🏆", title: "الخبرة والتاريخ", desc: "سنوات من الخبرة الراسخة في مجال التصميم الداخلي والتنفيذ المتكامل للمشاريع السكنية الLuxury." },
       { icon: "👨‍💼", title: "الفريق المتخصص", desc: "فريق متكامل من المهندسين والفنيين ذوي الخبرة العالية يعملون بتناغم لضمان دقة التنفيذ وتحقيق أعلى مستويات الجودة." },
       { icon: "💎", title: "الجودة والمعايير", desc: "نلتزم بأعلى معايير الجودة العالمية واستخدام أفضل الخامات والمواد المستوردة لضمان الفخامة والمتانة." },
     ];
-    let benHtml = sectionTitle("لماذا نحن الخيار الأمثل؟");
-    benHtml += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px;">`;
-    benefits.forEach(b => {
-      benHtml += `<div style="background:rgba(255,255,255,0.04);border:1px solid ${GOLD}30;border-radius:12px;padding:20px;display:flex;gap:14px;align-items:flex-start;">
+    let benHtml2 = sectionTitle("لماذا نحن الخيار الأمثل؟");
+    benHtml2 += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px;">`;
+    benefits2.forEach(b => {
+      benHtml2 += `<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(212,175,55,0.3);border-radius:12px;padding:20px;display:flex;gap:14px;align-items:flex-start;">
         <span style="font-size:28px;flex-shrink:0;">${b.icon}</span>
         <div>
           <div style="${goldStyle}font-size:14px;margin-bottom:6px;">${b.title}</div>
@@ -1391,434 +1331,29 @@ export default function Home() {
         </div>
       </div>`;
     });
-    benHtml += `</div>`;
-    benHtml += `<div style="margin-top:32px;text-align:center;border-top:1px solid ${GOLD}30;padding-top:24px;">
+    benHtml2 += `</div>`;
+    benHtml2 += `<div style="margin-top:32px;text-align:center;border-top:1px solid rgba(212,175,55,0.3);padding-top:24px;">
       <div style="${goldStyle}font-size:18px;margin-bottom:8px;">PROFESSOR</div>
       <div style="color:#9a8f6a;font-size:13px;">Perfection in Every Detail</div>
     </div>`;
-    benefitsEl.innerHTML = benHtml;
-    container.appendChild(benefitsEl);
-    await addHtmlPage(benefitsEl);
-    container.removeChild(benefitsEl);
+    html += `<div style="${pageStyle}">${benHtml2}</div>`;
 
-    document.body.removeChild(container);
-    doc.save("Professor-Quotation-MrAliRashed.pdf");
-  };
+    html += `</body></html>`;
 
-  const handleExportPDF_OLD = async () => {
-    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-    // Load and embed Amiri Arabic font for proper Arabic rendering
-    try {
-      const fontResp = await fetch("/Amiri-Regular.ttf");
-      const fontBoldResp = await fetch("/Amiri-Bold.ttf");
-      if (fontResp.ok && fontBoldResp.ok) {
-        const fontBuf = await fontResp.arrayBuffer();
-        const fontBoldBuf = await fontBoldResp.arrayBuffer();
-        const fontB64 = btoa(Array.from(new Uint8Array(fontBuf)).map(b => String.fromCharCode(b)).join(""));
-        const fontBoldB64 = btoa(Array.from(new Uint8Array(fontBoldBuf)).map(b => String.fromCharCode(b)).join(""));
-        doc.addFileToVFS("Amiri-Regular.ttf", fontB64);
-        doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
-        doc.addFileToVFS("Amiri-Bold.ttf", fontBoldB64);
-        doc.addFont("Amiri-Bold.ttf", "Amiri", "bold");
-      }
-    } catch (_) { /* fallback to helvetica */ }
-    const arabicFont = doc.getFontList()["Amiri"] ? "Amiri" : "helvetica";
-    const setAr = (style: "normal" | "bold" = "normal") => {
-      doc.setFont(arabicFont, style);
-      if (arabicFont === "Amiri") doc.setR2L(true);
-    };
-    const setEn = (style: "normal" | "bold" = "normal") => {
-      doc.setFont("helvetica", style);
-      doc.setR2L(false);
-    };
-    const W = 210;
-    const goldR = 212, goldG = 175, goldB = 55;
-    const darkR = 18, darkG = 18, darkB = 24;
-    let y = 0;
-    const addPage = () => {
-      doc.addPage();
-      doc.setFillColor(darkR, darkG, darkB);
-      doc.rect(0, 0, W, 297, "F");
-      y = 15;;
-    };
-
-    const checkY = (needed: number) => {
-      if (y + needed > 280) addPage();
-    };
-
-    // ---- Page 1: Cover ----
-    doc.setFillColor(darkR, darkG, darkB);
-    doc.rect(0, 0, W, 297, "F");
-
-    // Gold top bar
-    doc.setFillColor(goldR, goldG, goldB);
-    doc.rect(0, 0, W, 2, "F");
-
-    // Logo text (since we can't embed image easily)
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(28);
-    doc.setTextColor(goldR, goldG, goldB);
-    doc.text("PROFESSOR", W / 2, 40, { align: "center" });
-
-    doc.setFontSize(11);
-    doc.setTextColor(180, 160, 100);
-    doc.text("Perfection in Every Detail", W / 2, 50, { align: "center" });
-
-    // Divider
-    doc.setDrawColor(goldR, goldG, goldB);
-    doc.setLineWidth(0.5);
-    doc.line(30, 58, W - 30, 58);
-
-    // Title
-    doc.setFontSize(20);
-    doc.setTextColor(goldR, goldG, goldB);
-    doc.text("Project Quotation Summary", W / 2, 75, { align: "center" });
-    doc.setFontSize(14);
-    doc.setTextColor(200, 185, 130);
-    doc.text("\u0645\u0644\u062e\u0635 \u0645\u0642\u0627\u064a\u0633\u0629 \u0645\u0634\u0631\u0648\u0639 \u0634\u0642\u0629 \u0645\u062f\u064a\u0646\u062a\u064a", W / 2, 85, { align: "center" });
-
-    // Client info box
-    doc.setFillColor(30, 28, 38);
-    doc.roundedRect(20, 100, W - 40, 55, 3, 3, "F");
-    doc.setDrawColor(goldR, goldG, goldB);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(20, 100, W - 40, 55, 3, 3, "S");
-
-    const clientInfoItems = [
-      ["Client", "Mr. Ali Rashed"],
-      ["Location", "Madinaty"],
-      ["Area", "140 sqm"],
-      ["Date", "March 2026"],
-    ];
-    doc.setFontSize(10);
-    clientInfoItems.forEach(([label, value], i) => {
-      const cx = 30 + (i % 2) * 85;
-      const cy = 115 + Math.floor(i / 2) * 18;
-      doc.setTextColor(150, 140, 100);
-      doc.text(label + ":", cx, cy);
-      doc.setTextColor(goldR, goldG, goldB);
-      doc.setFont("helvetica", "bold");
-      doc.text(value, cx + 22, cy);
-      doc.setFont("helvetica", "normal");
-    });
-
-    // Grand total on cover
-    if (grandTotal > 0) {
-      doc.setFillColor(goldR, goldG, goldB);
-      doc.roundedRect(20, 168, W - 40, 28, 3, 3, "F");
-      doc.setFontSize(11);
-      doc.setTextColor(darkR, darkG, darkB);
-      doc.setFont("helvetica", "bold");
-      doc.text("Total Project Value", W / 2, 179, { align: "center" });
-      doc.setFontSize(18);
-      doc.text(formatPrice(grandTotal) + " EGP", W / 2, 190, { align: "center" });
-      doc.setFont("helvetica", "normal");
+    // Open in new window and trigger print
+    const printWin = window.open("", "_blank", "width=900,height=700");
+    if (!printWin) {
+      alert("يرجى السماح بفتح نوافذ منبثقة لتصدير الـ PDF");
+      return;
     }
-
-    // Gold bottom bar
-    doc.setFillColor(goldR, goldG, goldB);
-    doc.rect(0, 295, W, 2, "F");
-
-    // ---- Page 2: Finishing Items ----
-    if (selectedFinishing.size > 0) {
-      addPage();
-      doc.setFontSize(16);
-      doc.setTextColor(goldR, goldG, goldB);
-      doc.setFont("helvetica", "bold");
-      doc.text("Finishing Works", 15, y);
-      doc.setFontSize(9);
-      doc.setTextColor(150, 140, 100);
-      doc.text("\u0623\u0639\u0645\u0627\u0644 \u0627\u0644\u062a\u0634\u0637\u064a\u0628", 15, y + 7);
-      doc.setFont("helvetica", "normal");
-      y += 18;
-
-      // Header row
-      doc.setFillColor(40, 38, 50);
-      doc.rect(15, y, W - 30, 8, "F");
-      doc.setFontSize(9);
-      doc.setTextColor(goldR, goldG, goldB);
-      doc.text("Item", 20, y + 5.5);
-      doc.text("Price (EGP)", W - 50, y + 5.5);
-      y += 10;
-
-      const selectedItems = finishingItems.filter(i => selectedFinishing.has(i.id));
-      selectedItems.forEach((item, idx) => {
-        checkY(10);
-        if (idx % 2 === 0) {
-          doc.setFillColor(25, 24, 32);
-          doc.rect(15, y - 1, W - 30, 9, "F");
-        }
-        doc.setFontSize(9);
-        doc.setTextColor(220, 210, 180);
-        let pdfItemName = item.name;
-        let pdfItemPrice = item.price;
-        if (item.hasOptions && item.options) {
-          const selOpt = item.options.find(o => o.id === selectedDecorOption);
-          if (!selOpt) return; // skip if no option selected
-          pdfItemName = `${item.name} - ${selOpt.label}`;
-          pdfItemPrice = selOpt.price;
-        }
-        const itemName = pdfItemName.length > 45 ? pdfItemName.substring(0, 42) + "..." : pdfItemName;
-        doc.text(itemName, 20, y + 5);
-        doc.setTextColor(goldR, goldG, goldB);
-        doc.setFont("helvetica", "bold");
-        doc.text(formatPrice(pdfItemPrice), W - 50, y + 5);
-        doc.setFont("helvetica", "normal");
-        if (item.paid) {
-          doc.setFillColor(34, 197, 94);
-          doc.roundedRect(W - 42, y + 0.5, 24, 5, 1, 1, "F");
-          doc.setFontSize(6);
-          doc.setTextColor(255, 255, 255);
-          doc.text("PAID", W - 33, y + 4.5);
-          doc.setFontSize(9);
-        }
-        y += 9;
-      });
-
-      // Total row
-      checkY(12);
-      doc.setFillColor(goldR, goldG, goldB);
-      doc.rect(15, y, W - 30, 10, "F");
-      doc.setFontSize(10);
-      doc.setTextColor(darkR, darkG, darkB);
-      doc.setFont("helvetica", "bold");
-      doc.text("Finishing Total", 20, y + 7);
-      doc.text(formatPrice(finishingTotal) + " EGP", W - 50, y + 7);
-      doc.setFont("helvetica", "normal");
-      y += 18;
-
-      // Warranty note
-      checkY(20);
-      doc.setFillColor(30, 28, 38);
-      doc.roundedRect(15, y, W - 30, 18, 2, 2, "F");
-      doc.setFontSize(7.5);
-      doc.setTextColor(180, 160, 100);
-      const warrantyText = "All prices include full supply, installation, specialized labor, technical supervision, and warranty against execution defects.";
-      const warrantyLines = doc.splitTextToSize(warrantyText, W - 40);
-      doc.text(warrantyLines, 20, y + 6);
-      y += 22;
-    }
-
-    // ---- Furniture Section ----
-    if (Object.keys(selectedFurniture).length > 0) {
-      checkY(30);
-      doc.setFontSize(14);
-      doc.setTextColor(goldR, goldG, goldB);
-      doc.setFont("helvetica", "bold");
-      doc.text("Furniture", 15, y);
-      doc.setFont("helvetica", "normal");
-      y += 12;
-
-      Object.entries(selectedFurniture).forEach(([rId, oId]) => {
-        const r = furnitureItems.find(r => r.id === rId);
-        const o = r?.options.find(o => o.id === oId);
-        if (!r || !o) return;
-        checkY(9);
-        doc.setFontSize(9);
-        doc.setTextColor(220, 210, 180);
-        doc.text(r.room + " - " + o.label, 20, y);
-        doc.setTextColor(goldR, goldG, goldB);
-        doc.setFont("helvetica", "bold");
-        doc.text(formatPrice(o.price) + " EGP", W - 50, y);
-        doc.setFont("helvetica", "normal");
-        y += 9;
-      });
-
-      doc.setFillColor(goldR, goldG, goldB);
-      doc.rect(15, y, W - 30, 8, "F");
-      doc.setFontSize(9);
-      doc.setTextColor(darkR, darkG, darkB);
-      doc.setFont("helvetica", "bold");
-      doc.text("Furniture Total", 20, y + 5.5);
-      doc.text(formatPrice(furnitureTotal) + " EGP", W - 50, y + 5.5);
-      doc.setFont("helvetica", "normal");
-      y += 16;
-    }
-
-    // ---- Smart Home Section ----
-    if (selectedSmart) {
-      const opt = smartHomeOptions.find(o => o.id === selectedSmart);
-      if (opt) {
-        checkY(25);
-        doc.setFontSize(14);
-        doc.setTextColor(goldR, goldG, goldB);
-        doc.setFont("helvetica", "bold");
-        doc.text("Smart Home System", 15, y);
-        doc.setFont("helvetica", "normal");
-        y += 10;
-        doc.setFontSize(9);
-        doc.setTextColor(220, 210, 180);
-        doc.text(opt.label, 20, y);
-        doc.setTextColor(goldR, goldG, goldB);
-        doc.setFont("helvetica", "bold");
-        doc.text(formatPrice(opt.price) + " EGP", W - 50, y);
-        doc.setFont("helvetica", "normal");
-        y += 16;
-      }
-    }
-
-    // ---- Curtains Section ----
-    if (Object.keys(selectedCurtains).length > 0) {
-      checkY(30);
-      doc.setFontSize(14);
-      doc.setTextColor(goldR, goldG, goldB);
-      doc.setFont("helvetica", "bold");
-      doc.text("Curtains", 15, y);
-      doc.setFont("helvetica", "normal");
-      y += 12;
-
-      Object.entries(selectedCurtains).forEach(([rId, oId]) => {
-        const r = curtainItems.find(r => r.id === rId);
-        const o = r?.options.find(o => o.id === oId);
-        if (!r || !o) return;
-        checkY(9);
-        doc.setFontSize(9);
-        doc.setTextColor(220, 210, 180);
-        doc.text(r.room + " - " + o.label, 20, y);
-        doc.setTextColor(goldR, goldG, goldB);
-        doc.setFont("helvetica", "bold");
-        doc.text(formatPrice(o.price) + " EGP", W - 50, y);
-        doc.setFont("helvetica", "normal");
-        y += 9;
-      });
-
-      doc.setFillColor(goldR, goldG, goldB);
-      doc.rect(15, y, W - 30, 8, "F");
-      doc.setFontSize(9);
-      doc.setTextColor(darkR, darkG, darkB);
-      doc.setFont("helvetica", "bold");
-      doc.text("Curtains Total", 20, y + 5.5);
-      doc.text(formatPrice(curtainsTotal) + " EGP", W - 50, y + 5.5);
-      doc.setFont("helvetica", "normal");
-      y += 16;
-    }
-
-    // ---- Grand Total Page ----
-    if (grandTotal > 0) {
-      addPage();
-      doc.setFontSize(16);
-      doc.setTextColor(goldR, goldG, goldB);
-      doc.setFont("helvetica", "bold");
-      doc.text("Grand Total Summary", W / 2, y, { align: "center" });
-      doc.setFont("helvetica", "normal");
-      y += 18;
-
-      const totals = [
-        finishingTotal > 0 && { label: "Finishing Works", value: finishingTotal },
-        furnitureTotal > 0 && { label: "Furniture", value: furnitureTotal },
-        smartTotal > 0 && { label: "Smart Home", value: smartTotal },
-        curtainsTotal > 0 && { label: "Curtains", value: curtainsTotal },
-      ].filter(Boolean) as { label: string; value: number }[];
-
-      totals.forEach(t => {
-        checkY(10);
-        doc.setFillColor(30, 28, 38);
-        doc.rect(30, y - 1, W - 60, 9, "F");
-        doc.setFontSize(10);
-        doc.setTextColor(200, 185, 130);
-        doc.text(t.label, 35, y + 5.5);
-        doc.setTextColor(goldR, goldG, goldB);
-        doc.setFont("helvetica", "bold");
-        doc.text(formatPrice(t.value) + " EGP", W - 60, y + 5.5);
-        doc.setFont("helvetica", "normal");
-        y += 11;
-      });
-
-      checkY(20);
-      doc.setFillColor(goldR, goldG, goldB);
-      doc.roundedRect(20, y, W - 40, 20, 3, 3, "F");
-      doc.setFontSize(14);
-      doc.setTextColor(darkR, darkG, darkB);
-      doc.setFont("helvetica", "bold");
-      doc.text("TOTAL: " + formatPrice(grandTotal) + " EGP", W / 2, y + 13, { align: "center" });
-      doc.setFont("helvetica", "normal");
-      y += 28;
-      // Show deduction if paid items exist
-      if (paidDeduction > 0) {
-        checkY(28);
-        doc.setFillColor(20, 50, 30);
-        doc.roundedRect(20, y, W - 40, 12, 2, 2, "F");
-        doc.setFontSize(9);
-        doc.setTextColor(80, 200, 120);
-        doc.setFont("helvetica", "bold");
-        doc.text("- PAID (Design & Engineering Prep): " + formatPrice(paidDeduction) + " EGP", W / 2, y + 8, { align: "center" });
-        doc.setFont("helvetica", "normal");
-        y += 14;
-        checkY(22);
-        doc.setFillColor(goldR, goldG, goldB);
-        doc.roundedRect(20, y, W - 40, 20, 3, 3, "F");
-        doc.setFontSize(14);
-        doc.setTextColor(darkR, darkG, darkB);
-        doc.setFont("helvetica", "bold");
-        doc.text("NET TOTAL: " + formatPrice(netTotal) + " EGP", W / 2, y + 13, { align: "center" });
-        doc.setFont("helvetica", "normal");
-        y += 28;
-      }
-    }
-
-    // ---- Team Page ----
-    addPage();
-    doc.setFontSize(16);
-    doc.setTextColor(goldR, goldG, goldB);
-    doc.setFont("helvetica", "bold");
-    doc.text("Project Team", W / 2, y, { align: "center" });
-    doc.setFont("helvetica", "normal");
-    y += 15;
-
-    for (const member of teamData) {
-      checkY(18);
-      doc.setFillColor(28, 26, 36);
-      doc.roundedRect(15, y, W - 30, 15, 2, 2, "F");
-      // Level indicator dot
-      const levelColors: Record<number, [number, number, number]> = {
-        1: [212, 175, 55],
-        1.5: [180, 150, 50],
-        2: [150, 130, 60],
-        3: [120, 110, 70],
-        4: [100, 90, 70],
-      };
-      const lc = levelColors[member.level] || [100, 90, 70];
-      // Try to add member photo
-      let photoAdded = false;
-      if (member.img) {
-        try {
-          const imgResp = await fetch(member.img);
-          if (imgResp.ok) {
-            const imgBuf = await imgResp.arrayBuffer();
-            const imgB64 = btoa(Array.from(new Uint8Array(imgBuf)).map(b => String.fromCharCode(b)).join(""));
-            const ext = member.img.toLowerCase().includes(".png") ? "PNG" : "JPEG";
-            doc.addImage("data:image/" + ext.toLowerCase() + ";base64," + imgB64, ext, 17, y + 1.5, 12, 12);
-            photoAdded = true;
-          }
-        } catch (_) { /* skip photo */ }
-      }
-      const textX = photoAdded ? 32 : 22;
-      if (!photoAdded) {
-        doc.setFillColor(lc[0], lc[1], lc[2]);
-        doc.circle(22, y + 7.5, 2.5, "F");
-      }
-      doc.setFontSize(9);
-      doc.setTextColor(220, 210, 180);
-      doc.text(member.name, textX, y + 6);
-      doc.setFontSize(7.5);
-      doc.setTextColor(150, 140, 100);
-      doc.text(member.title, textX, y + 11);
-      if (member.phone) {
-        doc.setTextColor(goldR, goldG, goldB);
-        doc.setFontSize(7.5);
-        doc.text(member.phone, W - 50, y + 8);
-      }
-      y += 17;
-    }
-
-    // Footer on last page
-    doc.setFillColor(goldR, goldG, goldB);
-    doc.rect(0, 293, W, 2, "F");
-    doc.setFontSize(7);
-    doc.setTextColor(150, 140, 100);
-    doc.text("PROFESSOR - Perfection in Every Detail | Madinaty Project | March 2026", W / 2, 291, { align: "center" });
-
-    doc.save("Professor-Quotation-MrAliRashed.pdf");
+    printWin.document.write(html);
+    printWin.document.close();
+    // Wait for fonts to load then print
+    setTimeout(() => {
+      printWin.focus();
+      printWin.print();
+    }, 1500);
+     return;
   };
 
   return (

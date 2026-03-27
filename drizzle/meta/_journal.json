@@ -15,6 +15,13 @@
       "when": 1773554308239,
       "tag": "0001_wise_blur",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1774599774590,
+      "tag": "0002_living_dormammu",
+      "breakpoints": true
     }
   ]
 }
