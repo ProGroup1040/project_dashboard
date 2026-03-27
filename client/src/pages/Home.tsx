@@ -1366,6 +1366,8 @@ export default function Home() {
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
               <img src={`${CDN}/ProfessorLogo(1)_351dfbb8.png`} alt="Professor Logo" style={{ height: "36px", objectFit: "contain" }} />
             </div>
+            {/* Pricing System Link */}
+            <a href="/pricing" style={{ background: `linear-gradient(135deg, ${GOLD}, oklch(0.6 0.1 75))`, color: DARK, borderRadius: "0.5rem", padding: "0.4rem 1rem", fontSize: "0.82rem", fontWeight: 800, cursor: "pointer", fontFamily: "'Cairo', sans-serif", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "0.35rem", boxShadow: `0 2px 8px ${GOLD}40` }}>💰 نظام التسعير</a>
             {/* Login Button */}
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
               {projectUser ? (
