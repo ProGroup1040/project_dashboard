@@ -1,0 +1,8 @@
+{
+  "query": "SELECT b.id, b.code, b.name_ar, b.is_active FROM pricing_brands b;\nSELECT s.id, s.brand_id, s.name_ar, s.is_active FROM pricing_spaces s;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user fZydmv6Jueen1GW.cfb05311e4af --database mRvpKEsVM97L32dYU7ka6B --execute SELECT b.id, b.code, b.name_ar, b.is_active FROM pricing_brands b;\nSELECT s.id, s.brand_id, s.name_ar, s.is_active FROM pricing_spaces s;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'b.name_ar' in 'field list'"
+  ]
+}

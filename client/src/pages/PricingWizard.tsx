@@ -150,13 +150,13 @@ export default function PricingWizard() {
 
   // Queries
   const { data: brands = [] } = trpc.pricing.getBrands.useQuery();
-  const { data: spaces = [] } = trpc.pricing.getSpaces.useQuery(
+  const { data: spaces = [], isLoading: spacesLoading } = trpc.pricing.getSpaces.useQuery(
     { brandId: brandId! }, { enabled: !!brandId }
   );
-  const { data: products = [] } = trpc.pricing.getProducts.useQuery(
+  const { data: products = [], isLoading: productsLoading } = trpc.pricing.getProducts.useQuery(
     { spaceId: spaceId! }, { enabled: !!spaceId }
   );
-  const { data: productTypes = [] } = trpc.pricing.getProductTypes.useQuery(
+  const { data: productTypes = [], isLoading: productTypesLoading } = trpc.pricing.getProductTypes.useQuery(
     { productId: productId! }, { enabled: !!productId }
   );
   const { data: variables = [] } = trpc.pricing.getVariables.useQuery(
@@ -290,22 +290,38 @@ export default function PricingWizard() {
     <div className="min-h-screen bg-zinc-950 text-zinc-100 font-cairo" dir="rtl">
       {/* Header */}
       <div className="bg-zinc-900 border-b border-zinc-800 px-4 py-3 flex items-center justify-between sticky top-0 z-40">
-        <div>
-          <div className="text-amber-400 font-bold text-lg">Pro Group</div>
-          <div className="text-zinc-400 text-xs">نظام التسعير الذكي</div>
+        <div className="flex items-center gap-3">
+          <img
+            src="/professor_logo_clean.png"
+            alt="Professor Logo"
+            className="h-10 object-contain"
+            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+          <div>
+            <div className="text-amber-400 font-bold text-base">Pro Group</div>
+            <div className="text-zinc-400 text-xs">نظام التسعير الذكي</div>
+          </div>
         </div>
-        <button
-          onClick={() => setShowBasket(!showBasket)}
-          className="relative flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-300 px-3 py-2 rounded-lg text-sm hover:bg-amber-500/20 transition-all"
-        >
-          <span>🛒</span>
-          <span>السلة</span>
-          {basketItems.length > 0 && (
-            <span className="absolute -top-1.5 -left-1.5 bg-amber-500 text-black text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
-              {basketItems.length}
-            </span>
-          )}
-        </button>
+        <div className="flex items-center gap-2">
+          <a
+            href="/"
+            className="text-zinc-400 hover:text-zinc-200 text-xs px-3 py-2 rounded-lg border border-zinc-700 hover:border-zinc-500 transition-all"
+          >
+            ← الرئيسية
+          </a>
+          <button
+            onClick={() => setShowBasket(!showBasket)}
+            className="relative flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-300 px-3 py-2 rounded-lg text-sm hover:bg-amber-500/20 transition-all"
+          >
+            <span>🛒</span>
+            <span>السلة</span>
+            {basketItems.length > 0 && (
+              <span className="absolute -top-1.5 -left-1.5 bg-amber-500 text-black text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                {basketItems.length}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6">
@@ -426,17 +442,23 @@ export default function PricingWizard() {
                 <button onClick={() => setStep(0)} className="text-zinc-500 hover:text-zinc-300 text-sm">← رجوع</button>
                 <h2 className="text-lg font-bold text-amber-300">اختر الفضاء / الغرفة</h2>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {spaces.map(s => (
-                  <SelectCard
-                    key={s.id}
-                    label={s.nameAr}
-                    sublabel={s.nameEn}
-                    selected={spaceId === s.id}
-                    onClick={() => { setSpaceId(s.id); setProductId(null); setProductTypeId(null); setStep(2); }}
-                  />
-                ))}
-              </div>
+              {spacesLoading ? (
+                <div className="text-center text-amber-400 py-8 text-sm">⏳ جاري تحميل الغرف...</div>
+              ) : spaces.length === 0 ? (
+                <div className="text-center text-zinc-500 py-8 text-sm">لا توجد غرف لهذا البراند حتى الآن</div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {spaces.map(s => (
+                    <SelectCard
+                      key={s.id}
+                      label={s.nameAr}
+                      sublabel={s.nameEn}
+                      selected={spaceId === s.id}
+                      onClick={() => { setSpaceId(s.id); setProductId(null); setProductTypeId(null); setStep(2); }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -447,17 +469,23 @@ export default function PricingWizard() {
                 <button onClick={() => setStep(1)} className="text-zinc-500 hover:text-zinc-300 text-sm">← رجوع</button>
                 <h2 className="text-lg font-bold text-amber-300">اختر المنتج</h2>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {products.map(p => (
-                  <SelectCard
-                    key={p.id}
-                    label={p.nameAr}
-                    sublabel={p.nameEn}
-                    selected={productId === p.id}
-                    onClick={() => { setProductId(p.id); setProductTypeId(null); setStep(3); }}
-                  />
-                ))}
-              </div>
+              {productsLoading ? (
+                <div className="text-center text-amber-400 py-8 text-sm">⏳ جاري تحميل المنتجات...</div>
+              ) : products.length === 0 ? (
+                <div className="text-center text-zinc-500 py-8 text-sm">لا توجد منتجات لهذه الغرفة حتى الآن</div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {products.map(p => (
+                    <SelectCard
+                      key={p.id}
+                      label={p.nameAr}
+                      sublabel={p.nameEn}
+                      selected={productId === p.id}
+                      onClick={() => { setProductId(p.id); setProductTypeId(null); setStep(3); }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -468,17 +496,23 @@ export default function PricingWizard() {
                 <button onClick={() => setStep(2)} className="text-zinc-500 hover:text-zinc-300 text-sm">← رجوع</button>
                 <h2 className="text-lg font-bold text-amber-300">اختر النوع</h2>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {productTypes.map(pt => (
-                  <SelectCard
-                    key={pt.id}
-                    label={pt.nameAr}
-                    sublabel={`سعر أساسي: ${fmt(pt.basePrice)}`}
-                    selected={productTypeId === pt.id}
-                    onClick={() => { setProductTypeId(pt.id); setStep(4); }}
-                  />
-                ))}
-              </div>
+              {productTypesLoading ? (
+                <div className="text-center text-amber-400 py-8 text-sm">⏳ جاري تحميل الأنواع...</div>
+              ) : productTypes.length === 0 ? (
+                <div className="text-center text-zinc-500 py-8 text-sm">لا توجد أنواع لهذا المنتج حتى الآن</div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {productTypes.map(pt => (
+                    <SelectCard
+                      key={pt.id}
+                      label={pt.nameAr}
+                      sublabel={`سعر أساسي: ${fmt(pt.basePrice)}`}
+                      selected={productTypeId === pt.id}
+                      onClick={() => { setProductTypeId(pt.id); setStep(4); }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

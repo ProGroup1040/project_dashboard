@@ -70,3 +70,10 @@
 - [ ] Arabic RTL, responsive desktop UI
 - [x] Vitest tests for pricing engine (9 tests passing)
 - [ ] Checkpoint and delivery
+
+## Bug Fixes & Improvements (from video feedback - Mar 27)
+- [ ] Fix critical bug: rooms/spaces not loading in step 2 after brand selection
+- [ ] Fix content disappearing when selecting items in pricing wizard
+- [ ] Fix navigation: selections not persisting, user gets sent back to step 1
+- [ ] Add Pro Group branding/logo to pricing wizard header
+- [ ] Add client login option (separate from engineer login)

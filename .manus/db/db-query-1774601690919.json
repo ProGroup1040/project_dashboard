@@ -1,0 +1,88 @@
+{
+  "query": "SELECT id, code, nameAr, isActive FROM pricing_brands;\nSELECT id, brandId, nameAr, isActive FROM pricing_spaces;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user fZydmv6Jueen1GW.cfb05311e4af --database mRvpKEsVM97L32dYU7ka6B --execute SELECT id, code, nameAr, isActive FROM pricing_brands;\nSELECT id, brandId, nameAr, isActive FROM pricing_spaces;",
+  "rows": [
+    {
+      "id": "1",
+      "code": "PRO_FURNITURE",
+      "nameAr": "ProMax - الأساس",
+      "isActive": "1"
+    },
+    {
+      "id": "2",
+      "code": "PROFESSOR",
+      "nameAr": "Professor - مطابخ",
+      "isActive": "1"
+    },
+    {
+      "id": "3",
+      "code": "PRO_DRESSING",
+      "nameAr": "Pro Dressing - دريسنج",
+      "isActive": "1"
+    },
+    {
+      "id": "4",
+      "code": "PRO_PORCELAIN",
+      "nameAr": "Pro Porcelain - بورسلين",
+      "isActive": "1"
+    },
+    {
+      "id": "5",
+      "code": "PRO_DESIGN",
+      "nameAr": "Pro Design Studio - تشطيب",
+      "isActive": "1"
+    },
+    {
+      "id": "id",
+      "code": "brandId",
+      "nameAr": "nameAr",
+      "isActive": "isActive"
+    },
+    {
+      "id": "1",
+      "code": "1",
+      "nameAr": "غرفة نوم",
+      "isActive": "1"
+    },
+    {
+      "id": "2",
+      "code": "1",
+      "nameAr": "غرفة معيشة",
+      "isActive": "1"
+    },
+    {
+      "id": "3",
+      "code": "1",
+      "nameAr": "ريسيبشن",
+      "isActive": "1"
+    },
+    {
+      "id": "4",
+      "code": "1",
+      "nameAr": "سفرة",
+      "isActive": "1"
+    },
+    {
+      "id": "5",
+      "code": "1",
+      "nameAr": "دريسنج",
+      "isActive": "1"
+    },
+    {
+      "id": "6",
+      "code": "1",
+      "nameAr": "مكتب",
+      "isActive": "1"
+    },
+    {
+      "id": "7",
+      "code": "1",
+      "nameAr": "وحدة TV",
+      "isActive": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tcode\tnameAr\tisActive\n1\tPRO_FURNITURE\tProMax - الأساس\t1\n2\tPROFESSOR\tProfessor - مطابخ\t1\n3\tPRO_DRESSING\tPro Dressing - دريسنج\t1\n4\tPRO_PORCELAIN\tPro Porcelain - بورسلين\t1\n5\tPRO_DESIGN\tPro Design Studio - تشطيب\t1\nid\tbrandId\tnameAr\tisActive\n1\t1\tغرفة نوم\t1\n2\t1\tغرفة معيشة\t1\n3\t1\tريسيبشن\t1\n4\t1\tسفرة\t1\n5\t1\tدريسنج\t1\n6\t1\tمكتب\t1\n7\t1\tوحدة TV\t1\n",
+  "stderr": "",
+  "execution_time_ms": 1797
+}

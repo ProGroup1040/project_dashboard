@@ -1,0 +1,34 @@
+{
+  "query": "SELECT 'brands' as tbl, COUNT(*) as cnt FROM pricing_brands\nUNION ALL SELECT 'spaces', COUNT(*) FROM pricing_spaces\nUNION ALL SELECT 'products', COUNT(*) FROM pricing_products\nUNION ALL SELECT 'product_types', COUNT(*) FROM pricing_product_types\nUNION ALL SELECT 'variables', COUNT(*) FROM pricing_variables\nUNION ALL SELECT 'complexity', COUNT(*) FROM pricing_complexity;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user fZydmv6Jueen1GW.cfb05311e4af --database mRvpKEsVM97L32dYU7ka6B --execute SELECT 'brands' as tbl, COUNT(*) as cnt FROM pricing_brands\nUNION ALL SELECT 'spaces', COUNT(*) FROM pricing_spaces\nUNION ALL SELECT 'products', COUNT(*) FROM pricing_products\nUNION ALL SELECT 'product_types', COUNT(*) FROM pricing_product_types\nUNION ALL SELECT 'variables', COUNT(*) FROM pricing_variables\nUNION ALL SELECT 'complexity', COUNT(*) FROM pricing_complexity;",
+  "rows": [
+    {
+      "tbl": "products",
+      "cnt": "6"
+    },
+    {
+      "tbl": "brands",
+      "cnt": "5"
+    },
+    {
+      "tbl": "spaces",
+      "cnt": "7"
+    },
+    {
+      "tbl": "variables",
+      "cnt": "132"
+    },
+    {
+      "tbl": "product_types",
+      "cnt": "5"
+    },
+    {
+      "tbl": "complexity",
+      "cnt": "20"
+    }
+  ],
+  "messages": [],
+  "stdout": "tbl\tcnt\nproducts\t6\nbrands\t5\nspaces\t7\nvariables\t132\nproduct_types\t5\ncomplexity\t20\n",
+  "stderr": "",
+  "execution_time_ms": 1581
+}
