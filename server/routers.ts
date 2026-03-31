@@ -18,6 +18,18 @@ import {
 } from "./db";
 import { storagePut } from "./storage";
 import {
+  getKitchenMaterials,
+  getKitchenAccessories,
+  getKitchenMarble,
+  getKitchenCladding,
+  createKitchenQuotation,
+  getKitchenQuotations,
+  getKitchenQuotationById,
+  addKitchenUnit,
+  getKitchenUnitsByQuotation,
+  deleteKitchenUnit,
+} from "./db-kitchen";
+import {
   getAllBrands,
   getSpacesByBrand,
   getProductsBySpace,
@@ -291,6 +303,94 @@ export const appRouter = router({
         return { url: result.url };
       }),
   }),
-});
 
+  kitchen: router({
+    getMaterials: publicProcedure.query(async () => {
+      return getKitchenMaterials();
+    }),
+    getAccessories: publicProcedure.query(async () => {
+      return getKitchenAccessories();
+    }),
+    getMarble: publicProcedure.query(async () => {
+      return getKitchenMarble();
+    }),
+    getCladding: publicProcedure.query(async () => {
+      return getKitchenCladding();
+    }),
+    getQuotations: publicProcedure.query(async () => {
+      return getKitchenQuotations();
+    }),
+    getQuotationById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return getKitchenQuotationById(input.id);
+      }),
+    getUnitsByQuotation: publicProcedure
+      .input(z.object({ quotationId: z.number() }))
+      .query(async ({ input }) => {
+        return getKitchenUnitsByQuotation(input.quotationId);
+      }),
+    createQuotation: publicProcedure
+      .input(z.object({
+        quotationCode: z.string(),
+        clientName: z.string().optional(),
+        clientPhone: z.string().optional(),
+        address: z.string().optional(),
+        engineerName: z.string().optional(),
+        material1Id: z.number().optional(),
+        material1Meters: z.string().optional(),
+        material2Id: z.number().optional(),
+        material2Meters: z.string().optional(),
+        material3Id: z.number().optional(),
+        material3Meters: z.string().optional(),
+        hingeType: z.string().optional(),
+        drawerSlideType: z.string().optional(),
+        handleTypeLower: z.string().optional(),
+        handleTypeUpper: z.string().optional(),
+        chassisType: z.string().optional(),
+        plinthColor: z.string().optional(),
+        lightingColor: z.string().optional(),
+        glassColor: z.string().optional(),
+        innerBoxColor: z.string().optional(),
+        handleColor: z.string().optional(),
+        glassFrameColor: z.string().optional(),
+        marbleId: z.number().optional(),
+        marblePricePerMeter: z.number().optional(),
+        marbleMeters: z.string().optional(),
+        accessoriesJson: z.string().optional(),
+        claddingJson: z.string().optional(),
+        materialsTotalPrice: z.number().optional(),
+        accessoriesTotalPrice: z.number().optional(),
+        marbleTotalPrice: z.number().optional(),
+        claddingTotalPrice: z.number().optional(),
+        grandTotal: z.number().optional(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return createKitchenQuotation(input);
+      }),
+    addUnit: publicProcedure
+      .input(z.object({
+        quotationId: z.number(),
+        unitNumber: z.number(),
+        location: z.enum(["upper", "lower", "tall", "placard", "placard_deep"]),
+        width: z.number(),
+        height: z.number(),
+        totalArea: z.string(),
+        description: z.string().optional(),
+        materialId: z.number().optional(),
+        wallLabel: z.string().optional(),
+        sortOrder: z.number().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return addKitchenUnit(input);
+      }),
+    deleteUnit: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await deleteKitchenUnit(input.id);
+        return { success: true };
+      }),
+  }),
+});
 export type AppRouter = typeof appRouter;

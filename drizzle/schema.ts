@@ -223,3 +223,173 @@ export const pricingQuotations = mysqlTable("pricing_quotations", {
 });
 
 export type PricingQuotation = typeof pricingQuotations.$inferSelect;
+
+// ===================== KITCHEN MODULE TABLES =====================
+
+/**
+ * Kitchen materials (خامات المطبخ) - priced per m²
+ */
+export const kitchenMaterials = mysqlTable("kitchen_materials", {
+  id: int("id").autoincrement().primaryKey(),
+  brand: varchar("brand", { length: 64 }).notNull(), // "First Wood" | "Good Wood"
+  nameAr: varchar("nameAr", { length: 255 }).notNull(),
+  pricePerMeter: int("pricePerMeter").notNull(), // EGP per m²
+  isActive: boolean("isActive").default(true).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+});
+
+export type KitchenMaterial = typeof kitchenMaterials.$inferSelect;
+
+/**
+ * Kitchen accessories (اكسسوارات) - fixed price per piece
+ */
+export const kitchenAccessories = mysqlTable("kitchen_accessories", {
+  id: int("id").autoincrement().primaryKey(),
+  brand: varchar("brand", { length: 32 }).notNull(), // "JT" | "SX" | "Other"
+  nameAr: varchar("nameAr", { length: 255 }).notNull(),
+  price: int("price").notNull(), // EGP per piece
+  isActive: boolean("isActive").default(true).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+});
+
+export type KitchenAccessory = typeof kitchenAccessories.$inferSelect;
+
+/**
+ * Kitchen marble types (خامة الرخام)
+ */
+export const kitchenMarble = mysqlTable("kitchen_marble", {
+  id: int("id").autoincrement().primaryKey(),
+  code: varchar("code", { length: 16 }).notNull(), // G01, B01, Q01
+  nameAr: varchar("nameAr", { length: 128 }).notNull(),
+  category: mysqlEnum("category", ["granite", "porcelain", "quartz", "other"]).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+});
+
+export type KitchenMarble = typeof kitchenMarble.$inferSelect;
+
+/**
+ * Kitchen cladding & decor (التجاليد والديكور) - priced per piece/unit
+ */
+export const kitchenCladding = mysqlTable("kitchen_cladding", {
+  id: int("id").autoincrement().primaryKey(),
+  nameAr: varchar("nameAr", { length: 255 }).notNull(),
+  price: int("price").notNull(), // EGP per unit
+  isActive: boolean("isActive").default(true).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+});
+
+export type KitchenCladding = typeof kitchenCladding.$inferSelect;
+
+/**
+ * Kitchen units table - each row is one cabinet unit in the kitchen
+ * Linked to a kitchen quotation
+ */
+export const kitchenUnits = mysqlTable("kitchen_units", {
+  id: int("id").autoincrement().primaryKey(),
+  quotationId: int("quotationId").notNull(),
+  unitNumber: int("unitNumber").notNull(), // رقم القطعة في التصميم
+  location: mysqlEnum("location", ["upper", "lower", "tall", "placard", "placard_deep"]).notNull(), // علوي/سفلي/طولي/بلاكار
+  width: int("width").notNull(), // cm
+  height: int("height").notNull(), // cm
+  totalArea: varchar("totalArea", { length: 16 }).notNull(), // calculated m²
+  description: text("description"),
+  materialId: int("materialId"), // FK to kitchen_materials
+  wallLabel: varchar("wallLabel", { length: 4 }), // A, B, C, D, E, F, G, H
+  sortOrder: int("sortOrder").default(0).notNull(),
+});
+
+export type KitchenUnit = typeof kitchenUnits.$inferSelect;
+
+/**
+ * Kitchen quotations (مقايسة مطبخ)
+ */
+export const kitchenQuotations = mysqlTable("kitchen_quotations", {
+  id: int("id").autoincrement().primaryKey(),
+  quotationCode: varchar("quotationCode", { length: 32 }).notNull(), // P2026-X
+  clientName: varchar("clientName", { length: 128 }),
+  clientPhone: varchar("clientPhone", { length: 32 }),
+  address: text("address"),
+  engineerName: varchar("engineerName", { length: 128 }),
+  quotationDate: timestamp("quotationDate").defaultNow().notNull(),
+
+  // Materials
+  material1Id: int("material1Id"),
+  material1Meters: varchar("material1Meters", { length: 16 }),
+  material2Id: int("material2Id"),
+  material2Meters: varchar("material2Meters", { length: 16 }),
+  material3Id: int("material3Id"),
+  material3Meters: varchar("material3Meters", { length: 16 }),
+
+  // Hardware selections (stored as JSON)
+  hingeType: varchar("hingeType", { length: 128 }),
+  drawerSlideType: varchar("drawerSlideType", { length: 128 }),
+  handleTypeLower: varchar("handleTypeLower", { length: 128 }),
+  handleTypeUpper: varchar("handleTypeUpper", { length: 128 }),
+  chassisType: varchar("chassisType", { length: 128 }),
+  plinthColor: varchar("plinthColor", { length: 64 }),
+  lightingColor: varchar("lightingColor", { length: 64 }),
+  glassColor: varchar("glassColor", { length: 64 }),
+  innerBoxColor: varchar("innerBoxColor", { length: 64 }),
+  handleColor: varchar("handleColor", { length: 64 }),
+  glassFrameColor: varchar("glassFrameColor", { length: 64 }),
+
+  // Marble
+  marbleId: int("marbleId"),
+  marblePricePerMeter: int("marblePricePerMeter"),
+  marbleMeters: varchar("marbleMeters", { length: 16 }),
+
+  // Accessories (stored as JSON array: [{id, qty, price}])
+  accessoriesJson: text("accessoriesJson"),
+
+  // Cladding (stored as JSON array: [{id, qty, price}])
+  claddingJson: text("claddingJson"),
+
+  // Totals
+  materialsTotalPrice: int("materialsTotalPrice").default(0),
+  accessoriesTotalPrice: int("accessoriesTotalPrice").default(0),
+  marbleTotalPrice: int("marbleTotalPrice").default(0),
+  claddingTotalPrice: int("claddingTotalPrice").default(0),
+  grandTotal: int("grandTotal").default(0),
+
+  notes: text("notes"),
+  status: mysqlEnum("status", ["draft", "sent", "approved"]).default("draft").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type KitchenQuotation = typeof kitchenQuotations.$inferSelect;
+
+/**
+ * Kitchen work orders (امر شغل)
+ */
+export const kitchenWorkOrders = mysqlTable("kitchen_work_orders", {
+  id: int("id").autoincrement().primaryKey(),
+  quotationId: int("quotationId").notNull(),
+  workOrderCode: varchar("workOrderCode", { length: 32 }).notNull(),
+  salesEngineer: varchar("salesEngineer", { length: 128 }),
+  technicalEngineer: varchar("technicalEngineer", { length: 128 }),
+  contractDate: timestamp("contractDate"),
+  executionDate: timestamp("executionDate"),
+  deliveryDate: timestamp("deliveryDate"),
+  workOrderDate: timestamp("workOrderDate"),
+
+  // Door codes
+  doorCode1: varchar("doorCode1", { length: 64 }),
+  doorCode1Company: varchar("doorCode1Company", { length: 64 }),
+  doorCode2: varchar("doorCode2", { length: 64 }),
+  doorCode2Company: varchar("doorCode2Company", { length: 64 }),
+  doorCode3: varchar("doorCode3", { length: 64 }),
+  doorCode3Company: varchar("doorCode3Company", { length: 64 }),
+
+  // Areas (m²)
+  lowerUnitsArea: varchar("lowerUnitsArea", { length: 16 }),
+  upperUnitsArea: varchar("upperUnitsArea", { length: 16 }),
+  placardArea: varchar("placardArea", { length: 16 }),
+  tallUnitsArea: varchar("tallUnitsArea", { length: 16 }),
+
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type KitchenWorkOrder = typeof kitchenWorkOrders.$inferSelect;

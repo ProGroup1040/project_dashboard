@@ -304,6 +304,12 @@ export default function PricingWizard() {
         </div>
         <div className="flex items-center gap-2">
           <a
+            href="/kitchen"
+            className="text-zinc-400 hover:text-zinc-200 text-xs px-3 py-2 rounded-lg border border-zinc-700 hover:border-amber-500 transition-all"
+          >
+            🍽️ مطابخ
+          </a>
+          <a
             href="/"
             className="text-zinc-400 hover:text-zinc-200 text-xs px-3 py-2 rounded-lg border border-zinc-700 hover:border-zinc-500 transition-all"
           >

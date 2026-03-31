@@ -22,6 +22,13 @@
       "when": 1774599774590,
       "tag": "0002_living_dormammu",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1774954530750,
+      "tag": "0003_strange_spirit",
+      "breakpoints": true
     }
   ]
 }

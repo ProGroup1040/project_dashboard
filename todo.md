@@ -77,3 +77,17 @@
 - [ ] Fix navigation: selections not persisting, user gets sent back to step 1
 - [ ] Add Pro Group branding/logo to pricing wizard header
 - [ ] Add client login option (separate from engineer login)
+
+## Kitchen Module - Professor Kitchens (NEW - Mar 31)
+- [ ] Create kitchen DB schema: kitchen_materials, kitchen_accessories, kitchen_marble, kitchen_cladding, kitchen_colors, kitchen_units, kitchen_quotations, kitchen_work_orders
+- [ ] Seed all data from Excel: 28 materials, 50+ accessories, 34 marble types, 42 cladding items, color options
+- [ ] Build kitchen pricing wizard page (/kitchen)
+- [ ] Unit table with dropdowns: رقم القطعة, مكان (علوي/سفلي/طولي/بلاكار), عرض, ارتفاع, خامة, جدار
+- [ ] Accessories section: multi-select with quantities and prices
+- [ ] Marble section: type + wall label + price per m²
+- [ ] Cladding & decor section
+- [ ] Colors section: وزر + إضاءة + زجاج + بوكس داخلي + مقابض + قطاعات زجاج
+- [ ] Live price calculation: (امتار × سعر الخامة) + اكسسوارات + رخام + تجاليد
+- [ ] Generate Quotation (مقايسة) - print view
+- [ ] Generate Work Order (امر شغل) - print view
+- [ ] Fix Back button in all pricing wizard steps
