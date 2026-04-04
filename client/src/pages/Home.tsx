@@ -1442,9 +1442,9 @@ export default function Home() {
                 <img src={`${CDN}/ProfessorLogo(1)_351dfbb8.png`} alt="Professor" style={{ height: "160px", objectFit: "contain", flexShrink: 0, filter: "drop-shadow(0 0 12px rgba(212,175,55,0.4))" }} />
                 {/* Center Text */}
                 <div style={{ flex: 1, textAlign: "center" }}>
-                  <h1 style={{ color: GOLD, fontSize: "2.8rem", fontWeight: 900, marginBottom: "0.5rem", letterSpacing: "0.02em", textShadow: `0 0 20px ${GOLD}60` }}>مشروع شقة مدينتي</h1>
-                  <p style={{ color: TEXT_SECONDARY, fontSize: "1.05rem", marginBottom: "0.25rem" }}>العميل: مستر علي راشد | مدينتي | 140 متر</p>
-                  <p style={{ color: TEXT_MUTED, fontSize: "0.85rem" }}>مارس 2026 | عرض تقديمي شامل للتشطيب والأثاث والأنظمة الذكية والستائر</p>
+                  <h1 style={{ color: GOLD, fontSize: "2.8rem", fontWeight: 900, marginBottom: "0.5rem", letterSpacing: "0.02em", textShadow: `0 0 20px ${GOLD}60` }}></h1>
+                  <p style={{ color: TEXT_SECONDARY, fontSize: "1.05rem", marginBottom: "0.25rem" }}></p>
+                  <p style={{ color: TEXT_MUTED, fontSize: "0.85rem" }}></p>
                 </div>
                 {/* Logo Right */}
                 <img src={`${CDN}/ProfessorLogo(1)_351dfbb8.png`} alt="Professor" style={{ height: "160px", objectFit: "contain", flexShrink: 0, filter: "drop-shadow(0 0 12px rgba(212,175,55,0.4))" }} />
@@ -1454,7 +1454,7 @@ export default function Home() {
             {/* About Company */}
             <div style={{ background: CARD_BG, border: `1px solid ${GOLD_BORDER}`, borderRadius: "1rem", padding: "1.5rem", marginBottom: "1.5rem" }}>
               <h2 style={{ color: GOLD, fontSize: "1.3rem", fontWeight: 700, marginBottom: "1rem", borderBottom: `1px solid ${GOLD_BORDER}`, paddingBottom: "0.5rem" }}>
-                🏢 نبذة عن شركة Professor
+                🏢 نبذة عن شركة Pro Group
               </h2>
               <p style={{ color: TEXT_PRIMARY, lineHeight: 1.9, fontSize: "0.95rem", marginBottom: "1.5rem" }}>
                 شركة <strong style={{ color: GOLD }}>PROFESSOR</strong> - Perfection in Every Detail، شركة رائدة متخصصة في أعمال التصميم الداخلي والتنفيذ المتكامل للمشاريع السكنية الفاخرة. نقدم خدمات شاملة تشمل التشطيب الكامل، الأثاث المصنوع بالمقاس، الأنظمة الذكية، والستائر. نلتزم بأعلى معايير الجودة والدقة في التنفيذ مع ضمان رضا العميل الكامل وتسليم المشروع في الوقت المحدد.
