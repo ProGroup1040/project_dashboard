@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `session_accessories` (`id` int AUTO_INCREMENT NOT NULL, `sessionId` int NOT NULL, `accessoryName` varchar(255) NOT NULL, `price` int NOT NULL, `imageUrl` text, `videoUrl` text, `benefit1` text, `benefit2` text, `benefit3` text, `categoryTag` enum('storage','luxury','convenience','other') DEFAULT 'other', `alternativeId` int, `decision` enum('approved','hesitant','rejected','pending') NOT NULL DEFAULT 'pending', `rejectionReason` enum('price','not_useful','needs_alternative','not_convinced'), `multimediaPlayed` boolean NOT NULL DEFAULT false, `createdAt` timestamp NOT NULL DEFAULT (now()), CONSTRAINT `session_accessories_id` PRIMARY KEY(`id`))",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user fZydmv6Jueen1GW.cfb05311e4af --database mRvpKEsVM97L32dYU7ka6B --execute CREATE TABLE `session_accessories` (`id` int AUTO_INCREMENT NOT NULL, `sessionId` int NOT NULL, `accessoryName` varchar(255) NOT NULL, `price` int NOT NULL, `imageUrl` text, `videoUrl` text, `benefit1` text, `benefit2` text, `benefit3` text, `categoryTag` enum('storage','luxury','convenience','other') DEFAULT 'other', `alternativeId` int, `decision` enum('approved','hesitant','rejected','pending') NOT NULL DEFAULT 'pending', `rejectionReason` enum('price','not_useful','needs_alternative','not_convinced'), `multimediaPlayed` boolean NOT NULL DEFAULT false, `createdAt` timestamp NOT NULL DEFAULT (now()), CONSTRAINT `session_accessories_id` PRIMARY KEY(`id`))",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 535
+}

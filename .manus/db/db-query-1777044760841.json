@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `session_objections` (`id` int AUTO_INCREMENT NOT NULL, `sessionId` int NOT NULL, `objectionType` enum('total_price','accessories_price','transportation','delivery_time','materials','payment_method','competitor_comparison','needs_partner_approval','not_convinced_value') NOT NULL, `relatedItemName` varchar(255), `engineerResponse` text, `clientReaction` enum('accepted','still_hesitant','rejected'), `createdAt` timestamp NOT NULL DEFAULT (now()), CONSTRAINT `session_objections_id` PRIMARY KEY(`id`))",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user fZydmv6Jueen1GW.cfb05311e4af --database mRvpKEsVM97L32dYU7ka6B --execute CREATE TABLE `session_objections` (`id` int AUTO_INCREMENT NOT NULL, `sessionId` int NOT NULL, `objectionType` enum('total_price','accessories_price','transportation','delivery_time','materials','payment_method','competitor_comparison','needs_partner_approval','not_convinced_value') NOT NULL, `relatedItemName` varchar(255), `engineerResponse` text, `clientReaction` enum('accepted','still_hesitant','rejected'), `createdAt` timestamp NOT NULL DEFAULT (now()), CONSTRAINT `session_objections_id` PRIMARY KEY(`id`))",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 744
+}

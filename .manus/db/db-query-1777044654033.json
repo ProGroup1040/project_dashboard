@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `crm_leads` (`id` int AUTO_INCREMENT NOT NULL, `leadNumber` varchar(32) NOT NULL, `clientName` varchar(128) NOT NULL, `clientPhone` varchar(32), `projectType` enum('kitchen','dressing','furniture','finishing','smart_home','full') NOT NULL, `quotationValue` int DEFAULT 0, `designScore` int DEFAULT 0, `assignedEngineer` varchar(128), `pipelineStage` enum('new_lead','design_in_progress','design_approved','negotiation_session','proposal','closing','won','lost') NOT NULL DEFAULT 'new_lead', `notes` text, `createdAt` timestamp NOT NULL DEFAULT (now()), `updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP, CONSTRAINT `crm_leads_id` PRIMARY KEY(`id`), CONSTRAINT `crm_leads_leadNumber_unique` UNIQUE(`leadNumber`))",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user fZydmv6Jueen1GW.cfb05311e4af --database mRvpKEsVM97L32dYU7ka6B --execute CREATE TABLE `crm_leads` (`id` int AUTO_INCREMENT NOT NULL, `leadNumber` varchar(32) NOT NULL, `clientName` varchar(128) NOT NULL, `clientPhone` varchar(32), `projectType` enum('kitchen','dressing','furniture','finishing','smart_home','full') NOT NULL, `quotationValue` int DEFAULT 0, `designScore` int DEFAULT 0, `assignedEngineer` varchar(128), `pipelineStage` enum('new_lead','design_in_progress','design_approved','negotiation_session','proposal','closing','won','lost') NOT NULL DEFAULT 'new_lead', `notes` text, `createdAt` timestamp NOT NULL DEFAULT (now()), `updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP, CONSTRAINT `crm_leads_id` PRIMARY KEY(`id`), CONSTRAINT `crm_leads_leadNumber_unique` UNIQUE(`leadNumber`))",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 578
+}

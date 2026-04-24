@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `session_changes` (`id` int AUTO_INCREMENT NOT NULL, `sessionId` int NOT NULL, `changeType` enum('remove_item','replace_item','adjust_quantity','apply_discount','change_material') NOT NULL, `itemName` varchar(255), `beforePrice` int NOT NULL, `afterPrice` int NOT NULL, `changeDetail` text, `createdAt` timestamp NOT NULL DEFAULT (now()), CONSTRAINT `session_changes_id` PRIMARY KEY(`id`))",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user fZydmv6Jueen1GW.cfb05311e4af --database mRvpKEsVM97L32dYU7ka6B --execute CREATE TABLE `session_changes` (`id` int AUTO_INCREMENT NOT NULL, `sessionId` int NOT NULL, `changeType` enum('remove_item','replace_item','adjust_quantity','apply_discount','change_material') NOT NULL, `itemName` varchar(255), `beforePrice` int NOT NULL, `afterPrice` int NOT NULL, `changeDetail` text, `createdAt` timestamp NOT NULL DEFAULT (now()), CONSTRAINT `session_changes_id` PRIMARY KEY(`id`))",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 448
+}

@@ -1368,6 +1368,8 @@ export default function Home() {
             </div>
             {/* Pricing System Link */}
             <a href="/pricing" style={{ background: `linear-gradient(135deg, ${GOLD}, oklch(0.6 0.1 75))`, color: DARK, borderRadius: "0.5rem", padding: "0.4rem 1rem", fontSize: "0.82rem", fontWeight: 800, cursor: "pointer", fontFamily: "'Cairo', sans-serif", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "0.35rem", boxShadow: `0 2px 8px ${GOLD}40` }}>💰 نظام التسعير</a>
+            {/* CRM Pipeline Link */}
+            <a href="/crm" style={{ background: `linear-gradient(135deg, oklch(0.35 0.08 250), oklch(0.25 0.05 250))`, color: GOLD, borderRadius: "0.5rem", padding: "0.4rem 1rem", fontSize: "0.82rem", fontWeight: 800, cursor: "pointer", fontFamily: "'Cairo', sans-serif", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "0.35rem", border: `1px solid ${GOLD}50`, boxShadow: `0 2px 8px oklch(0.3 0.05 250 / 0.4)` }}>📊 CRM Pipeline</a>
             {/* Login Button */}
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
               {projectUser ? (

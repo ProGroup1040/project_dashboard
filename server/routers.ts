@@ -30,6 +30,29 @@ import {
   deleteKitchenUnit,
 } from "./db-kitchen";
 import {
+  getAllLeads,
+  getLeadById,
+  createLead,
+  updateLeadStage,
+  updateLead,
+  getLeadStats,
+  createSession,
+  getSessionById,
+  getSessionsByLead,
+  updateSession,
+  completeSession,
+  addSessionAccessory,
+  getSessionAccessories,
+  updateAccessoryDecision,
+  logObjection,
+  getSessionObjections,
+  updateObjectionResponse,
+  logChange,
+  getSessionChanges,
+  createExcelImport,
+  getExcelImportsBySession,
+} from "./db-negotiation";
+import {
   getAllBrands,
   getSpacesByBrand,
   getProductsBySpace,
@@ -302,6 +325,197 @@ export const appRouter = router({
         const result = await storagePut(key, buffer, input.mimeType);
         return { url: result.url };
       }),
+  }),
+
+  // ===================== CRM & NEGOTIATION =====================
+  crm: router({
+    getLeads: publicProcedure.query(async () => getAllLeads()),
+
+    getLead: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => getLeadById(input.id)),
+
+    getStats: publicProcedure.query(async () => getLeadStats()),
+
+    createLead: publicProcedure
+      .input(z.object({
+        clientName: z.string().min(1),
+        clientPhone: z.string().optional(),
+        projectType: z.enum(["kitchen", "dressing", "furniture", "finishing", "smart_home", "full"]),
+        quotationValue: z.number().optional(),
+        assignedEngineer: z.string().optional(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => createLead(input)),
+
+    updateLead: publicProcedure
+      .input(z.object({
+        id: z.number(),
+        clientName: z.string().optional(),
+        clientPhone: z.string().optional(),
+        projectType: z.enum(["kitchen", "dressing", "furniture", "finishing", "smart_home", "full"]).optional(),
+        quotationValue: z.number().optional(),
+        assignedEngineer: z.string().optional(),
+        pipelineStage: z.enum(["new_lead", "design_in_progress", "design_approved", "negotiation_session", "proposal", "closing", "won", "lost"]).optional(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return updateLead(id, data);
+      }),
+
+    updateStage: publicProcedure
+      .input(z.object({
+        id: z.number(),
+        stage: z.enum(["new_lead", "design_in_progress", "design_approved", "negotiation_session", "proposal", "closing", "won", "lost"]),
+      }))
+      .mutation(async ({ input }) => updateLeadStage(input.id, input.stage)),
+  }),
+
+  negotiation: router({
+    createSession: publicProcedure
+      .input(z.object({
+        leadId: z.number(),
+        engineerName: z.string().optional(),
+        sessionNumber: z.number().optional(),
+      }))
+      .mutation(async ({ input }) => createSession(input)),
+
+    getSession: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => getSessionById(input.id)),
+
+    getSessionsByLead: publicProcedure
+      .input(z.object({ leadId: z.number() }))
+      .query(async ({ input }) => getSessionsByLead(input.leadId)),
+
+    updateSession: publicProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(["in_progress", "completed", "abandoned"]).optional(),
+        step1Completed: z.boolean().optional(),
+        step2Completed: z.boolean().optional(),
+        step3Completed: z.boolean().optional(),
+        step4Completed: z.boolean().optional(),
+        step5Completed: z.boolean().optional(),
+        step6Completed: z.boolean().optional(),
+        step7Completed: z.boolean().optional(),
+        clientStyle: z.string().optional(),
+        clientBudget: z.number().optional(),
+        clientPriority: z.string().optional(),
+        clientNeedsConfirmed: z.boolean().optional(),
+        layoutExplained: z.boolean().optional(),
+        storageExplained: z.boolean().optional(),
+        materialsExplained: z.boolean().optional(),
+        lightingExplained: z.boolean().optional(),
+        quotationBreakdownJson: z.string().optional(),
+        closingStatus: z.enum(["ready_to_close", "needs_revision", "needs_time", "lost"]).optional(),
+        nextAction: z.enum(["follow_up_call", "send_revision", "visit_showroom", "apply_discount", "wait_for_decision"]).optional(),
+        originalTotal: z.number().optional(),
+        finalTotal: z.number().optional(),
+        totalDiscount: z.number().optional(),
+        recordingUrl: z.string().optional(),
+        sessionDurationSeconds: z.number().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return updateSession(id, data);
+      }),
+
+    completeSession: publicProcedure
+      .input(z.object({
+        id: z.number(),
+        finalTotal: z.number(),
+        closingStatus: z.enum(["ready_to_close", "needs_revision", "needs_time", "lost"]),
+        nextAction: z.enum(["follow_up_call", "send_revision", "visit_showroom", "apply_discount", "wait_for_decision"]),
+      }))
+      .mutation(async ({ input }) => completeSession(input.id, input.finalTotal, input.closingStatus, input.nextAction)),
+
+    // Accessories
+    addAccessory: publicProcedure
+      .input(z.object({
+        sessionId: z.number(),
+        accessoryName: z.string(),
+        price: z.number(),
+        imageUrl: z.string().optional(),
+        videoUrl: z.string().optional(),
+        benefit1: z.string().optional(),
+        benefit2: z.string().optional(),
+        benefit3: z.string().optional(),
+        categoryTag: z.enum(["storage", "luxury", "convenience", "other"]).optional(),
+      }))
+      .mutation(async ({ input }) => addSessionAccessory(input)),
+
+    getAccessories: publicProcedure
+      .input(z.object({ sessionId: z.number() }))
+      .query(async ({ input }) => getSessionAccessories(input.sessionId)),
+
+    updateAccessoryDecision: publicProcedure
+      .input(z.object({
+        id: z.number(),
+        decision: z.enum(["approved", "hesitant", "rejected", "pending"]),
+        rejectionReason: z.enum(["price", "not_useful", "needs_alternative", "not_convinced"]).optional(),
+        multimediaPlayed: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => updateAccessoryDecision(input.id, input.decision, input.rejectionReason, input.multimediaPlayed)),
+
+    // Objections
+    logObjection: publicProcedure
+      .input(z.object({
+        sessionId: z.number(),
+        objectionType: z.enum(["total_price", "accessories_price", "transportation", "delivery_time", "materials", "payment_method", "competitor_comparison", "needs_partner_approval", "not_convinced_value"]),
+        relatedItemName: z.string().optional(),
+        engineerResponse: z.string().optional(),
+        clientReaction: z.enum(["accepted", "still_hesitant", "rejected"]).optional(),
+      }))
+      .mutation(async ({ input }) => logObjection(input)),
+
+    getObjections: publicProcedure
+      .input(z.object({ sessionId: z.number() }))
+      .query(async ({ input }) => getSessionObjections(input.sessionId)),
+
+    updateObjectionResponse: publicProcedure
+      .input(z.object({
+        id: z.number(),
+        engineerResponse: z.string(),
+        clientReaction: z.enum(["accepted", "still_hesitant", "rejected"]),
+      }))
+      .mutation(async ({ input }) => updateObjectionResponse(input.id, input.engineerResponse, input.clientReaction)),
+
+    // Changes
+    logChange: publicProcedure
+      .input(z.object({
+        sessionId: z.number(),
+        changeType: z.enum(["remove_item", "replace_item", "adjust_quantity", "apply_discount", "change_material"]),
+        itemName: z.string().optional(),
+        beforePrice: z.number(),
+        afterPrice: z.number(),
+        changeDetail: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => logChange(input)),
+
+    getChanges: publicProcedure
+      .input(z.object({ sessionId: z.number() }))
+      .query(async ({ input }) => getSessionChanges(input.sessionId)),
+
+    // Excel imports
+    createExcelImport: publicProcedure
+      .input(z.object({
+        sessionId: z.number(),
+        fileName: z.string(),
+        fileUrl: z.string(),
+        parsedItemsJson: z.string().optional(),
+        totalMaterials: z.number().optional(),
+        totalAccessories: z.number().optional(),
+        totalLabor: z.number().optional(),
+        totalTransport: z.number().optional(),
+        grandTotal: z.number().optional(),
+      }))
+      .mutation(async ({ input }) => createExcelImport(input)),
+
+    getExcelImports: publicProcedure
+      .input(z.object({ sessionId: z.number() }))
+      .query(async ({ input }) => getExcelImportsBySession(input.sessionId)),
   }),
 
   kitchen: router({

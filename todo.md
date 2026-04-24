@@ -91,3 +91,17 @@
 - [ ] Generate Quotation (مقايسة) - print view
 - [ ] Generate Work Order (امر شغل) - print view
 - [ ] Fix Back button in all pricing wizard steps
+
+## Negotiation Session Module (Sections 1-19)
+- [ ] DB schema: negotiation_sessions, session_steps, session_accessories, session_objections, session_changes, excel_imports
+- [ ] tRPC router: negotiation procedures (create, update steps, submit)
+- [ ] 7-step guided wizard UI (Recap → Design → Accessories → Quotation → Objections → Smart Options → Closing)
+- [ ] Excel import: upload, parse, group by category, calculate totals
+- [ ] Accessory enrichment: image, video, 3 benefits, alternatives from DB
+- [ ] Dimension-based mapping: Base Units / Wall Units / Island / Dressing
+- [ ] Smart negotiation logic: remove/replace/discount with live total updates
+- [ ] Change log tracking: before/after price per change
+- [ ] Validation rules: 80% accessories reviewed, objections logged, closing step
+- [ ] KPI dashboard: top objections, rejected accessories, conversion rate per engineer
+- [ ] CRM pipeline integration: Negotiation Session stage between Design Approved and Proposal
+- [ ] Vitest tests for negotiation engine

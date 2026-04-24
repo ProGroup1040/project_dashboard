@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `excel_imports` (`id` int AUTO_INCREMENT NOT NULL, `sessionId` int NOT NULL, `fileName` varchar(255) NOT NULL, `fileUrl` text NOT NULL, `parsedItemsJson` text, `totalMaterials` int DEFAULT 0, `totalAccessories` int DEFAULT 0, `totalLabor` int DEFAULT 0, `totalTransport` int DEFAULT 0, `grandTotal` int DEFAULT 0, `status` enum('pending','parsed','error') NOT NULL DEFAULT 'pending', `createdAt` timestamp NOT NULL DEFAULT (now()), CONSTRAINT `excel_imports_id` PRIMARY KEY(`id`))",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user fZydmv6Jueen1GW.cfb05311e4af --database mRvpKEsVM97L32dYU7ka6B --execute CREATE TABLE `excel_imports` (`id` int AUTO_INCREMENT NOT NULL, `sessionId` int NOT NULL, `fileName` varchar(255) NOT NULL, `fileUrl` text NOT NULL, `parsedItemsJson` text, `totalMaterials` int DEFAULT 0, `totalAccessories` int DEFAULT 0, `totalLabor` int DEFAULT 0, `totalTransport` int DEFAULT 0, `grandTotal` int DEFAULT 0, `status` enum('pending','parsed','error') NOT NULL DEFAULT 'pending', `createdAt` timestamp NOT NULL DEFAULT (now()), CONSTRAINT `excel_imports_id` PRIMARY KEY(`id`))",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 510
+}

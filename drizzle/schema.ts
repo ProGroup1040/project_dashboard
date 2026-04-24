@@ -393,3 +393,173 @@ export const kitchenWorkOrders = mysqlTable("kitchen_work_orders", {
 });
 
 export type KitchenWorkOrder = typeof kitchenWorkOrders.$inferSelect;
+
+// ===================== NEGOTIATION SESSION MODULE TABLES =====================
+
+/**
+ * CRM Leads - pipeline management
+ */
+export const crmLeads = mysqlTable("crm_leads", {
+  id: int("id").autoincrement().primaryKey(),
+  leadNumber: varchar("leadNumber", { length: 32 }).notNull().unique(),
+  clientName: varchar("clientName", { length: 128 }).notNull(),
+  clientPhone: varchar("clientPhone", { length: 32 }),
+  projectType: mysqlEnum("projectType", ["kitchen", "dressing", "furniture", "finishing", "smart_home", "full"]).notNull(),
+  quotationValue: int("quotationValue").default(0),
+  designScore: int("designScore").default(0), // 0-100
+  assignedEngineer: varchar("assignedEngineer", { length: 128 }),
+  pipelineStage: mysqlEnum("pipelineStage", [
+    "new_lead",
+    "design_in_progress",
+    "design_approved",
+    "negotiation_session",
+    "proposal",
+    "closing",
+    "won",
+    "lost"
+  ]).default("new_lead").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CrmLead = typeof crmLeads.$inferSelect;
+
+/**
+ * Negotiation sessions - one per lead per attempt
+ */
+export const negotiationSessions = mysqlTable("negotiation_sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  leadId: int("leadId").notNull(),
+  sessionNumber: int("sessionNumber").default(1).notNull(),
+  engineerName: varchar("engineerName", { length: 128 }),
+  status: mysqlEnum("status", ["in_progress", "completed", "abandoned"]).default("in_progress").notNull(),
+
+  // Step completion flags
+  step1Completed: boolean("step1Completed").default(false).notNull(),
+  step2Completed: boolean("step2Completed").default(false).notNull(),
+  step3Completed: boolean("step3Completed").default(false).notNull(),
+  step4Completed: boolean("step4Completed").default(false).notNull(),
+  step5Completed: boolean("step5Completed").default(false).notNull(),
+  step6Completed: boolean("step6Completed").default(false).notNull(),
+  step7Completed: boolean("step7Completed").default(false).notNull(),
+
+  // Step 1: Recap
+  clientStyle: varchar("clientStyle", { length: 128 }),
+  clientBudget: int("clientBudget"),
+  clientPriority: text("clientPriority"),
+  clientNeedsConfirmed: boolean("clientNeedsConfirmed").default(false).notNull(),
+
+  // Step 2: Design Walkthrough
+  layoutExplained: boolean("layoutExplained").default(false).notNull(),
+  storageExplained: boolean("storageExplained").default(false).notNull(),
+  materialsExplained: boolean("materialsExplained").default(false).notNull(),
+  lightingExplained: boolean("lightingExplained").default(false).notNull(),
+
+  // Step 4: Quotation Breakdown (stored as JSON)
+  quotationBreakdownJson: text("quotationBreakdownJson"),
+
+  // Step 7: Closing
+  closingStatus: mysqlEnum("closingStatus", ["ready_to_close", "needs_revision", "needs_time", "lost"]),
+  nextAction: mysqlEnum("nextAction", ["follow_up_call", "send_revision", "visit_showroom", "apply_discount", "wait_for_decision"]),
+
+  // Totals
+  originalTotal: int("originalTotal").default(0),
+  finalTotal: int("finalTotal").default(0),
+  totalDiscount: int("totalDiscount").default(0),
+
+  // Recording
+  recordingUrl: text("recordingUrl"),
+  sessionDurationSeconds: int("sessionDurationSeconds"),
+
+  startedAt: timestamp("startedAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type NegotiationSession = typeof negotiationSessions.$inferSelect;
+
+/**
+ * Excel imports - uploaded quotation files
+ */
+export const excelImports = mysqlTable("excel_imports", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: int("sessionId").notNull(),
+  fileName: varchar("fileName", { length: 255 }).notNull(),
+  fileUrl: text("fileUrl").notNull(),
+  parsedItemsJson: text("parsedItemsJson"), // JSON array of parsed rows
+  totalMaterials: int("totalMaterials").default(0),
+  totalAccessories: int("totalAccessories").default(0),
+  totalLabor: int("totalLabor").default(0),
+  totalTransport: int("totalTransport").default(0),
+  grandTotal: int("grandTotal").default(0),
+  status: mysqlEnum("status", ["pending", "parsed", "error"]).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ExcelImport = typeof excelImports.$inferSelect;
+
+/**
+ * Session accessories - each accessory reviewed during step 3
+ */
+export const sessionAccessories = mysqlTable("session_accessories", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: int("sessionId").notNull(),
+  accessoryName: varchar("accessoryName", { length: 255 }).notNull(),
+  price: int("price").notNull(),
+  imageUrl: text("imageUrl"),
+  videoUrl: text("videoUrl"),
+  benefit1: text("benefit1"),
+  benefit2: text("benefit2"),
+  benefit3: text("benefit3"),
+  categoryTag: mysqlEnum("categoryTag", ["storage", "luxury", "convenience", "other"]).default("other"),
+  alternativeId: int("alternativeId"), // self-referencing for alternative
+  decision: mysqlEnum("decision", ["approved", "hesitant", "rejected", "pending"]).default("pending").notNull(),
+  rejectionReason: mysqlEnum("rejectionReason", ["price", "not_useful", "needs_alternative", "not_convinced"]),
+  multimediaPlayed: boolean("multimediaPlayed").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SessionAccessory = typeof sessionAccessories.$inferSelect;
+
+/**
+ * Session objections - logged during step 5
+ */
+export const sessionObjections = mysqlTable("session_objections", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: int("sessionId").notNull(),
+  objectionType: mysqlEnum("objectionType", [
+    "total_price",
+    "accessories_price",
+    "transportation",
+    "delivery_time",
+    "materials",
+    "payment_method",
+    "competitor_comparison",
+    "needs_partner_approval",
+    "not_convinced_value"
+  ]).notNull(),
+  relatedItemName: varchar("relatedItemName", { length: 255 }),
+  engineerResponse: text("engineerResponse"),
+  clientReaction: mysqlEnum("clientReaction", ["accepted", "still_hesitant", "rejected"]),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SessionObjection = typeof sessionObjections.$inferSelect;
+
+/**
+ * Session change log - every modification to the quotation
+ */
+export const sessionChanges = mysqlTable("session_changes", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: int("sessionId").notNull(),
+  changeType: mysqlEnum("changeType", ["remove_item", "replace_item", "adjust_quantity", "apply_discount", "change_material"]).notNull(),
+  itemName: varchar("itemName", { length: 255 }),
+  beforePrice: int("beforePrice").notNull(),
+  afterPrice: int("afterPrice").notNull(),
+  changeDetail: text("changeDetail"), // JSON with details
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SessionChange = typeof sessionChanges.$inferSelect;
