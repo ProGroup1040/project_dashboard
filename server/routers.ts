@@ -606,5 +606,182 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
+
+  // ─── Platform Router ────────────────────────────────────────────────────────
+  platform: router({
+    // Transport rules
+    getTransportRules: publicProcedure.query(async () => {
+      const { getTransportRules, seedTransportRules } = await import("./db-platform");
+      await seedTransportRules();
+      return getTransportRules();
+    }),
+
+    // Playbook
+    getPlaybookItems: publicProcedure
+      .input(z.object({ category: z.string().optional() }))
+      .query(async ({ input }) => {
+        const { getPlaybookItems } = await import("./db-platform");
+        return getPlaybookItems(input.category);
+      }),
+    getPlaybookItem: publicProcedure
+      .input(z.object({ itemKey: z.string() }))
+      .query(async ({ input }) => {
+        const { getPlaybookItem } = await import("./db-platform");
+        return getPlaybookItem(input.itemKey);
+      }),
+    upsertPlaybookItem: publicProcedure
+      .input(z.object({
+        itemKey: z.string(), itemNameAr: z.string(), itemNameEn: z.string().optional(),
+        category: z.enum(["material", "accessory", "cladding", "marble", "transport", "labor"]),
+        technicalDescription: z.string().optional(), salesExplanation: z.string().optional(),
+        whenToRecommend: z.string().optional(), whenNotToRecommend: z.string().optional(),
+        commonObjections: z.string().optional(), objectionAnswers: z.string().optional(), tags: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { upsertPlaybookItem } = await import("./db-platform");
+        await upsertPlaybookItem(input);
+        return { success: true };
+      }),
+
+    // Media Library
+    getMediaByItemKey: publicProcedure
+      .input(z.object({ itemKey: z.string() }))
+      .query(async ({ input }) => {
+        const { getMediaByItemKey } = await import("./db-platform");
+        return getMediaByItemKey(input.itemKey);
+      }),
+    addMediaItem: publicProcedure
+      .input(z.object({
+        itemKey: z.string(), nameAr: z.string(),
+        fileType: z.enum(["image", "video", "render", "document"]),
+        fileUrl: z.string(), thumbnailUrl: z.string().optional(),
+        usageType: z.enum(["client_presentation", "training", "objection_handling", "showroom"]),
+        script: z.string().optional(), priorityLevel: z.number().optional(), tags: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { addMediaItem } = await import("./db-platform");
+        await addMediaItem(input);
+        return { success: true };
+      }),
+
+    // Sales Scripts
+    getSalesScript: publicProcedure
+      .input(z.object({ itemKey: z.string() }))
+      .query(async ({ input }) => {
+        const { getSalesScript } = await import("./db-platform");
+        return getSalesScript(input.itemKey);
+      }),
+    upsertSalesScript: publicProcedure
+      .input(z.object({
+        itemKey: z.string(), shortClientExplanation: z.string().optional(),
+        premiumExplanation: z.string().optional(), objectionResponse: z.string().optional(),
+        whatsappFollowUp: z.string().optional(), showroomPresentationLine: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { upsertSalesScript } = await import("./db-platform");
+        await upsertSalesScript(input);
+        return { success: true };
+      }),
+
+    // Quotations V2
+    createQuotation: publicProcedure
+      .input(z.object({
+        quotationCode: z.string(), brandKey: z.string().optional(),
+        clientName: z.string().optional(), clientPhone: z.string().optional(),
+        address: z.string().optional(), governorate: z.string().optional(),
+        projectCode: z.string().optional(), engineerName: z.string().optional(),
+        engineerRole: z.enum(["sales_engineer", "designer", "technical_office", "sales_manager", "admin", "owner"]).optional(),
+        kitchenLength: z.string().optional(), kitchenWidth: z.string().optional(),
+        totalUnits: z.number().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { createQuotationV2 } = await import("./db-platform");
+        return createQuotationV2(input);
+      }),
+    updateQuotation: publicProcedure
+      .input(z.object({
+        id: z.number(),
+        materialsJson: z.string().optional(), accessoriesJson: z.string().optional(),
+        claddingJson: z.string().optional(), marbleJson: z.string().optional(),
+        transportJson: z.string().optional(),
+        discountType: z.enum(["none", "percentage", "fixed"]).optional(),
+        discountValue: z.number().optional(), discountReason: z.string().optional(),
+        materialsTotalPrice: z.number().optional(), accessoriesTotalPrice: z.number().optional(),
+        claddingTotalPrice: z.number().optional(), marbleTotalPrice: z.number().optional(),
+        transportTotalPrice: z.number().optional(), subtotal: z.number().optional(),
+        discountAmount: z.number().optional(), grandTotal: z.number().optional(),
+        warningsJson: z.string().optional(), status: z.string().optional(),
+        notes: z.string().optional(), internalNotes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { updateQuotationV2 } = await import("./db-platform");
+        const { id, ...data } = input;
+        await updateQuotationV2(id, data as any);
+        return { success: true };
+      }),
+    getQuotation: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const { getQuotationV2 } = await import("./db-platform");
+        return getQuotationV2(input.id);
+      }),
+    listQuotations: publicProcedure
+      .input(z.object({ brandKey: z.string().optional() }))
+      .query(async ({ input }) => {
+        const { listQuotationsV2 } = await import("./db-platform");
+        return listQuotationsV2(input.brandKey);
+      }),
+
+    // Approval
+    requestApproval: publicProcedure
+      .input(z.object({
+        quotationId: z.number(),
+        requestType: z.enum(["discount", "free_item", "price_override", "final_approval"]),
+        requestedBy: z.string(), requestedValue: z.string().optional(), reason: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { createApprovalRequest } = await import("./db-platform");
+        await createApprovalRequest(input);
+        return { success: true };
+      }),
+    reviewApproval: publicProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(["approved", "rejected"]),
+        reviewedBy: z.string(), reviewNote: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { reviewApprovalRequest } = await import("./db-platform");
+        await reviewApprovalRequest(input.id, input);
+        return { success: true };
+      }),
+    getPendingApprovals: publicProcedure.query(async () => {
+      const { getPendingApprovals } = await import("./db-platform");
+      return getPendingApprovals();
+    }),
+
+    // KPIs
+    getKPIs: publicProcedure
+      .input(z.object({ brandKey: z.string().optional() }))
+      .query(async ({ input }) => {
+        const { getQuotationKPIs } = await import("./db-platform");
+        return getQuotationKPIs(input.brandKey);
+      }),
+
+    // Warnings
+    generateWarnings: publicProcedure
+      .input(z.object({
+        selectedAccessories: z.array(z.object({ id: z.number(), qty: z.number() })),
+        marbleSelected: z.boolean(), transportSelected: z.boolean(),
+        discountPercentage: z.number(), freeItemsCount: z.number(),
+        grandTotal: z.number(), minimumTarget: z.number().optional(),
+        accessoriesTotalPrice: z.number(), totalPrice: z.number(),
+        hasPlaybookForAllItems: z.boolean(),
+      }))
+      .query(async ({ input }) => {
+        const { generateWarnings } = await import("./db-platform");
+        return generateWarnings(input);
+      }),
+  }),
 });
 export type AppRouter = typeof appRouter;

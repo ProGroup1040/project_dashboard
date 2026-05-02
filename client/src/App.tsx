@@ -9,19 +9,25 @@ import PricingWizard from "./pages/PricingWizard";
 import KitchenPricing from "./pages/KitchenPricing";
 import CrmPipeline from "./pages/CrmPipeline";
 import NegotiationSession from "./pages/NegotiationSession";
+import BrandHub from "./pages/BrandHub";
+import ProfessorKitchensEngine from "./pages/ProfessorKitchensEngine";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      {/* Brand-First Architecture */}
+      <Route path={"/brands"} component={BrandHub} />
+      <Route path={"/brand/professor_kitchens/kitchens"} component={ProfessorKitchensEngine} />
+      {/* Legacy routes (kept for backward compatibility) */}
       <Route path={"/pricing"} component={PricingWizard} />
       <Route path={"/kitchen"} component={KitchenPricing} />
       <Route path={"/crm"} component={CrmPipeline} />
       <Route path={"/negotiation/:leadId"} component={NegotiationSession} />
       <Route path={"/negotiation/:leadId/:sessionId"} component={NegotiationSession} />
       <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
+
       <Route component={NotFound} />
     </Switch>
   );

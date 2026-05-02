@@ -105,3 +105,16 @@
 - [ ] KPI dashboard: top objections, rejected accessories, conversion rate per engineer
 - [ ] CRM pipeline integration: Negotiation Session stage between Design Approved and Proposal
 - [ ] Vitest tests for negotiation engine
+
+## Kitchen Pricing Platform — Full System (May 2026)
+- [ ] Add DB tables: playbook_items, media_library, sales_scripts, transport_rules, quotation_items_v2, approval_logs
+- [ ] Build backend db helpers and tRPC routers for new tables
+- [ ] Build 11-step pricing engine with internal + client view modes
+- [ ] Build Playbook card system per item
+- [ ] Build Media Library with auto-suggestion
+- [ ] Build Sales Script Generator
+- [ ] Build Smart Warnings system (8 warning types)
+- [ ] Build Analytics Dashboard (12 KPI cards)
+- [ ] Build Approval Workflow (discount/free items/override)
+- [ ] Build Role-based access (6 roles)
+- [ ] Build Output generator (internal quotation, client quotation, WhatsApp summary, scripts)

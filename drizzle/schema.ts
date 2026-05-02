@@ -563,3 +563,170 @@ export const sessionChanges = mysqlTable("session_changes", {
 });
 
 export type SessionChange = typeof sessionChanges.$inferSelect;
+
+// ===================== KITCHEN PRICING PLATFORM — FULL SYSTEM =====================
+
+/**
+ * Playbook items — linked to each pricing item
+ */
+export const playbookItems = mysqlTable("playbook_items", {
+  id: int("id").autoincrement().primaryKey(),
+  itemKey: varchar("itemKey", { length: 128 }).notNull().unique(), // e.g. "pvc_first_wood"
+  itemNameAr: varchar("itemNameAr", { length: 255 }).notNull(),
+  itemNameEn: varchar("itemNameEn", { length: 255 }),
+  category: mysqlEnum("category", ["material", "accessory", "cladding", "marble", "transport", "labor"]).notNull(),
+  technicalDescription: text("technicalDescription"),
+  salesExplanation: text("salesExplanation"),
+  whenToRecommend: text("whenToRecommend"),
+  whenNotToRecommend: text("whenNotToRecommend"),
+  commonObjections: text("commonObjections"), // JSON array
+  objectionAnswers: text("objectionAnswers"), // JSON array
+  cheaperAlternativeId: int("cheaperAlternativeId"),
+  premiumAlternativeId: int("premiumAlternativeId"),
+  tags: varchar("tags", { length: 512 }), // comma-separated
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type PlaybookItem = typeof playbookItems.$inferSelect;
+
+/**
+ * Media library — images, videos, renders per item
+ */
+export const mediaLibrary = mysqlTable("media_library", {
+  id: int("id").autoincrement().primaryKey(),
+  playbookItemId: int("playbookItemId"),
+  itemKey: varchar("itemKey", { length: 128 }), // direct link to item
+  nameAr: varchar("nameAr", { length: 255 }).notNull(),
+  fileType: mysqlEnum("fileType", ["image", "video", "render", "document"]).notNull(),
+  fileUrl: text("fileUrl").notNull(),
+  thumbnailUrl: text("thumbnailUrl"),
+  usageType: mysqlEnum("usageType", ["client_presentation", "training", "objection_handling", "showroom"]).notNull(),
+  script: text("script"), // attached script/description
+  priorityLevel: int("priorityLevel").default(1), // 1=low, 2=medium, 3=high
+  tags: varchar("tags", { length: 512 }),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type MediaLibraryItem = typeof mediaLibrary.$inferSelect;
+
+/**
+ * Sales scripts — auto-generated per item
+ */
+export const salesScripts = mysqlTable("sales_scripts", {
+  id: int("id").autoincrement().primaryKey(),
+  itemKey: varchar("itemKey", { length: 128 }).notNull(),
+  shortClientExplanation: text("shortClientExplanation"),
+  premiumExplanation: text("premiumExplanation"),
+  objectionResponse: text("objectionResponse"),
+  whatsappFollowUp: text("whatsappFollowUp"),
+  showroomPresentationLine: text("showroomPresentationLine"),
+  language: mysqlEnum("language", ["ar", "en"]).default("ar").notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type SalesScript = typeof salesScripts.$inferSelect;
+
+/**
+ * Transport rules — by governorate or distance
+ */
+export const transportRules = mysqlTable("transport_rules", {
+  id: int("id").autoincrement().primaryKey(),
+  governorate: varchar("governorate", { length: 128 }).notNull(),
+  basePrice: int("basePrice").notNull(),
+  pricePerKm: int("pricePerKm").default(0),
+  carryingPrice: int("carryingPrice").default(0), // floor carrying
+  notes: text("notes"),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type TransportRule = typeof transportRules.$inferSelect;
+
+/**
+ * Full quotations v2 — new comprehensive quotation system
+ */
+export const quotationsV2 = mysqlTable("quotations_v2", {
+  id: int("id").autoincrement().primaryKey(),
+  quotationCode: varchar("quotationCode", { length: 32 }).notNull().unique(),
+  version: int("version").default(1).notNull(),
+   parentQuotationId: int("parentQuotationId"), // for revisions
+  brandKey: varchar("brandKey", { length: 64 }).default("professor_kitchens"),
+  // Client & Project
+  clientName: varchar("clientName", { length: 128 }),
+  clientPhone: varchar("clientPhone", { length: 32 }),
+  address: text("address"),
+  governorate: varchar("governorate", { length: 64 }),
+  projectCode: varchar("projectCode", { length: 64 }),
+  engineerName: varchar("engineerName", { length: 128 }),
+  engineerRole: mysqlEnum("engineerRole", ["sales_engineer", "designer", "technical_office", "sales_manager", "admin", "owner"]).default("sales_engineer"),
+
+  // Kitchen dimensions
+  kitchenLength: varchar("kitchenLength", { length: 16 }),
+  kitchenWidth: varchar("kitchenWidth", { length: 16 }),
+  totalUnits: int("totalUnits").default(0),
+  lowerUnitsArea: varchar("lowerUnitsArea", { length: 16 }),
+  upperUnitsArea: varchar("upperUnitsArea", { length: 16 }),
+  tallUnitsArea: varchar("tallUnitsArea", { length: 16 }),
+  specialUnitsArea: varchar("specialUnitsArea", { length: 16 }),
+
+  // Items (stored as JSON arrays)
+  materialsJson: text("materialsJson"), // [{materialId, area, unitPrice, total, location}]
+  accessoriesJson: text("accessoriesJson"), // [{accessoryId, qty, unitPrice, total, isFree}]
+  claddingJson: text("claddingJson"), // [{claddingId, qty/area, unitPrice, total}]
+  marbleJson: text("marbleJson"), // [{marbleId, area, unitPrice, total}]
+  transportJson: text("transportJson"), // {ruleId, distance, basePrice, carryingPrice, total}
+
+  // Discount
+  discountType: mysqlEnum("discountType", ["none", "percentage", "fixed"]).default("none"),
+  discountValue: int("discountValue").default(0),
+  discountReason: text("discountReason"),
+  discountApprovedBy: varchar("discountApprovedBy", { length: 128 }),
+
+  // Totals
+  materialsTotalPrice: int("materialsTotalPrice").default(0),
+  accessoriesTotalPrice: int("accessoriesTotalPrice").default(0),
+  claddingTotalPrice: int("claddingTotalPrice").default(0),
+  marbleTotalPrice: int("marbleTotalPrice").default(0),
+  transportTotalPrice: int("transportTotalPrice").default(0),
+  subtotal: int("subtotal").default(0),
+  discountAmount: int("discountAmount").default(0),
+  grandTotal: int("grandTotal").default(0),
+
+  // Warnings (stored as JSON)
+  warningsJson: text("warningsJson"),
+
+  // Status & Approval
+  status: mysqlEnum("status", ["draft", "pending_approval", "approved", "sent_to_client", "accepted", "rejected", "revised"]).default("draft").notNull(),
+  approvalStatus: mysqlEnum("approvalStatus", ["not_required", "pending", "approved", "rejected"]).default("not_required"),
+  approvedBy: varchar("approvedBy", { length: 128 }),
+  approvedAt: timestamp("approvedAt"),
+  lockedAt: timestamp("lockedAt"), // locked after client approval
+
+  notes: text("notes"),
+  internalNotes: text("internalNotes"), // hidden from client
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type QuotationV2 = typeof quotationsV2.$inferSelect;
+
+/**
+ * Approval logs — track all approval requests
+ */
+export const approvalLogs = mysqlTable("approval_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  quotationId: int("quotationId").notNull(),
+  requestType: mysqlEnum("requestType", ["discount", "free_item", "price_override", "final_approval"]).notNull(),
+  requestedBy: varchar("requestedBy", { length: 128 }).notNull(),
+  requestedValue: text("requestedValue"), // JSON with details
+  reason: text("reason"),
+  status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("pending").notNull(),
+  reviewedBy: varchar("reviewedBy", { length: 128 }),
+  reviewNote: text("reviewNote"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  reviewedAt: timestamp("reviewedAt"),
+});
+export type ApprovalLog = typeof approvalLogs.$inferSelect;
+
+// ===================== KITCHEN PRICING PLATFORM — FULL SYSTEM =====================
+
