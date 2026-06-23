@@ -43,6 +43,13 @@
       "when": 1777691824309,
       "tag": "0005_colossal_lake",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1782193443726,
+      "tag": "0006_careful_rafael_vega",
+      "breakpoints": true
     }
   ]
 }

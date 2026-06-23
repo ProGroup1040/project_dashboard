@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import {
   ArrowLeft, ArrowRight, CheckCircle2, AlertTriangle, AlertCircle, Info,
-  Eye, EyeOff, Printer, Share2, BookOpen, Plus, Trash2, RefreshCw
+  Eye, EyeOff, Printer, Share2, BookOpen, Plus, Trash2, RefreshCw,
+  Play, X, Upload, Video
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -19,15 +20,14 @@ interface Warning { type: string; message: string; severity: "error" | "warning"
 const STEPS = [
   { id: 1, title: "بيانات العميل",   icon: "👤" },
   { id: 2, title: "أبعاد المطبخ",    icon: "📐" },
-  { id: 3, title: "الخامات",          icon: "🪵" },
-  { id: 4, title: "الإكسسوارات",     icon: "⚙️" },
-  { id: 5, title: "الرخام",           icon: "🪨" },
-  { id: 6, title: "التجاليد",         icon: "🎨" },
-  { id: 7, title: "النقل",            icon: "🚚" },
-  { id: 8, title: "الخصم",            icon: "💰" },
-  { id: 9, title: "المراجعة",         icon: "⚠️" },
-  { id: 10, title: "عرض داخلي",      icon: "🔒" },
-  { id: 11, title: "عرض العميل",     icon: "📋" },
+  { id: 3, title: "الإكسسوارات",     icon: "⚙️" },
+  { id: 4, title: "الرخام",           icon: "🪨" },
+  { id: 5, title: "التجاليد",         icon: "🎨" },
+  { id: 6, title: "النقل",            icon: "🚚" },
+  { id: 7, title: "الخصم",            icon: "💰" },
+  { id: 8, title: "المراجعة",         icon: "⚠️" },
+  { id: 9, title: "عرض داخلي",       icon: "🔒" },
+  { id: 10, title: "عرض العميل",     icon: "📋" },
 ];
 
 const MARBLE_PRICES: Record<string, number> = {
@@ -79,12 +79,12 @@ export default function ProfessorKitchensEngine() {
   const [selCladding,    setSelCladding]    = useState<SelCladding[]>([]);
   const [transport,      setTransport]      = useState<TransportData | null>(null);
 
-  // Step 8
+  // Step 7
   const [discountType,   setDiscountType]   = useState<"none"|"percentage"|"fixed">("none");
   const [discountValue,  setDiscountValue]  = useState(0);
   const [discountReason, setDiscountReason] = useState("");
 
-  // Step 9
+  // Step 8
   const [warnings,       setWarnings]       = useState<Warning[]>([]);
   const [notes,          setNotes]          = useState("");
   const [internalNotes,  setInternalNotes]  = useState("");
@@ -135,7 +135,7 @@ export default function ProfessorKitchensEngine() {
     if (s === 3) return selMaterials.length > 0;
     return true;
   };
-  const goNext = () => { if (step === 9) computeWarnings(); if (step < 11) setStep(s => s + 1); };
+  const goNext = () => { if (step === 8) computeWarnings(); if (step < 10) setStep(s => s + 1); };
   const goPrev = () => { if (step > 1) setStep(s => s - 1); };
 
   // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -446,61 +446,31 @@ export default function ProfessorKitchensEngine() {
           </div>
         )}
 
-        {/* ── Step 3: Materials ── */}
+        {/* ── Step 3: Accessories ── */}
         {step === 3 && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">🪵 الخامات</h2>
-              <div className="flex gap-2">
-                {["all","First Wood","Good Wood"].map(f => (
-                  <button key={f} onClick={() => setMatFilter(f)}
-                    className={`px-3 py-1 rounded-lg text-xs ${matFilter===f?"bg-amber-600 text-white":"bg-white/10 text-white/60"}`}>
-                    {f==="all"?"الكل":f}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {selMaterials.length > 0 && (
-              <div className="mb-4 p-4 bg-green-900/20 border border-green-700/30 rounded-xl">
-                <h3 className="text-green-400 text-sm font-bold mb-2">المختار ({selMaterials.length})</h3>
-                {selMaterials.map(m => (
-                  <div key={m.id} className="flex items-center justify-between text-sm py-1">
-                    <span className="text-white">{m.nameAr} — {m.location} — {m.area}م²</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-amber-400">{fmt(m.total)}</span>
-                      <button onClick={() => setSelMaterials(p => p.filter(x => x.id !== m.id))} className="text-red-400"><Trash2 className="w-4 h-4"/></button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {(materials as any[])
-                .filter((m: any) => matFilter === "all" || m.brand === matFilter)
-                .map((mat: any) => (
-                  <MatCard key={mat.id} mat={mat} onAdd={addMaterial}
-                    defaultArea={parseFloat(lowerArea||"0")+parseFloat(upperArea||"0")+parseFloat(tallArea||"0")} />
-                ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 4: Accessories ── */}
-        {step === 4 && (
-          <div>
-            <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold">⚙️ الإكسسوارات</h2>
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-2 flex-wrap items-center">
                 {["all","JT","SX","Other"].map(f => (
                   <button key={f} onClick={() => setAccFilter(f)}
                     className={`px-3 py-1 rounded-lg text-xs ${accFilter===f?"bg-amber-600 text-white":"bg-white/10 text-white/60"}`}>
                     {f==="all"?"الكل":f}
                   </button>
                 ))}
+                <button onClick={() => setAccFilter(accFilter === "__admin" ? "all" : "__admin")}
+                  className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs border ${
+                    accFilter === "__admin" ? "bg-blue-600 text-white border-blue-500" : "bg-white/5 text-white/40 border-white/10"
+                  }`}>
+                  <Upload className="w-3 h-3" /> رفع فيديو
+                </button>
               </div>
             </div>
+
+            {/* Admin: Video Upload Panel */}
+            {accFilter === "__admin" && (
+              <AdminVideoUpload accessories={accessories as any[]} />
+            )}
 
             {selAccessories.length > 0 && (
               <div className="mb-4 p-4 bg-green-900/20 border border-green-700/30 rounded-xl">
@@ -525,7 +495,7 @@ export default function ProfessorKitchensEngine() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {(accessories as any[])
                 .filter((a: any) => accFilter === "all" || a.brand === accFilter)
                 .map((acc: any) => (
@@ -536,8 +506,8 @@ export default function ProfessorKitchensEngine() {
           </div>
         )}
 
-        {/* ── Step 5: Marble ── */}
-        {step === 5 && (
+        {/* ── Step 4: Marble ── */}
+        {step === 4 && (
           <div>
             <h2 className="text-2xl font-bold mb-2">🪨 الرخام والكونتر</h2>
             <p className="text-white/40 text-sm mb-4">الأسعار تقديرية حسب الفئة — يمكن تعديلها لاحقاً</p>
@@ -571,8 +541,8 @@ export default function ProfessorKitchensEngine() {
           </div>
         )}
 
-        {/* ── Step 6: Cladding ── */}
-        {step === 6 && (
+        {/* ── Step 5: Cladding ── */}
+        {step === 5 && (
           <div>
             <h2 className="text-2xl font-bold mb-4">🎨 التجاليد والديكور</h2>
 
@@ -598,8 +568,8 @@ export default function ProfessorKitchensEngine() {
           </div>
         )}
 
-        {/* ── Step 7: Transport ── */}
-        {step === 7 && (
+        {/* ── Step 6: Transport ── */}
+        {step === 6 && (
           <div className="max-w-xl mx-auto">
             <h2 className="text-2xl font-bold mb-4">🚚 النقل والتركيب</h2>
             {(transportRules as any[]).length === 0 ? (
@@ -624,8 +594,8 @@ export default function ProfessorKitchensEngine() {
           </div>
         )}
 
-        {/* ── Step 8: Discount ── */}
-        {step === 8 && (
+        {/* ── Step 7: Discount ── */}
+        {step === 7 && (
           <div className="max-w-xl mx-auto space-y-4">
             <h2 className="text-2xl font-bold">💰 الخصم والموافقات</h2>
             <div className="p-4 bg-white/5 border border-white/10 rounded-xl">
@@ -671,8 +641,8 @@ export default function ProfessorKitchensEngine() {
           </div>
         )}
 
-        {/* ── Step 9: Review ── */}
-        {step === 9 && (
+        {/* ── Step 8: Review ── */}
+        {step === 8 && (
           <div className="max-w-3xl mx-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold">⚠️ التحذيرات والمراجعة</h2>
@@ -744,8 +714,8 @@ export default function ProfessorKitchensEngine() {
           </div>
         )}
 
-        {/* ── Step 10: Internal ── */}
-        {step === 10 && (
+        {/* ── Step 9: Internal ── */}
+        {step === 9 && (
           <InternalView
             clientName={clientName} clientPhone={clientPhone} address={address} governorate={governorate}
             engineerName={engineerName} projectCode={projectCode}
@@ -758,8 +728,8 @@ export default function ProfessorKitchensEngine() {
           />
         )}
 
-        {/* ── Step 11: Client ── */}
-        {step === 11 && (
+        {/* ── Step 10: Client ── */}
+        {step === 10 && (
           <ClientView
             clientName={clientName} projectCode={projectCode}
             matTotal={matTotal} accTotal={accTotal} mrbTotal={mrbTotal} cldTotal={cldTotal} trpTotal={trpTotal}
@@ -821,31 +791,273 @@ function MatCard({ mat, onAdd, defaultArea }: { mat: any; onAdd: any; defaultAre
   );
 }
 
-function AccCard({ acc, onAdd, showPb, onTogglePb }: { acc: any; onAdd: any; showPb: boolean; onTogglePb: () => void }) {
+// Mapping from accessory name keywords to catalog image paths
+const ACC_IMAGE_MAP: Record<string, string> = {
+  // JustTop - Drawers (مطبقية)
+  "مطبقيه لانية":        "/manus-storage/jt_matabkia_standard_e77ada42.jpg",
+  "مطبقية ثابتة":        "/manus-storage/sx_matabkia_standard_8f21d78a.jpg",
+  "مطبقية هيدروليك":     "/manus-storage/sx_matabkia_hydro_a3782e3a.jpg",
+  "مطبقيه هيدروليات اكريليك": "/manus-storage/jt_matabkia_hydro_70_b64f74d8.jpg",
+  "مطبقيه سفليه":        "/manus-storage/jt_matabkia_sofli_7edbcdbe.jpg",
+  "مطبقيه سفلية":        "/manus-storage/jt_matabkia_sofli_akr_a66f2766.jpg",
+  "مطبقيه سلفيه":        "/manus-storage/jt_matabkia_sofli_akr_a66f2766.jpg",
+  "مطبقيه سفلي":         "/manus-storage/sx_matabkia_sofli_83bbfbc9.jpg",
+  // JustTop - Trolleys (ترولي)
+  "ترولي 3 رف زجاج اسود": "/manus-storage/jt_trooli_zmag_aswad_a3e66ab6.jpg",
+  "ترولي 3 رف استلس":    "/manus-storage/jt_trooli_stainless_sw_dd482c65.jpg",
+  "ترولي استانلس 3 رف":  "/manus-storage/jt_trooli_stainless_3rf_73a20a65.jpg",
+  "ترولي جانبي اسود":    "/manus-storage/jt_trooli_janbi_aswad_da76f84d.jpg",
+  "ترولي جانبي قاعدة خشبية": "/manus-storage/jt_trooli_janbi_khashabia_bd943f9e.jpg",
+  "ترولي جانبي اكريلليك": "/manus-storage/jt_trooli_janbi_aswad_da76f84d.jpg",
+  "ترولي 30cm الومنيوم": "/manus-storage/jt_trooli_alum_40_27e1e450.jpg",
+  "ترولي 35cm الومنيوم": "/manus-storage/jt_trooli_alum_40_27e1e450.jpg",
+  "ترولي 40cm الومنيوم": "/manus-storage/jt_trooli_alum_40_27e1e450.jpg",
+  "ترولي استالس 15cm":   "/manus-storage/jt_trooli_stainless_3rf_73a20a65.jpg",
+  "ترولي استالس 25cm":   "/manus-storage/jt_trooli_stainless_3rf_73a20a65.jpg",
+  "ترولي استالس 30cm":   "/manus-storage/jt_trooli_stainless_3rf_73a20a65.jpg",
+  "ترولي استالس 35cm":   "/manus-storage/jt_trooli_stainless_3rf_73a20a65.jpg",
+  "ترولي اكريليك سفلي":  "/manus-storage/jt_trooli_janbi_aswad_da76f84d.jpg",
+  // Starax - Trolleys
+  "ترولى زيت 15":        "/manus-storage/sx_trooli_zait_small_649e9a57.jpg",
+  "ترولى زيت 20":        "/manus-storage/sx_trooli_zait_small_649e9a57.jpg",
+  "ترولى زيت 25":        "/manus-storage/sx_trooli_zait_small_649e9a57.jpg",
+  "ترولى زيت 30":        "/manus-storage/sx_trooli_zait_small_649e9a57.jpg",
+  "ترولى زيت 40":        "/manus-storage/sx_trooli_zait_large_a08f6629.jpg",
+  "ترولى زيت 45":        "/manus-storage/sx_trooli_zait_large_a08f6629.jpg",
+  // Baskets (باسكت)
+  "باسكت قمامه سوفت":    "/manus-storage/jt_basket_jt0528_f0ea8467.jpg",
+  "باسكت قمامهA300":     "/manus-storage/jt_basket_a300_f0a03f67.jpg",
+  "باسكت قمامة مميز 9200": "/manus-storage/jt_basket_bc300_d90316b9.jpg",
+  "باسكت قمامة مميز 9400": "/manus-storage/jt_basket_bc400_8bc11f04.jpg",
+  "باسكت قمامة مميز 9600": "/manus-storage/jt_basket_bc450_6404f1a2.jpg",
+  "باسكت مهملات":        "/manus-storage/jt_basket_bc600_2fe37461.jpg",
+  "باسكت القمامه 24":    "/manus-storage/sx_basket_24l_6830a5a0.jpg",
+  "باسكت القمامه 32":    "/manus-storage/sx_basket_24l_6830a5a0.jpg",
+  "باسكت القمامه 35":    "/manus-storage/sx_basket_55l_575798ca.jpg",
+  "سلة مهملات بلاستيك":  "/manus-storage/sx_basket_plastic_79d493b6.jpg",
+  // Magic / Corner
+  "ماجيك يسار s الومنيوم": "/manus-storage/jt_magic_alum_left_71f3b0f0.jpg",
+  "ماجيك يمين s الومنيوم": "/manus-storage/jt_magic_alum_right_c393851c.jpg",
+  "ماجيك يمين ويسار استانلس": "/manus-storage/jt_magic_stainless_72544d4a.jpg",
+  "ماجيك s يمين ويسار":  "/manus-storage/jt_magic_yemeen_yesar_c80be604.jpg",
+  "ماجيك يمين ويسار زجاج": "/manus-storage/jt_magic_yemeen_yesar_c80be604.jpg",
+  "ماجيك فلاي مون":      "/manus-storage/jt_magic_yemeen_yesar_c80be604.jpg",
+  "ماجيك الحصان":        "/manus-storage/jt_magic_alum_right_c393851c.jpg",
+  "سله 3/4 متحركه":      "/manus-storage/sx_sella_34_corner_ff34675c.jpg",
+  "سلة 3/4 دائرة":       "/manus-storage/sx_sella_34_corner_ff34675c.jpg",
+  // Cargo
+  "كارجو 6 رف ثابت":     "/manus-storage/sx_cargo_fixed_86c6e1af.jpg",
+  "كارجو 6 رف متحرك":    "/manus-storage/sx_cargo_rotating_0de57b95.jpg",
+  // Carousels
+  "ميكانزم طاولة متحركة 360": "/manus-storage/jt_carousel_360_0c36c244.jpg",
+  "ميكانزم طاولة متحركة عذبة": "/manus-storage/jt_carousel_g09_58ad9414.jpg",
+  "ميكانزم طاولة متحركة BLTN": "/manus-storage/jt_carousel_bltn_a6cca93c.jpg",
+  // Dish racks
+  "صفايه سمارت كهرباء":  "/manus-storage/jt_safaya_elec_80_73a6689f.jpg",
+  "صفايه هيدروليك كهرباء": "/manus-storage/jt_safaya_hydro_elec_6709fdb1.jpg",
+  "صفايه هيدروليك بخزنه": "/manus-storage/jt_safaya_hydro_elec_6709fdb1.jpg",
+  // Organizers
+  "منظم هيدروليات بالرغام": "/manus-storage/jt_hydro_organizer_555_3563df8e.jpg",
+  "مطبقيه هيدروليات بالرغام": "/manus-storage/jt_hydro_organizer_554_41d46742.jpg",
+  "منظم هيدروليات":      "/manus-storage/jt_organizer_558_76dff8df.jpg",
+  // Pull-out
+  "بول اوت ميني":        "/manus-storage/jt_boul_out_mini_878583f4.jpg",
+  // Dividers
+  "تقسيم معالق":         "/manus-storage/sx_taqseem_maalaq_a7c4d134.jpg",
+  // Trays
+  "ترابيزة بدون قائم":   "/manus-storage/jt_carousel_360_0c36c244.jpg",
+  "ترابيزة بقائم":       "/manus-storage/jt_carousel_360_0c36c244.jpg",
+};
+
+function getAccImage(nameAr: string): string | null {
+  for (const [key, url] of Object.entries(ACC_IMAGE_MAP)) {
+    if (nameAr.includes(key)) return url;
+  }
+  return null;
+}
+
+// ─── Admin Video Upload ────────────────────────────────────────────────────
+function AdminVideoUpload({ accessories }: { accessories: any[] }) {
+  const [selectedAcc, setSelectedAcc] = useState<number | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadFilter, setUploadFilter] = useState("all");
+  const fileRef = useRef<HTMLInputElement>(null);
+  const utils = trpc.useUtils();
+  const uploadMutation = trpc.kitchen.uploadAccessoryVideo.useMutation({
+    onSuccess: () => {
+      toast.success("تم رفع الفيديو بنجاح ✅");
+      utils.kitchen.getAccessories.invalidate();
+      setSelectedAcc(null);
+      setUploading(false);
+    },
+    onError: (e) => {
+      toast.error("فشل الرفع: " + e.message);
+      setUploading(false);
+    }
+  });
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedAcc) return;
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("حجم الفيديو أكبر من 50MB");
+      return;
+    }
+    setUploading(true);
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const base64 = (ev.target?.result as string).split(",")[1];
+      uploadMutation.mutate({ accessoryId: selectedAcc, videoBase64: base64, mimeType: file.type });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const filtered = accessories.filter(a => uploadFilter === "all" || a.brand === uploadFilter);
+
   return (
-    <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-      <div className="flex items-start justify-between mb-2">
-        <div>
-          <h4 className="font-bold text-white text-sm leading-tight">{acc.nameAr}</h4>
-          <p className="text-xs text-amber-400 mt-0.5">{acc.brand}</p>
+    <div className="mb-6 p-4 bg-blue-900/20 border border-blue-700/30 rounded-xl">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-blue-300 font-bold flex items-center gap-2"><Upload className="w-4 h-4" /> رفع فيديوهات الشو روم</h3>
+        <div className="flex gap-2">
+          {["all","JT","SX","Other"].map(f => (
+            <button key={f} onClick={() => setUploadFilter(f)}
+              className={`px-2 py-1 rounded text-xs ${uploadFilter===f?"bg-blue-600 text-white":"bg-white/10 text-white/50"}`}>
+              {f==="all"?"الكل":f}
+            </button>
+          ))}
         </div>
-        <span className="text-amber-400 font-bold text-sm shrink-0">{fmt(acc.price ?? 0)}</span>
       </div>
-      <div className="flex gap-2 mt-3">
-        <Button onClick={() => onAdd(acc)} className="flex-1 bg-amber-600/20 hover:bg-amber-600/40 text-amber-400 border border-amber-600/30 text-xs h-8">
-          <Plus className="w-3 h-3 ml-1" /> إضافة
-        </Button>
-        <button onClick={onTogglePb} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/70">
-          <BookOpen className="w-4 h-4" />
-        </button>
+      <p className="text-blue-300/60 text-xs mb-3">اختار إكسسوار ثم اضغط "رفع فيديو" — الحجم الأقصى 50MB — دعم mp4 / mov / webm</p>
+      <input ref={fileRef} type="file" accept="video/*" className="hidden" onChange={handleFileChange} />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-96 overflow-y-auto">
+        {filtered.map((acc: any) => (
+          <button key={acc.id}
+            onClick={() => {
+              setSelectedAcc(acc.id);
+              setTimeout(() => fileRef.current?.click(), 50);
+            }}
+            disabled={uploading}
+            className={`flex items-center gap-2 p-2 rounded-lg border text-right transition-all ${
+              selectedAcc === acc.id && uploading
+                ? "border-amber-500 bg-amber-900/30 animate-pulse"
+                : acc.videoUrl
+                ? "border-green-700/50 bg-green-900/20 hover:bg-green-900/30"
+                : "border-white/10 bg-white/5 hover:bg-white/10"
+            }`}>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-white font-medium truncate">{acc.nameAr}</p>
+              <p className="text-xs text-white/40">{acc.brand}</p>
+            </div>
+            <div className="shrink-0">
+              {selectedAcc === acc.id && uploading ? (
+                <RefreshCw className="w-4 h-4 text-amber-400 animate-spin" />
+              ) : acc.videoUrl ? (
+                <Video className="w-4 h-4 text-green-400" />
+              ) : (
+                <Upload className="w-4 h-4 text-white/30" />
+              )}
+            </div>
+          </button>
+        ))}
       </div>
-      {showPb && (
-        <div className="mt-3 p-3 bg-blue-900/20 border border-blue-700/30 rounded-lg text-xs text-blue-300">
-          <p className="font-bold mb-1">💡 Playbook</p>
-          <p>سكريبت المبيعات لهذا الإكسسوار سيظهر هنا بعد إضافة البيانات من لوحة الإدارة.</p>
-        </div>
-      )}
+      <p className="text-xs text-white/30 mt-3">الإكسسوارات باللون الأخضر عندها فيديو بالفعل</p>
     </div>
+  );
+}
+
+// ─── Video Modal ──────────────────────────────────────────────────────────────
+function VideoModal({ url, name, onClose }: { url: string; name: string; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4" onClick={onClose}>
+      <div className="relative w-full max-w-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-white font-bold text-sm">{name}</h3>
+          <button onClick={onClose} className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <video
+          src={url}
+          controls
+          autoPlay
+          className="w-full rounded-xl bg-black"
+          style={{ maxHeight: '70vh' }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function AccCard({ acc, onAdd, showPb, onTogglePb }: { acc: any; onAdd: any; showPb: boolean; onTogglePb: () => void }) {
+  const imgUrl = getAccImage(acc.nameAr);
+  const [showVideo, setShowVideo] = useState(false);
+  return (
+    <>
+    {showVideo && acc.videoUrl && (
+      <VideoModal url={acc.videoUrl} name={acc.nameAr} onClose={() => setShowVideo(false)} />
+    )}
+    <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden flex flex-col">
+      {/* Product Image */}
+      <div className="relative bg-white/5 h-40 flex items-center justify-center overflow-hidden">
+        {imgUrl ? (
+          <img src={imgUrl} alt={acc.nameAr}
+            className="w-full h-full object-contain p-2"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center text-white/20">
+            <span className="text-4xl">⚙️</span>
+            <span className="text-xs mt-1">{acc.brand}</span>
+          </div>
+        )}
+        {/* Brand badge */}
+        <span className="absolute top-2 right-2 text-xs bg-amber-600/80 text-white px-2 py-0.5 rounded-full font-bold">{acc.brand}</span>
+        {/* Video play button overlay */}
+        {acc.videoUrl && (
+          <button
+            onClick={() => setShowVideo(true)}
+            className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity"
+          >
+            <div className="w-12 h-12 rounded-full bg-amber-600/90 flex items-center justify-center">
+              <Play className="w-6 h-6 text-white fill-white" />
+            </div>
+          </button>
+        )}
+        {/* Video indicator badge */}
+        {acc.videoUrl && (
+          <span className="absolute bottom-2 left-2 flex items-center gap-1 text-xs bg-amber-600/80 text-white px-2 py-0.5 rounded-full">
+            <Video className="w-3 h-3" /> فيديو
+          </span>
+        )}
+      </div>
+      {/* Info */}
+      <div className="p-3 flex flex-col flex-1">
+        <h4 className="font-bold text-white text-xs leading-tight mb-1 line-clamp-2">{acc.nameAr}</h4>
+        <span className="text-amber-400 font-bold text-sm mb-3">{fmt(acc.price ?? 0)}</span>
+        <div className="flex gap-1 mt-auto">
+          <Button onClick={() => onAdd(acc)} className="flex-1 bg-amber-600/20 hover:bg-amber-600/40 text-amber-400 border border-amber-600/30 text-xs h-8">
+            <Plus className="w-3 h-3 ml-1" /> إضافة
+          </Button>
+          {acc.videoUrl ? (
+            <button onClick={() => setShowVideo(true)} className="p-2 rounded-lg bg-amber-900/30 hover:bg-amber-900/50 text-amber-400">
+              <Play className="w-4 h-4" />
+            </button>
+          ) : (
+            <button onClick={onTogglePb} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/70">
+              <BookOpen className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        {showPb && !acc.videoUrl && (
+          <div className="mt-2 p-2 bg-blue-900/20 border border-blue-700/30 rounded-lg text-xs text-blue-300">
+            <p className="font-bold mb-1">💡 Playbook</p>
+            <p>سكريبت المبيعات لهذا الإكسسوار سيظهر هنا بعد إضافة البيانات من لوحة الإدارة.</p>
+          </div>
+        )}
+      </div>
+    </div>
+    </>
   );
 }
 

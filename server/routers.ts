@@ -525,6 +525,34 @@ export const appRouter = router({
     getAccessories: publicProcedure.query(async () => {
       return getKitchenAccessories();
     }),
+    uploadAccessoryVideo: publicProcedure
+      .input(z.object({
+        accessoryId: z.number(),
+        videoBase64: z.string(),
+        mimeType: z.string().default("video/mp4"),
+      }))
+      .mutation(async ({ input }) => {
+        const buffer = Buffer.from(input.videoBase64, "base64");
+        const ext = input.mimeType.split("/")[1] || "mp4";
+        const key = `accessories/videos/${input.accessoryId}-${Date.now()}.${ext}`;
+        const result = await storagePut(key, buffer, input.mimeType);
+        const { getDb } = await import("./db");
+        const { kitchenAccessories } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const db = await getDb();
+        if (db) await db.update(kitchenAccessories).set({ videoUrl: result.url }).where(eq(kitchenAccessories.id, input.accessoryId));
+        return { url: result.url };
+      }),
+    updateAccessoryVideo: publicProcedure
+      .input(z.object({ id: z.number(), videoUrl: z.string().nullable() }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { kitchenAccessories } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const db = await getDb();
+        if (db) await db.update(kitchenAccessories).set({ videoUrl: input.videoUrl }).where(eq(kitchenAccessories.id, input.id));
+        return { success: true };
+      }),
     getMarble: publicProcedure.query(async () => {
       return getKitchenMarble();
     }),
