@@ -817,13 +817,13 @@ const ACC_IMAGE_MAP: Record<string, string> = {
   "ترولي استالس 30cm":   "/manus-storage/jt_trooli_stainless_3rf_73a20a65.jpg",
   "ترولي استالس 35cm":   "/manus-storage/jt_trooli_stainless_3rf_73a20a65.jpg",
   "ترولي اكريليك سفلي":  "/manus-storage/jt_trooli_janbi_aswad_da76f84d.jpg",
-  // Starax - Trolleys
-  "ترولى زيت 15":        "/manus-storage/sx_trooli_zait_small_649e9a57.jpg",
-  "ترولى زيت 20":        "/manus-storage/sx_trooli_zait_small_649e9a57.jpg",
-  "ترولى زيت 25":        "/manus-storage/sx_trooli_zait_small_649e9a57.jpg",
-  "ترولى زيت 30":        "/manus-storage/sx_trooli_zait_small_649e9a57.jpg",
-  "ترولى زيت 40":        "/manus-storage/sx_trooli_zait_large_a08f6629.jpg",
-  "ترولى زيت 45":        "/manus-storage/sx_trooli_zait_large_a08f6629.jpg",
+  // Starax - Trolleys (Larder)
+  "ترولى زيت 15":        "/manus-storage/sx_telescopic_larder_7a26dffe.jpg",
+  "ترولى زيت 20":        "/manus-storage/sx_telescopic_larder_7a26dffe.jpg",
+  "ترولى زيت 25":        "/manus-storage/sx_telescopic_larder_7a26dffe.jpg",
+  "ترولى زيت 30":        "/manus-storage/sx_telescopic_larder_7a26dffe.jpg",
+  "ترولى زيت 40":        "/manus-storage/sx_twin_larder_d30dfd7e.jpg",
+  "ترولى زيت 45":        "/manus-storage/sx_twin_larder_d30dfd7e.jpg",
   // Baskets (باسكت)
   "باسكت قمامه سوفت":    "/manus-storage/jt_basket_jt0528_f0ea8467.jpg",
   "باسكت قمامهA300":     "/manus-storage/jt_basket_a300_f0a03f67.jpg",
@@ -836,22 +836,22 @@ const ACC_IMAGE_MAP: Record<string, string> = {
   "باسكت القمامه 35":    "/manus-storage/sx_basket_55l_575798ca.jpg",
   "سلة مهملات بلاستيك":  "/manus-storage/sx_basket_plastic_79d493b6.jpg",
   // Magic / Corner
-  "ماجيك يسار s الومنيوم": "/manus-storage/jt_magic_alum_left_71f3b0f0.jpg",
-  "ماجيك يمين s الومنيوم": "/manus-storage/jt_magic_alum_right_c393851c.jpg",
-  "ماجيك يمين ويسار استانلس": "/manus-storage/jt_magic_stainless_72544d4a.jpg",
-  "ماجيك s يمين ويسار":  "/manus-storage/jt_magic_yemeen_yesar_c80be604.jpg",
-  "ماجيك يمين ويسار زجاج": "/manus-storage/jt_magic_yemeen_yesar_c80be604.jpg",
-  "ماجيك فلاي مون":      "/manus-storage/jt_magic_yemeen_yesar_c80be604.jpg",
-  "ماجيك الحصان":        "/manus-storage/jt_magic_alum_right_c393851c.jpg",
-  "سله 3/4 متحركه":      "/manus-storage/sx_sella_34_corner_ff34675c.jpg",
-  "سلة 3/4 دائرة":       "/manus-storage/sx_sella_34_corner_ff34675c.jpg",
-  // Cargo
-  "كارجو 6 رف ثابت":     "/manus-storage/sx_cargo_fixed_86c6e1af.jpg",
-  "كارجو 6 رف متحرك":    "/manus-storage/sx_cargo_rotating_0de57b95.jpg",
-  // Carousels
-  "ميكانزم طاولة متحركة 360": "/manus-storage/jt_carousel_360_0c36c244.jpg",
-  "ميكانزم طاولة متحركة عذبة": "/manus-storage/jt_carousel_g09_58ad9414.jpg",
-  "ميكانزم طاولة متحركة BLTN": "/manus-storage/jt_carousel_bltn_a6cca93c.jpg",
+  "ماجيك يسار s الومنيوم": "/manus-storage/sx_corner_main_0d75b150.jpg",
+  "ماجيك يمين s الومنيوم": "/manus-storage/sx_corner_main_0d75b150.jpg",
+  "ماجيك يمين ويسار استانلس": "/manus-storage/sx_corner_main_0d75b150.jpg",
+  "ماجيك s يمين ويسار":  "/manus-storage/sx_corner_main_0d75b150.jpg",
+  "ماجيك يمين ويسار زجاج": "/manus-storage/sx_corner_main_0d75b150.jpg",
+  "ماجيك فلاي مون":      "/manus-storage/sx_corner_main_0d75b150.jpg",
+  "ماجيك الحصان":        "/manus-storage/sx_corner_main_0d75b150.jpg",
+  "سله 3/4 متحركه":      "/manus-storage/sx_corner_main_0d75b150.jpg",
+  "سلة 3/4 دائرة":       "/manus-storage/sx_corner_main_0d75b150.jpg",
+  // Cargo (Larder)
+  "كارجو 6 رف ثابت":     "/manus-storage/sx_softclose_larder_3a7b850f.jpg",
+  "كارجو 6 رف متحرك":    "/manus-storage/sx_twin_larder_d30dfd7e.jpg",
+  // Carousels (Midway / Folding)
+  "ميكانزم طاولة متحركة 360": "/manus-storage/sx_midway_main_97a46ccc.jpg",
+  "ميكانزم طاولة متحركة عذبة": "/manus-storage/sx_folding_table_leg_4135edce.jpg",
+  "ميكانزم طاولة متحركة BLTN": "/manus-storage/sx_folding_table_27452a8f.jpg",
   // Dish racks
   "صفايه سمارت كهرباء":  "/manus-storage/jt_safaya_elec_80_73a6689f.jpg",
   "صفايه هيدروليك كهرباء": "/manus-storage/jt_safaya_hydro_elec_6709fdb1.jpg",
@@ -861,12 +861,12 @@ const ACC_IMAGE_MAP: Record<string, string> = {
   "مطبقيه هيدروليات بالرغام": "/manus-storage/jt_hydro_organizer_554_41d46742.jpg",
   "منظم هيدروليات":      "/manus-storage/jt_organizer_558_76dff8df.jpg",
   // Pull-out
-  "بول اوت ميني":        "/manus-storage/jt_boul_out_mini_878583f4.jpg",
+  "بول اوت ميني":        "/manus-storage/sx_pullout_countertop_97f76e74.jpg",
   // Dividers
-  "تقسيم معالق":         "/manus-storage/sx_taqseem_maalaq_a7c4d134.jpg",
+  "تقسيم معالق":         "/manus-storage/sx_skidproof_roll_b20e4878.jpg",
   // Trays
-  "ترابيزة بدون قائم":   "/manus-storage/jt_carousel_360_0c36c244.jpg",
-  "ترابيزة بقائم":       "/manus-storage/jt_carousel_360_0c36c244.jpg",
+  "ترابيزة بدون قائم":   "/manus-storage/sx_folding_table_27452a8f.jpg",
+  "ترابيزة بقائم":       "/manus-storage/sx_folding_table_leg_4135edce.jpg",
 };
 
 function getAccImage(nameAr: string): string | null {
