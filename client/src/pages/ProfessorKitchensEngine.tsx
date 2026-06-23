@@ -299,14 +299,18 @@ export default function ProfessorKitchensEngine() {
                           </select>
                         </td>
                         <td className="px-3 py-2">
-                          <input value={piece.wall} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, wall: e.target.value } : x))}
-                            placeholder="A / B / C"
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500" />
+                          <select value={piece.wall} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, wall: e.target.value } : x))}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500">
+                            <option value="">—</option>
+                            {["A","B","C","D","E","F"].map(w => <option key={w} value={w}>{w}</option>)}
+                          </select>
                         </td>
                         <td className="px-3 py-2">
-                          <input value={piece.desc} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, desc: e.target.value } : x))}
-                            placeholder="ركيزة جانب / باب / درج..."
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500" />
+                          <select value={piece.desc} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, desc: e.target.value } : x))}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500">
+                            <option value="">— اختر —</option>
+                            {["ركنه عدله","وحدة حوض","بول اوت","ابلاكار","ادراج","اعلى الثلاجه","ديكور","علوي","مطبقيه","ميكرويف","نيش","درج","رف علوي","خزنة طويلة","وحدة افران بني","وحدة غسالة","وحدة انتره","وحدة زاوية"].map(d => <option key={d} value={d}>{d}</option>)}
+                          </select>
                         </td>
                         <td className="px-3 py-2">
                           <input type="number" step="0.01" value={piece.width} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, width: e.target.value } : x))}
