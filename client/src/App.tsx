@@ -11,6 +11,7 @@ import CrmPipeline from "./pages/CrmPipeline";
 import NegotiationSession from "./pages/NegotiationSession";
 import BrandHub from "./pages/BrandHub";
 import ProfessorKitchensEngine from "./pages/ProfessorKitchensEngine";
+import KitchenQuotationEngine from "./pages/KitchenQuotationEngine";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -20,6 +21,7 @@ function Router() {
       {/* Brand-First Architecture */}
       <Route path={"/brands"} component={BrandHub} />
       <Route path={"/brand/professor_kitchens/kitchens"} component={ProfessorKitchensEngine} />
+      <Route path={"/brand/professor_kitchens/kitchens/new"} component={KitchenQuotationEngine} />
       {/* Legacy routes (kept for backward compatibility) */}
       <Route path={"/pricing"} component={PricingWizard} />
       <Route path={"/kitchen"} component={KitchenPricing} />

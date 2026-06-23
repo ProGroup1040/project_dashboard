@@ -161,15 +161,22 @@ export default function ProfessorKitchensEngine() {
               <p className="text-xs text-white/40">كود: {projectCode}</p>
             </div>
           </div>
+          <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate("/brand/professor_kitchens/kitchens/new")}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs bg-green-700 hover:bg-green-600 text-white font-bold transition-colors"
+          >
+            + مقايسة جديدة (جدول)
+          </button>
           <button
             onClick={() => setViewMode(v => v === "internal" ? "client" : "internal")}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-colors ${viewMode === "client" ? "bg-amber-600 text-white" : "bg-white/10 text-white/60"}`}
           >
             {viewMode === "internal" ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-            {viewMode === "internal" ? "وضع العميل" : "وضع داخلي"}
+                        {viewMode === "internal" ? "وضع العميل" : "وضع داخلي"}
           </button>
+          </div>
         </div>
-
         {/* Steps bar */}
         <div className="max-w-7xl mx-auto px-4 pb-3 overflow-x-auto">
           <div className="flex items-center gap-1 min-w-max">
