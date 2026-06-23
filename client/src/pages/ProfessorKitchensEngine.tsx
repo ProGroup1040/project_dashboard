@@ -50,11 +50,27 @@ export default function ProfessorKitchensEngine() {
   const [engineerName, setEngineerName] = useState("");
   const [projectCode]                   = useState(() => `PRF-${Date.now().toString().slice(-6)}`);
 
-  // Step 2
-  const [lowerArea,   setLowerArea]   = useState("");
-  const [upperArea,   setUpperArea]   = useState("");
-  const [tallArea,    setTallArea]    = useState("");
-  const [specialArea, setSpecialArea] = useState("");
+  // Step 2 — piece table
+  interface Piece { id: number; location: string; wall: string; desc: string; width: string; height: string; total: number; }
+  const [pieces, setPieces] = useState<Piece[]>([{ id: 1, location: "سفلي", wall: "", desc: "", width: "", height: "", total: 0 }]);
+  const [nextPieceId, setNextPieceId] = useState(2);
+
+  // Computed grouped totals from pieces
+  const calcPieceTotal = (p: Piece): number => {
+    const w = parseFloat(p.width || "0");
+    const h = parseFloat(p.height || "0");
+    if (!w || !h) return 0;
+    if (p.location === "سفلي" && w < 0.3) return Math.round(w * 1.5 * h * 100) / 100;
+    if (p.location === "طولي" && w < 0.4) return Math.round(w * 2 * h * 100) / 100;
+    if (p.location === "طولي" && w >= 0.4) return Math.round(w * 1.5 * h * 100) / 100;
+    if (p.location === "بلاكار" && h <= 0.3) return Math.round(h * 2 * w * 100) / 100;
+    if (p.location === "بلاكار" && h > 0.3) return Math.round(h * 1.5 * w * 100) / 100;
+    return Math.round(w * h * 100) / 100;
+  };
+  const lowerArea   = useMemo(() => pieces.filter(p => p.location === "سفلي").reduce((s, p) => s + calcPieceTotal(p), 0).toFixed(2), [pieces]);
+  const upperArea   = useMemo(() => pieces.filter(p => p.location === "علوي").reduce((s, p) => s + calcPieceTotal(p), 0).toFixed(2), [pieces]);
+  const tallArea    = useMemo(() => pieces.filter(p => p.location === "طولي").reduce((s, p) => s + calcPieceTotal(p), 0).toFixed(2), [pieces]);
+  const specialArea = useMemo(() => pieces.filter(p => p.location === "بلاكار").reduce((s, p) => s + calcPieceTotal(p), 0).toFixed(2), [pieces]);
 
   // Steps 3-7
   const [selMaterials,   setSelMaterials]   = useState<SelMaterial[]>([]);
@@ -115,7 +131,7 @@ export default function ProfessorKitchensEngine() {
   // ─── Navigation ────────────────────────────────────────────────────────────
   const canProceed = (s: number) => {
     if (s === 1) return clientName.trim().length > 0;
-    if (s === 2) return parseFloat(lowerArea || "0") + parseFloat(upperArea || "0") + parseFloat(tallArea || "0") > 0;
+    if (s === 2) return pieces.some(p => calcPieceTotal(p) > 0);
     if (s === 3) return selMaterials.length > 0;
     return true;
   };
@@ -162,12 +178,6 @@ export default function ProfessorKitchensEngine() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-          <button
-            onClick={() => navigate("/brand/professor_kitchens/kitchens/new")}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs bg-green-700 hover:bg-green-600 text-white font-bold transition-colors"
-          >
-            + مقايسة جديدة (جدول)
-          </button>
           <button
             onClick={() => setViewMode(v => v === "internal" ? "client" : "internal")}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-colors ${viewMode === "client" ? "bg-amber-600 text-white" : "bg-white/10 text-white/60"}`}
@@ -245,29 +255,117 @@ export default function ProfessorKitchensEngine() {
           </div>
         )}
 
-        {/* ── Step 2: Dimensions ── */}
+        {/* ── Step 2: Dimensions with piece table ── */}
         {step === 2 && (
-          <div className="max-w-xl mx-auto">
-            <h2 className="text-2xl font-bold mb-4">📐 أبعاد المطبخ</h2>
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { label: "وحدات سفلية (م²) *", val: lowerArea,   set: setLowerArea },
-                { label: "وحدات علوية (م²)",   val: upperArea,   set: setUpperArea },
-                { label: "وحدات طويلة (م²)",   val: tallArea,    set: setTallArea },
-                { label: "وحدات خاصة (م²)",    val: specialArea, set: setSpecialArea },
-              ].map(f => (
-                <div key={f.label}>
-                  <label className="block text-sm text-white/60 mb-1">{f.label}</label>
-                  <input type="number" step="0.1" value={f.val} onChange={e => f.set(e.target.value)}
-                    className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500" />
-                </div>
-              ))}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold">📐 أبعاد المطبخ</h2>
+              <button
+                onClick={() => { setPieces(p => [...p, { id: nextPieceId, location: "سفلي", wall: "", desc: "", width: "", height: "", total: 0 }]); setNextPieceId(n => n + 1); }}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm bg-amber-600 hover:bg-amber-500 text-white font-bold"
+              >
+                <Plus className="w-4 h-4" /> إضافة قطعة
+              </button>
             </div>
-            {(parseFloat(lowerArea||"0")+parseFloat(upperArea||"0")+parseFloat(tallArea||"0")) > 0 && (
-              <div className="mt-4 p-4 bg-amber-900/20 border border-amber-700/30 rounded-xl">
-                <p className="text-amber-400 text-sm">إجمالي المساحة: <strong>
-                  {(parseFloat(lowerArea||"0")+parseFloat(upperArea||"0")+parseFloat(tallArea||"0")+parseFloat(specialArea||"0")).toFixed(2)} م²
-                </strong></p>
+
+            {/* Pieces table */}
+            <div className="overflow-x-auto rounded-xl border border-white/10">
+              <table className="w-full text-sm" dir="rtl">
+                <thead>
+                  <tr className="bg-white/5 text-white/60 text-xs">
+                    <th className="px-3 py-2 text-right w-10">#</th>
+                    <th className="px-3 py-2 text-right w-28">مكان القطعة</th>
+                    <th className="px-3 py-2 text-right w-24">الجدار</th>
+                    <th className="px-3 py-2 text-right">وصف القطعة</th>
+                    <th className="px-3 py-2 text-right w-24">عرض (م)</th>
+                    <th className="px-3 py-2 text-right w-24">ارتفاع (م)</th>
+                    <th className="px-3 py-2 text-right w-28">إجمالي (م²)</th>
+                    <th className="px-3 py-2 w-10"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pieces.map((piece, idx) => {
+                    const tot = calcPieceTotal(piece);
+                    return (
+                      <tr key={piece.id} className={`border-t border-white/5 ${idx % 2 === 0 ? "bg-white/[0.02]" : ""}`}>
+                        <td className="px-3 py-2 text-white/40 text-center">{idx + 1}</td>
+                        <td className="px-3 py-2">
+                          <select value={piece.location} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, location: e.target.value } : x))}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500">
+                            <option value="سفلي">سفلي</option>
+                            <option value="علوي">علوي</option>
+                            <option value="طولي">طولي</option>
+                            <option value="بلاكار">بلاكار</option>
+                          </select>
+                        </td>
+                        <td className="px-3 py-2">
+                          <input value={piece.wall} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, wall: e.target.value } : x))}
+                            placeholder="A / B / C"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500" />
+                        </td>
+                        <td className="px-3 py-2">
+                          <input value={piece.desc} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, desc: e.target.value } : x))}
+                            placeholder="ركيزة جانب / باب / درج..."
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500" />
+                        </td>
+                        <td className="px-3 py-2">
+                          <input type="number" step="0.01" value={piece.width} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, width: e.target.value } : x))}
+                            placeholder="0.00"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500 text-center" />
+                        </td>
+                        <td className="px-3 py-2">
+                          <input type="number" step="0.01" value={piece.height} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, height: e.target.value } : x))}
+                            placeholder="0.00"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500 text-center" />
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <span className={`font-bold text-sm ${tot > 0 ? "text-amber-400" : "text-white/20"}`}>{tot > 0 ? tot.toFixed(2) : "—"}</span>
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          {pieces.length > 1 && (
+                            <button onClick={() => setPieces(p => p.filter(x => x.id !== piece.id))} className="text-red-400 hover:text-red-300">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Auto-grouped summary */}
+            {pieces.some(p => calcPieceTotal(p) > 0) && (
+              <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[
+                  { label: "وحدات سفلية",   val: lowerArea,   color: "amber" },
+                  { label: "وحدات علوية",   val: upperArea,   color: "blue" },
+                  { label: "وحدات طويلة",   val: tallArea,    color: "green" },
+                  { label: "وحدات البلاكار", val: specialArea, color: "purple" },
+                ].map(g => (
+                  <div key={g.label} className={`p-4 rounded-xl border ${
+                    g.color === "amber"  ? "bg-amber-900/20 border-amber-700/30" :
+                    g.color === "blue"   ? "bg-blue-900/20 border-blue-700/30" :
+                    g.color === "green"  ? "bg-green-900/20 border-green-700/30" :
+                    "bg-purple-900/20 border-purple-700/30"
+                  }`}>
+                    <p className="text-white/50 text-xs mb-1">{g.label}</p>
+                    <p className={`text-xl font-bold ${
+                      g.color === "amber"  ? "text-amber-400" :
+                      g.color === "blue"   ? "text-blue-400" :
+                      g.color === "green"  ? "text-green-400" :
+                      "text-purple-400"
+                    }`}>{parseFloat(g.val) > 0 ? g.val + " م²" : "—"}</p>
+                    <p className="text-white/30 text-xs mt-1">
+                      {pieces.filter(p => p.location === (
+                        g.label === "وحدات سفلية" ? "سفلي" :
+                        g.label === "وحدات علوية" ? "علوي" :
+                        g.label === "وحدات طويلة" ? "طولي" : "بلاكار"
+                      ) && calcPieceTotal(p) > 0).length} قطعة
+                    </p>
+                  </div>
+                ))}
               </div>
             )}
           </div>
