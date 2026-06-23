@@ -51,8 +51,8 @@ export default function ProfessorKitchensEngine() {
   const [projectCode]                   = useState(() => `PRF-${Date.now().toString().slice(-6)}`);
 
   // Step 2 — piece table
-  interface Piece { id: number; location: string; wall: string; desc: string; width: string; height: string; total: number; }
-  const [pieces, setPieces] = useState<Piece[]>([{ id: 1, location: "سفلي", wall: "", desc: "", width: "", height: "", total: 0 }]);
+  interface Piece { id: number; location: string; wall: string; desc: string; width: string; height: string; total: number; material: string; }
+  const [pieces, setPieces] = useState<Piece[]>([{ id: 1, location: "سفلي", wall: "", desc: "", width: "", height: "", total: 0, material: "" }]);
   const [nextPieceId, setNextPieceId] = useState(2);
 
   // Computed grouped totals from pieces
@@ -261,7 +261,7 @@ export default function ProfessorKitchensEngine() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold">📐 أبعاد المطبخ</h2>
               <button
-                onClick={() => { setPieces(p => [...p, { id: nextPieceId, location: "سفلي", wall: "", desc: "", width: "", height: "", total: 0 }]); setNextPieceId(n => n + 1); }}
+                onClick={() => { setPieces(p => [...p, { id: nextPieceId, location: "سفلي", wall: "", desc: "", width: "", height: "", total: 0, material: "" }]); setNextPieceId(n => n + 1); }}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm bg-amber-600 hover:bg-amber-500 text-white font-bold"
               >
                 <Plus className="w-4 h-4" /> إضافة قطعة
@@ -279,6 +279,7 @@ export default function ProfessorKitchensEngine() {
                     <th className="px-3 py-2 text-right">وصف القطعة</th>
                     <th className="px-3 py-2 text-right w-24">عرض (م)</th>
                     <th className="px-3 py-2 text-right w-24">ارتفاع (م)</th>
+                    <th className="px-3 py-2 text-right w-36">الخامة</th>
                     <th className="px-3 py-2 text-right w-28">إجمالي (م²)</th>
                     <th className="px-3 py-2 w-10"></th>
                   </tr>
@@ -288,7 +289,7 @@ export default function ProfessorKitchensEngine() {
                     const tot = calcPieceTotal(piece);
                     return (
                       <tr key={piece.id} className={`border-t border-white/5 ${idx % 2 === 0 ? "bg-white/[0.02]" : ""}`}>
-                        <td className="px-3 py-2 text-white/40 text-center">{idx + 1}</td>
+                        <td className="px-3 py-2 text-amber-400 font-bold text-center text-sm">{idx + 1}</td>
                         <td className="px-3 py-2">
                           <select value={piece.location} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, location: e.target.value } : x))}
                             className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500">
@@ -306,11 +307,12 @@ export default function ProfessorKitchensEngine() {
                           </select>
                         </td>
                         <td className="px-3 py-2">
-                          <select value={piece.desc} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, desc: e.target.value } : x))}
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500">
-                            <option value="">— اختر —</option>
-                            {["ركنه عدله","وحدة حوض","بول اوت","ابلاكار","ادراج","اعلى الثلاجه","ديكور","علوي","مطبقيه","ميكرويف","نيش","درج","رف علوي","خزنة طويلة","وحدة افران بني","وحدة غسالة","وحدة انتره","وحدة زاوية"].map(d => <option key={d} value={d}>{d}</option>)}
-                          </select>
+                          <input list={`desc-list-${piece.id}`} value={piece.desc} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, desc: e.target.value } : x))}
+                            placeholder="اختر أو اكتب..."
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500" />
+                          <datalist id={`desc-list-${piece.id}`}>
+                            {["ركنه عدله","وحدة حوض","بول اوت","ابلاكار","ادراج","اعلى الثلاجه","ديكور","علوي","مطبقيه","ميكرويف","نيش","درج","رف علوي","خزنة طويلة","وحدة افران بني","وحدة غسالة","وحدة انتره","وحدة زاوية","وحدة تلاجة","وحدة فرن","وحدة ميكرويف","وحدة غطاء شفاط","وحدة زجاج","وحدة مفتوحة"].map(d => <option key={d} value={d} />)}
+                          </datalist>
                         </td>
                         <td className="px-3 py-2">
                           <input type="number" step="0.01" value={piece.width} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, width: e.target.value } : x))}
@@ -321,6 +323,15 @@ export default function ProfessorKitchensEngine() {
                           <input type="number" step="0.01" value={piece.height} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, height: e.target.value } : x))}
                             placeholder="0.00"
                             className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500 text-center" />
+                        </td>
+                        <td className="px-3 py-2">
+                          <select value={piece.material} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, material: e.target.value } : x))}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500">
+                            <option value="">— اختر —</option>
+                            {(materials as any[]).map((m: any) => (
+                              <option key={m.id} value={m.nameAr}>{m.nameAr}</option>
+                            ))}
+                          </select>
                         </td>
                         <td className="px-3 py-2 text-center">
                           <span className={`font-bold text-sm ${tot > 0 ? "text-amber-400" : "text-white/20"}`}>{tot > 0 ? tot.toFixed(2) : "—"}</span>
@@ -339,37 +350,97 @@ export default function ProfessorKitchensEngine() {
               </table>
             </div>
 
-            {/* Auto-grouped summary */}
+            {/* ── Summary Tables ── */}
             {pieces.some(p => calcPieceTotal(p) > 0) && (
-              <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-                {[
-                  { label: "وحدات سفلية",   val: lowerArea,   color: "amber" },
-                  { label: "وحدات علوية",   val: upperArea,   color: "blue" },
-                  { label: "وحدات طويلة",   val: tallArea,    color: "green" },
-                  { label: "وحدات البلاكار", val: specialArea, color: "purple" },
-                ].map(g => (
-                  <div key={g.label} className={`p-4 rounded-xl border ${
-                    g.color === "amber"  ? "bg-amber-900/20 border-amber-700/30" :
-                    g.color === "blue"   ? "bg-blue-900/20 border-blue-700/30" :
-                    g.color === "green"  ? "bg-green-900/20 border-green-700/30" :
-                    "bg-purple-900/20 border-purple-700/30"
-                  }`}>
-                    <p className="text-white/50 text-xs mb-1">{g.label}</p>
-                    <p className={`text-xl font-bold ${
-                      g.color === "amber"  ? "text-amber-400" :
-                      g.color === "blue"   ? "text-blue-400" :
-                      g.color === "green"  ? "text-green-400" :
-                      "text-purple-400"
-                    }`}>{parseFloat(g.val) > 0 ? g.val + " م²" : "—"}</p>
-                    <p className="text-white/30 text-xs mt-1">
-                      {pieces.filter(p => p.location === (
-                        g.label === "وحدات سفلية" ? "سفلي" :
-                        g.label === "وحدات علوية" ? "علوي" :
-                        g.label === "وحدات طويلة" ? "طولي" : "بلاكار"
-                      ) && calcPieceTotal(p) > 0).length} قطعة
-                    </p>
+              <div className="mt-8 space-y-6" dir="rtl">
+
+                {/* ── Table 1: Unit Areas Summary (matches Excel header row) ── */}
+                <div>
+                  <h3 className="text-white/70 text-xs font-bold mb-2 tracking-wide uppercase">ملخص مساحات الوحدات</h3>
+                  <div className="rounded-xl overflow-hidden border border-white/10">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-[#1a3a5c] text-white">
+                          <th className="px-4 py-3 text-center font-bold border-l border-white/10">إجمالي مساحة الوحدات السفلية</th>
+                          <th className="px-4 py-3 text-center font-bold border-l border-white/10">مساحة الوحدات العلوية</th>
+                          <th className="px-4 py-3 text-center font-bold border-l border-white/10">مساحة وحدات البلاكار</th>
+                          <th className="px-4 py-3 text-center font-bold">مساحة الوحدات الطولية</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="bg-white/5">
+                          <td className="px-4 py-4 text-center">
+                            <span className="text-amber-400 font-bold text-lg">{parseFloat(lowerArea) > 0 ? lowerArea + " م²" : "—"}</span>
+                          </td>
+                          <td className="px-4 py-4 text-center border-l border-white/5">
+                            <span className="text-blue-400 font-bold text-lg">{parseFloat(upperArea) > 0 ? upperArea + " م²" : "—"}</span>
+                          </td>
+                          <td className="px-4 py-4 text-center border-l border-white/5">
+                            <span className="text-purple-400 font-bold text-lg">{parseFloat(specialArea) > 0 ? specialArea + " م²" : "—"}</span>
+                          </td>
+                          <td className="px-4 py-4 text-center border-l border-white/5">
+                            <span className="text-green-400 font-bold text-lg">{parseFloat(tallArea) > 0 ? tallArea + " م²" : "—"}</span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
-                ))}
+                </div>
+
+                {/* ── Table 2: Material Totals (SUMIF per material) ── */}
+                {(() => {
+                  const matMap: Record<string, { area: number; pricePerM: number; nameAr: string }> = {};
+                  pieces.forEach(p => {
+                    if (!p.material) return;
+                    const area = calcPieceTotal(p);
+                    if (area <= 0) return;
+                    const matData = (materials as any[]).find((m: any) => m.nameAr === p.material);
+                    if (!matMap[p.material]) {
+                      matMap[p.material] = { area: 0, pricePerM: matData?.pricePerMeter ?? 0, nameAr: p.material };
+                    }
+                    matMap[p.material].area += area;
+                  });
+                  const matRows = Object.values(matMap).filter(m => m.area > 0);
+                  if (matRows.length === 0) return null;
+                  return (
+                    <div>
+                      <h3 className="text-white/70 text-xs font-bold mb-2 tracking-wide uppercase">إجمالي الخامات</h3>
+                      <div className="rounded-xl overflow-hidden border border-white/10 divide-y divide-white/5">
+                        {matRows.map((mat) => (
+                          <div key={mat.nameAr}>
+                            {/* Material header row */}
+                            <div className="bg-[#1a3a5c] px-4 py-2 flex items-center gap-2">
+                              <span className="text-white/60 text-xs">تفاصيل إجمالية لخامة :</span>
+                              <span className="text-amber-300 font-bold text-sm">{mat.nameAr}</span>
+                            </div>
+                            {/* Material data row */}
+                            <div className="bg-white/[0.04] grid grid-cols-3 divide-x-reverse divide-x divide-white/5">
+                              <div className="px-4 py-3 text-center">
+                                <p className="text-white/50 text-xs mb-1">إجمالى الأمتار</p>
+                                <p className="text-white font-bold">{mat.area.toFixed(2)} م²</p>
+                              </div>
+                              <div className="px-4 py-3 text-center">
+                                <p className="text-white/50 text-xs mb-1">سعر المتر</p>
+                                <p className="text-amber-400 font-bold">
+                                  {mat.pricePerM > 0 ? mat.pricePerM.toLocaleString("ar-EG") + " ج.م" : "—"}
+                                </p>
+                              </div>
+                              <div className="px-4 py-3 text-center">
+                                <p className="text-white/50 text-xs mb-1">السعر الإجمالي</p>
+                                <p className="text-green-400 font-bold">
+                                  {mat.pricePerM > 0
+                                    ? (mat.area * mat.pricePerM).toLocaleString("ar-EG", { maximumFractionDigits: 2 }) + " ج.م"
+                                    : "—"}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
               </div>
             )}
           </div>
