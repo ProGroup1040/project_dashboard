@@ -16,7 +16,7 @@ function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
+      <Route path={"/"} component={BrandHub} />
       {/* Brand-First Architecture */}
       <Route path={"/brands"} component={BrandHub} />
       <Route path={"/brand/professor_kitchens/kitchens"} component={ProfessorKitchensEngine} />
