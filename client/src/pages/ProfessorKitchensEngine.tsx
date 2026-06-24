@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import {
@@ -26,8 +26,9 @@ const STEPS = [
   { id: 6, title: "النقل",            icon: "🚚" },
   { id: 7, title: "الخصم",            icon: "💰" },
   { id: 8, title: "المراجعة",         icon: "⚠️" },
-  { id: 9, title: "عرض داخلي",       icon: "🔒" },
-  { id: 10, title: "عرض العميل",     icon: "📋" },
+  { id: 9, title: "الألوان",          icon: "🎨" },
+  { id: 10, title: "عرض داخلي",      icon: "🔒" },
+  { id: 11, title: "عرض العميل",     icon: "📋" },
 ];
 
 const MARBLE_PRICES: Record<string, number> = {
@@ -133,9 +134,10 @@ export default function ProfessorKitchensEngine() {
     if (s === 1) return clientName.trim().length > 0;
     if (s === 2) return pieces.some(p => calcPieceTotal(p) > 0);
     if (s === 3) return selMaterials.length > 0;
+    if (s === 9) return true; // colors tab always passable
     return true;
   };
-  const goNext = () => { if (step === 8) computeWarnings(); if (step < 10) setStep(s => s + 1); };
+  const goNext = () => { if (step === 8) computeWarnings(); if (step < 11) setStep(s => s + 1); };
   const goPrev = () => { if (step > 1) setStep(s => s - 1); };
 
   // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -714,8 +716,13 @@ export default function ProfessorKitchensEngine() {
           </div>
         )}
 
-        {/* ── Step 9: Internal ── */}
+        {/* ── Step 9: Colors ── */}
         {step === 9 && (
+          <ColorsTab selMaterials={selMaterials} />
+        )}
+
+        {/* ── Step 10: Internal ── */}
+        {step === 10 && (
           <InternalView
             clientName={clientName} clientPhone={clientPhone} address={address} governorate={governorate}
             engineerName={engineerName} projectCode={projectCode}
@@ -728,8 +735,8 @@ export default function ProfessorKitchensEngine() {
           />
         )}
 
-        {/* ── Step 10: Client ── */}
-        {step === 10 && (
+        {/* ── Step 11: Client ── */}
+        {step === 11 && (
           <ClientView
             clientName={clientName} projectCode={projectCode}
             matTotal={matTotal} accTotal={accTotal} mrbTotal={mrbTotal} cldTotal={cldTotal} trpTotal={trpTotal}
@@ -793,80 +800,175 @@ function MatCard({ mat, onAdd, defaultArea }: { mat: any; onAdd: any; defaultAre
 
 // Mapping from accessory name keywords to catalog image paths
 const ACC_IMAGE_MAP: Record<string, string> = {
-  // JustTop - Drawers (مطبقية)
-  "مطبقيه لانية":        "/manus-storage/jt_matabkia_standard_e77ada42.jpg",
-  "مطبقية ثابتة":        "/manus-storage/sx_matabkia_standard_8f21d78a.jpg",
-  "مطبقية هيدروليك":     "/manus-storage/sx_matabkia_hydro_a3782e3a.jpg",
-  "مطبقيه هيدروليات اكريليك": "/manus-storage/jt_matabkia_hydro_70_b64f74d8.jpg",
-  "مطبقيه سفليه":        "/manus-storage/jt_matabkia_sofli_7edbcdbe.jpg",
-  "مطبقيه سفلية":        "/manus-storage/jt_matabkia_sofli_akr_a66f2766.jpg",
-  "مطبقيه سلفيه":        "/manus-storage/jt_matabkia_sofli_akr_a66f2766.jpg",
-  "مطبقيه سفلي":         "/manus-storage/sx_matabkia_sofli_83bbfbc9.jpg",
-  // JustTop - Trolleys (ترولي)
-  "ترولي 3 رف زجاج اسود": "/manus-storage/jt_trooli_zmag_aswad_a3e66ab6.jpg",
-  "ترولي 3 رف استلس":    "/manus-storage/jt_trooli_stainless_sw_dd482c65.jpg",
-  "ترولي استانلس 3 رف":  "/manus-storage/jt_trooli_stainless_3rf_73a20a65.jpg",
-  "ترولي جانبي اسود":    "/manus-storage/jt_trooli_janbi_aswad_da76f84d.jpg",
-  "ترولي جانبي قاعدة خشبية": "/manus-storage/jt_trooli_janbi_khashabia_bd943f9e.jpg",
-  "ترولي جانبي اكريلليك": "/manus-storage/jt_trooli_janbi_aswad_da76f84d.jpg",
-  "ترولي 30cm الومنيوم": "/manus-storage/jt_trooli_alum_40_27e1e450.jpg",
-  "ترولي 35cm الومنيوم": "/manus-storage/jt_trooli_alum_40_27e1e450.jpg",
-  "ترولي 40cm الومنيوم": "/manus-storage/jt_trooli_alum_40_27e1e450.jpg",
-  "ترولي استالس 15cm":   "/manus-storage/jt_trooli_stainless_3rf_73a20a65.jpg",
-  "ترولي استالس 25cm":   "/manus-storage/jt_trooli_stainless_3rf_73a20a65.jpg",
-  "ترولي استالس 30cm":   "/manus-storage/jt_trooli_stainless_3rf_73a20a65.jpg",
-  "ترولي استالس 35cm":   "/manus-storage/jt_trooli_stainless_3rf_73a20a65.jpg",
-  "ترولي اكريليك سفلي":  "/manus-storage/jt_trooli_janbi_aswad_da76f84d.jpg",
-  // Starax - Trolleys (Larder)
-  "ترولى زيت 15":        "/manus-storage/sx_telescopic_larder_7a26dffe.jpg",
-  "ترولى زيت 20":        "/manus-storage/sx_telescopic_larder_7a26dffe.jpg",
-  "ترولى زيت 25":        "/manus-storage/sx_telescopic_larder_7a26dffe.jpg",
-  "ترولى زيت 30":        "/manus-storage/sx_telescopic_larder_7a26dffe.jpg",
-  "ترولى زيت 40":        "/manus-storage/sx_twin_larder_d30dfd7e.jpg",
-  "ترولى زيت 45":        "/manus-storage/sx_twin_larder_d30dfd7e.jpg",
-  // Baskets (باسكت)
-  "باسكت قمامه سوفت":    "/manus-storage/jt_basket_jt0528_f0ea8467.jpg",
-  "باسكت قمامهA300":     "/manus-storage/jt_basket_a300_f0a03f67.jpg",
-  "باسكت قمامة مميز 9200": "/manus-storage/jt_basket_bc300_d90316b9.jpg",
-  "باسكت قمامة مميز 9400": "/manus-storage/jt_basket_bc400_8bc11f04.jpg",
-  "باسكت قمامة مميز 9600": "/manus-storage/jt_basket_bc450_6404f1a2.jpg",
-  "باسكت مهملات":        "/manus-storage/jt_basket_bc600_2fe37461.jpg",
-  "باسكت القمامه 24":    "/manus-storage/sx_basket_24l_6830a5a0.jpg",
-  "باسكت القمامه 32":    "/manus-storage/sx_basket_24l_6830a5a0.jpg",
-  "باسكت القمامه 35":    "/manus-storage/sx_basket_55l_575798ca.jpg",
-  "سلة مهملات بلاستيك":  "/manus-storage/sx_basket_plastic_79d493b6.jpg",
-  // Magic / Corner
-  "ماجيك يسار s الومنيوم": "/manus-storage/sx_corner_main_0d75b150.jpg",
-  "ماجيك يمين s الومنيوم": "/manus-storage/sx_corner_main_0d75b150.jpg",
-  "ماجيك يمين ويسار استانلس": "/manus-storage/sx_corner_main_0d75b150.jpg",
-  "ماجيك s يمين ويسار":  "/manus-storage/sx_corner_main_0d75b150.jpg",
-  "ماجيك يمين ويسار زجاج": "/manus-storage/sx_corner_main_0d75b150.jpg",
-  "ماجيك فلاي مون":      "/manus-storage/sx_corner_main_0d75b150.jpg",
-  "ماجيك الحصان":        "/manus-storage/sx_corner_main_0d75b150.jpg",
-  "سله 3/4 متحركه":      "/manus-storage/sx_corner_main_0d75b150.jpg",
-  "سلة 3/4 دائرة":       "/manus-storage/sx_corner_main_0d75b150.jpg",
-  // Cargo (Larder)
-  "كارجو 6 رف ثابت":     "/manus-storage/sx_softclose_larder_3a7b850f.jpg",
-  "كارجو 6 رف متحرك":    "/manus-storage/sx_twin_larder_d30dfd7e.jpg",
-  // Carousels (Midway / Folding)
-  "ميكانزم طاولة متحركة 360": "/manus-storage/sx_midway_main_97a46ccc.jpg",
-  "ميكانزم طاولة متحركة عذبة": "/manus-storage/sx_folding_table_leg_4135edce.jpg",
-  "ميكانزم طاولة متحركة BLTN": "/manus-storage/sx_folding_table_27452a8f.jpg",
-  // Dish racks
-  "صفايه سمارت كهرباء":  "/manus-storage/jt_safaya_elec_80_73a6689f.jpg",
-  "صفايه هيدروليك كهرباء": "/manus-storage/jt_safaya_hydro_elec_6709fdb1.jpg",
-  "صفايه هيدروليك بخزنه": "/manus-storage/jt_safaya_hydro_elec_6709fdb1.jpg",
-  // Organizers
-  "منظم هيدروليات بالرغام": "/manus-storage/jt_hydro_organizer_555_3563df8e.jpg",
-  "مطبقيه هيدروليات بالرغام": "/manus-storage/jt_hydro_organizer_554_41d46742.jpg",
-  "منظم هيدروليات":      "/manus-storage/jt_organizer_558_76dff8df.jpg",
-  // Pull-out
-  "بول اوت ميني":        "/manus-storage/sx_pullout_countertop_97f76e74.jpg",
-  // Dividers
-  "تقسيم معالق":         "/manus-storage/sx_skidproof_roll_b20e4878.jpg",
-  // Trays
-  "ترابيزة بدون قائم":   "/manus-storage/sx_folding_table_27452a8f.jpg",
-  "ترابيزة بقائم":       "/manus-storage/sx_folding_table_leg_4135edce.jpg",
+  // ── Just Top: باسكت وبول اوت ──────────────────────────────────────────────
+  "بول اوت ميني":                "/manus-storage/jt_JT-452R_5be37268.png",
+  "بول اوت 6 دور 60":            "/manus-storage/jt_JT-60S_78a28092.png",
+  "بول اوت 6 دور 45":            "/manus-storage/jt_JT-45S_59313671.png",
+  "بول اوت 6 دور 60 اكريليك":   "/manus-storage/jt_JT-605S_96d299bb.png",
+  "بول اوت 6 دور 45 اكريليك":   "/manus-storage/jt_JT-456S_84b68a2e.png",
+
+  // ── Just Top: ترولي الومنيوم ──────────────────────────────────────────────
+  "ترولي 25cm الومنيوم":         "/manus-storage/jt_JT0202-300_869d878b.png",
+  "ترولي 30cm الومنيوم":         "/manus-storage/jt_JT0202-350_9cb8af64.png",
+  "ترولي 35cm الومنيوم":         "/manus-storage/jt_JT0202-400_e7ba0ce2.png",
+  "ترولي 40cm الومنيوم":         "/manus-storage/jt_JT0202-400_e7ba0ce2.png",
+
+  // ── Just Top: ترولي جانبي اكريليك ────────────────────────────────────────
+  "ترولي جانبي اكريليك 10cm":   "/manus-storage/jt_JT0205-150_e551fa7d.png",
+  "ترولي جانبي اكريليك 15cm":   "/manus-storage/jt_JT0205-200_90a0f729.png",
+  "ترولي جانبي اكريليك 20cm":   "/manus-storage/jt_JT0205-250_926a0d93.png",
+  "ترولي جانبي اكريليك":        "/manus-storage/jt_JT0205-150_e551fa7d.png",
+  "ترولي جانبي اسود":            "/manus-storage/jt_JT0205-150_e551fa7d.png",
+
+  // ── Just Top: ترولي سفلي الومنيوم ────────────────────────────────────────
+  "ترولي سفلي المنيوم 3 رف 10cm": "/manus-storage/jt_PC-216_4e5bfc52.png",
+  "ترولي سفلي المنيوم 3 رف 15cm": "/manus-storage/jt_PC-217_bda491cd.png",
+  "ترولي سفلي 3 رف 10":           "/manus-storage/jt_PC-216_4e5bfc52.png",
+  "ترولي سفلي 3 رف 15":           "/manus-storage/jt_PC-217_bda491cd.png",
+
+  // ── Just Top: ترولي سفلي استانلس ─────────────────────────────────────────
+  "ترولي سفلي استانلس 3 رف 20cm": "/manus-storage/jt_PC-213_564c3c5f.png",
+  "ترولي سفلي استانلس 3 رف 25cm": "/manus-storage/jt_PC-214_dab2582b.png",
+  "ترولي سفلي استانلس 3 رف 30cm": "/manus-storage/jt_PC-215_10988236.png",
+  "ترولي 3 رف استلس":             "/manus-storage/jt_PC-213_564c3c5f.png",
+  "ترولي استانلس 3 رف":           "/manus-storage/jt_PC-213_564c3c5f.png",
+
+  // ── Just Top: ترولي سفلي اكريليك ─────────────────────────────────────────
+  "ترولي اكريليك سفلي 3 رف 15cm": "/manus-storage/jt_BL-200-F-G_e74c633d.png",
+  "ترولي اكريليك سفلي":           "/manus-storage/jt_BL-200-F-G_e74c633d.png",
+
+  // ── Just Top: ترولي استانلس ───────────────────────────────────────────────
+  "ترولي استالس 15cm":            "/manus-storage/jt_JT0202-200_3957a180.png",
+  "ترولي استالس 25cm":            "/manus-storage/jt_JT0203-300_9d0e5a1c.png",
+  "ترولي استالس 30cm":            "/manus-storage/jt_JT0203-350_a1614ce1.png",
+  "ترولي استالس 35cm":            "/manus-storage/jt_JT0203-400_ac1e51df.png",
+  "ترولي استانلس 15":             "/manus-storage/jt_JT0202-200_3957a180.png",
+  "ترولي استانلس 25":             "/manus-storage/jt_JT0203-300_9d0e5a1c.png",
+
+  // ── Just Top: ماجيك كورنر ─────────────────────────────────────────────────
+  "ماجيك يمين s الومنيوم":        "/manus-storage/jt_JT0520R_d3ff8f91.png",
+  "ماجيك يسار s الومنيوم":        "/manus-storage/jt_JT0520L_df88531d.png",
+  "ماجيك يمين s":                 "/manus-storage/jt_JT0520R_d3ff8f91.png",
+  "ماجيك يسار s":                 "/manus-storage/jt_JT0520L_df88531d.png",
+  "ماجيك الحصان":                 "/manus-storage/jt_JT0151G_e91aaef5.png",
+  "ماجيك يمين ويسار زجاج":        "/manus-storage/jt_XGW-900_cf48fb84.png",
+  "ماجيك يمين ويسار استانلس":     "/manus-storage/jt_JT-0512_fc500f96.png",
+  "ماجيك s يمين ويسار":           "/manus-storage/jt_JT-0512_fc500f96.png",
+  "سله 3/4 متحركه":               "/manus-storage/jt_JT-214_d52ec8f1.png",
+  "سلة 3/4 دائرة":                "/manus-storage/jt_JT-214_d52ec8f1.png",
+
+  // ── Just Top: صفاية استانلس فوق ──────────────────────────────────────────
+  "صفايه استانلس 60":             "/manus-storage/jt_JT160_fef61e22.png",
+  "صفايه استانلس 70":             "/manus-storage/jt_JT170_d40daba3.png",
+  "صفايه استانلس 80":             "/manus-storage/jt_JT180_05a0cf45.png",
+  "صفايه استانلس 90":             "/manus-storage/jt_JT190_913fd358.png",
+  "صفايه استانلس 100":            "/manus-storage/jt_JT200_350b3fd4.png",
+  "صفايه استانلس بني 60":         "/manus-storage/jt_JT160G_12df5fab.png",
+  "صفايه استانلس بني 70":         "/manus-storage/jt_JT170G_07557135.png",
+  "صفايه استانلس بني 80":         "/manus-storage/jt_JT180G_fc06a9a5.png",
+  "صفايه استانلس بني 90":         "/manus-storage/jt_JT190G_feb90354.png",
+
+  // ── Just Top: صفاية هيدروليك اكريليك ─────────────────────────────────────
+  "صفايه هيدروليك اكريليك 70":   "/manus-storage/jt_JT0514B-700A_2f214a20.png",
+  "صفايه هيدروليك اكريليك 80":   "/manus-storage/jt_JT0514B-800A_510e478f.png",
+  "صفايه هيدروليك بخزنه":        "/manus-storage/jt_JT0514B-700A_2f214a20.png",
+
+  // ── Just Top: صفاية هيدروليك الومنيوم ────────────────────────────────────
+  "صفايه هيدروليك الومنيوم 70":  "/manus-storage/jt_JT-0514B_159f4163.png",
+  "صفايه هيدروليك الومنيوم 80":  "/manus-storage/jt_JT-0514C_af8acc34.png",
+  "صفايه هيدروليك الومنيوم 90":  "/manus-storage/jt_JT-0514D_c621bbdb.png",
+
+  // ── Just Top: صفاية كهرباء ────────────────────────────────────────────────
+  "صفايه سمارت كهرباء":          "/manus-storage/jt_JT-0561_9a1d3634.png",
+  "صفايه هيدروليك كهرباء":       "/manus-storage/jt_JT-0562_5aa23d51.png",
+
+  // ── Just Top: حامل هيدروليك ──────────────────────────────────────────────
+  "حامل هيدروليك معلق":          "/manus-storage/jt_B02_b2ab4a66.png",
+  "حامل هيدروليك مرحلتين":       "/manus-storage/jt_H202_1a0b6482.png",
+
+  // ── Just Top: صفاية سفلية ─────────────────────────────────────────────────
+  "صفايه سفلي استانلس 70":       "/manus-storage/jt_JT0516-700_c0b75cb3.png",
+  "صفايه سفلي استانلس 80":       "/manus-storage/jt_JT0516-800_d912fece.png",
+  "صفايه سفلي استانلس 90":       "/manus-storage/jt_JT0516-900_227bc626.png",
+  "صفايه سفلي اكريليك 70":       "/manus-storage/jt_JT0201-700_b23546e5.png",
+  "صفايه سفلي اكريليك 75":       "/manus-storage/jt_JT0201-750_45c154a3.png",
+  "صفايه سفلي اكريليك 80":       "/manus-storage/jt_JT0201-800_24326671.png",
+  "صفايه سفلي اكريليك 90":       "/manus-storage/jt_JT0201-900_7d672796.png",
+  "صفايه سفلي مرحلتين 70":       "/manus-storage/jt_JT0206-700_93a4de26.png",
+  "صفايه سفلي مرحلتين 80":       "/manus-storage/jt_JT0206-800_aefaa4d1.png",
+  "صفايه سفلي مرحلتين 90":       "/manus-storage/jt_JT0206-900_40872793.png",
+
+  // ── Just Top: بوكس ────────────────────────────────────────────────────────
+  "بوكس استانلس 60":             "/manus-storage/jt_JT-600PL_76bc888c.png",
+  "بوكس استانلس 70":             "/manus-storage/jt_JT-700PL_a6785be2.png",
+  "بوكس استانلس 80":             "/manus-storage/jt_JT-800PL_35864ec2.png",
+  "بوكس استانلس 90":             "/manus-storage/jt_JT-900PL_71c1e5f6.png",
+  "بوكس اكريليك 70":             "/manus-storage/jt_JT-700A_2c9b4bd3.png",
+  "بوكس اكريليك 80":             "/manus-storage/jt_JT-800A_ea1d472d.png",
+
+  // ── Just Top: صفاية سطح ──────────────────────────────────────────────────
+  "صفايه سطح استانلس 50":        "/manus-storage/jt_JT0519S_fba2b48b.png",
+  "صفايه سطح استانلس 60":        "/manus-storage/jt_JT0519S_fba2b48b.png",
+  "صفايه سطح خشب 50":            "/manus-storage/jt_JT0519W_25f0de4b.png",
+  "صفايه سطح خشب 70":            "/manus-storage/jt_JT0519W_25f0de4b.png",
+
+  // ── Just Top: آليات رفع ──────────────────────────────────────────────────
+  "ميكانزم روك تركيب بمفصلات":  "/manus-storage/jt_R221_a2995631.png",
+  "ميكانزم روك تركيب بدون مفصلات": "/manus-storage/jt_JT044A_790e854d.png",
+  "ميكانزم سوبر جيت سوفت":      "/manus-storage/jt_JT044B_b0d0003a.png",
+  "ميكانزم منطبق NHF":           "/manus-storage/jt_JT05_834fd023.png",
+  "ميكانزم منطبق سوبر SHF":      "/manus-storage/jt_JT044C_422f6b8b.png",
+  "ميكانزم درجات":               "/manus-storage/jt_G012_a006d9ac.png",
+  "مساعد باكم سوبر بدون سوفت":   "/manus-storage/jt_JT044A_790e854d.png",
+  "مساعد باكم سوفت بتحكم":       "/manus-storage/jt_JT044B_b0d0003a.png",
+
+  // ── Just Top: فيتور ──────────────────────────────────────────────────────
+  "فيتور متحرك":                 "/manus-storage/jt_JT-G24_bd4acf4a.png",
+  "فيتور متحرك كبير":            "/manus-storage/jt_JT0555_053efe06.png",
+  "مضيقيه الفيتور استانلس":      "/manus-storage/jt_JT-0561_9a1d3634.png",
+  "مضيقيه الفيتور الومنيوم":     "/manus-storage/jt_JT-0562_5aa23d51.png",
+
+  // ── Just Top: منظم / مطبقية ──────────────────────────────────────────────
+  "منظم هيدروليات بالرغام":      "/manus-storage/jt_JT0555_053efe06.png",
+  "مطبقيه هيدروليات بالرغام":    "/manus-storage/jt_JT0555_053efe06.png",
+  "منظم هيدروليات":              "/manus-storage/jt_JT0555_053efe06.png",
+
+  // ── Starax: ترولي زيت ────────────────────────────────────────────────────
+  "ترولى زيت 15":                "/manus-storage/sx_telescopic_larder_7a26dffe.jpg",
+  "ترولى زيت 20":                "/manus-storage/sx_telescopic_larder_7a26dffe.jpg",
+  "ترولى زيت 25":                "/manus-storage/sx_telescopic_larder_7a26dffe.jpg",
+  "ترولى زيت 30":                "/manus-storage/sx_telescopic_larder_7a26dffe.jpg",
+  "ترولى زيت 40":                "/manus-storage/sx_twin_larder_d30dfd7e.jpg",
+  "ترولى زيت 45":                "/manus-storage/sx_twin_larder_d30dfd7e.jpg",
+
+  // ── Starax: باسكت قمامة ──────────────────────────────────────────────────
+  "باسكت قمامه سوفت":            "/manus-storage/jt_JT-452R_5be37268.png",
+  "باسكت قمامهA300":             "/manus-storage/jt_JT-452R_5be37268.png",
+  "باسكت قمامة مميز 9200":       "/manus-storage/jt_JT-452R_5be37268.png",
+  "باسكت قمامة مميز 9400":       "/manus-storage/jt_JT-452R_5be37268.png",
+  "باسكت قمامة مميز 9600":       "/manus-storage/jt_JT-452R_5be37268.png",
+  "باسكت مهملات":                "/manus-storage/jt_JT-452R_5be37268.png",
+  "باسكت القمامه 24":            "/manus-storage/sx_basket_24l_6830a5a0.jpg",
+  "باسكت القمامه 32":            "/manus-storage/sx_basket_24l_6830a5a0.jpg",
+  "باسكت القمامه 35":            "/manus-storage/sx_basket_55l_575798ca.jpg",
+  "سلة مهملات بلاستيك":          "/manus-storage/sx_basket_plastic_79d493b6.jpg",
+
+  // ── Starax: كارجو ────────────────────────────────────────────────────────
+  "كارجو 6 رف ثابت":             "/manus-storage/sx_softclose_larder_3a7b850f.jpg",
+  "كارجو 6 رف متحرك":            "/manus-storage/sx_twin_larder_d30dfd7e.jpg",
+
+  // ── Starax: ماجيك فلاي مون ───────────────────────────────────────────────
+  "ماجيك فلاي مون":              "/manus-storage/sx_corner_main_0d75b150.jpg",
+
+  // ── Starax: ميكانزم طاولة ────────────────────────────────────────────────
+  "ميكانزم طاولة متحركة 360":    "/manus-storage/sx_midway_main_97a46ccc.jpg",
+  "ميكانزم طاولة متحركة عذبة":   "/manus-storage/sx_folding_table_leg_4135edce.jpg",
+  "ميكانزم طاولة متحركة BLTN":   "/manus-storage/sx_folding_table_27452a8f.jpg",
+  "ترابيزة بدون قائم":           "/manus-storage/sx_folding_table_27452a8f.jpg",
+  "ترابيزة بقائم":               "/manus-storage/sx_folding_table_leg_4135edce.jpg",
+
+  // ── Starax: تقسيم ────────────────────────────────────────────────────────
+  "تقسيم معالق":                 "/manus-storage/sx_skidproof_roll_b20e4878.jpg",
 };
 
 function getAccImage(nameAr: string): string | null {
@@ -1259,6 +1361,385 @@ function ClientView(p: any) {
         <div className="mt-4 p-4 bg-white/5 border border-white/10 rounded-xl">
           <p className="text-white/40 text-xs mb-1">ملاحظات</p>
           <p className="text-white/70 text-sm">{p.notes}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Color Catalogs Tab ───────────────────────────────────────────────────────
+
+// Map from material nameAr keyword → catalog slugs (matching uploaded images)
+const MATERIAL_CATALOG_MAP: { keywords: string[]; catalogs: { slug: string; label: string; pages: string[] }[] }[] = [
+  {
+    keywords: ["UV LAC", "UV-LAC", "UV Lac", "UV lac"],
+    catalogs: [
+      {
+        slug: "primewood",
+        label: "PRIMEWOOD – ARKOPA (UV-Lac)",
+        pages: [
+          "/manus-storage/cat_primewood_page-1_b6314231.png",
+          "/manus-storage/cat_primewood_page-2_0830834b.png",
+          "/manus-storage/cat_primewood_page-3_d534179a.png",
+          "/manus-storage/cat_primewood_page-4_8d0a8542.png",
+        ],
+      },
+      {
+        slug: "yildiz_uv",
+        label: "YILDIZ – UV-LAC",
+        pages: [
+          "/manus-storage/cat_yildiz_uv_page-1_55e9da3d.png",
+          "/manus-storage/cat_yildiz_uv_page-2_88387744.png",
+          "/manus-storage/cat_yildiz_uv_page-3_c16e481f.png",
+        ],
+      },
+    ],
+  },
+  {
+    keywords: ["POLY LAC", "Poly-Lac", "Poly Lac", "PolyLac", "Polylac"],
+    catalogs: [
+      {
+        slug: "polylac",
+        label: "Gizir – Poly-Lac",
+        pages: [
+          "/manus-storage/cat_polylac_page-01_0d808443.png",
+          "/manus-storage/cat_polylac_page-02_de449627.png",
+          "/manus-storage/cat_polylac_page-03_2786259c.png",
+          "/manus-storage/cat_polylac_page-04_e4cbe082.png",
+        ],
+      },
+    ],
+  },
+  {
+    keywords: ["HPL", "جود وود", "Good Wood", "GoodWood"],
+    catalogs: [
+      {
+        slug: "goodwood",
+        label: "GoodWood 2024 (HPL)",
+        pages: [
+          "/manus-storage/cat_goodwood_page-001_aacf334b.png",
+          "/manus-storage/cat_goodwood_page-002_25663e97.png",
+          "/manus-storage/cat_goodwood_page-003_292526d5.png",
+          "/manus-storage/cat_goodwood_page-004_d33d195c.png",
+        ],
+      },
+      {
+        slug: "greenlam",
+        label: "Greenlam HPL",
+        pages: [
+          "/manus-storage/cat_greenlam_page-01_8225f650.png",
+          "/manus-storage/cat_greenlam_page-02_d79ed161.png",
+          "/manus-storage/cat_greenlam_page-03_58235e61.png",
+          "/manus-storage/cat_greenlam_page-04_78ae7b72.png",
+        ],
+      },
+      {
+        slug: "merino",
+        label: "Merino 2023 (HPL)",
+        pages: [
+          "/manus-storage/cat_merino_page-01_232e56f3.png",
+          "/manus-storage/cat_merino_page-02_00396dde.png",
+          "/manus-storage/cat_merino_page-03_2c7b900c.png",
+          "/manus-storage/cat_merino_page-04_60c958e0.png",
+        ],
+      },
+    ],
+  },
+  {
+    keywords: ["Gloss MAX", "GlossMAX", "Gloss Max"],
+    catalogs: [
+      {
+        slug: "glossmaxpro",
+        label: "Glossmax Pro",
+        pages: [
+          "/manus-storage/cat_glossmaxpro_page-01_7ddfcf4b.png",
+          "/manus-storage/cat_glossmaxpro_page-02_82592357.png",
+          "/manus-storage/cat_glossmaxpro_page-03_27d22546.png",
+          "/manus-storage/cat_glossmaxpro_page-04_67a5b2f1.png",
+        ],
+      },
+      {
+        slug: "glossypanel",
+        label: "Glossy Panel",
+        pages: [
+          "/manus-storage/cat_glossypanel_page-1_70002874.png",
+          "/manus-storage/cat_glossypanel_page-2_c75f43d0.png",
+          "/manus-storage/cat_glossypanel_page-3_5b282ade.png",
+          "/manus-storage/cat_glossypanel_page-4_b6ebc9d2.png",
+        ],
+      },
+    ],
+  },
+  {
+    keywords: ["Matt", "مات", "Superior Matt"],
+    catalogs: [
+      {
+        slug: "kastamonu",
+        label: "Kastamonu Matt Plus",
+        pages: [
+          "/manus-storage/cat_kastamonu_page-01_ae696a17.png",
+          "/manus-storage/cat_kastamonu_page-02_5df94c1a.png",
+          "/manus-storage/cat_kastamonu_page-03_7c375cb9.png",
+          "/manus-storage/cat_kastamonu_page-04_cc271dcf.png",
+        ],
+      },
+      {
+        slug: "yildiz_matt",
+        label: "YILDIZ – Superior Matt",
+        pages: [
+          "/manus-storage/cat_yildiz_matt_page-1_09534722.png",
+          "/manus-storage/cat_yildiz_matt_page-2_55313a65.png",
+          "/manus-storage/cat_yildiz_matt_page-3_06555b09.png",
+        ],
+      },
+    ],
+  },
+  {
+    keywords: ["ميلامين", "Melamine", "كرونوسبان", "Kronos", "ستار وود"],
+    catalogs: [
+      {
+        slug: "decorestar",
+        label: "Decore Star – Kronos",
+        pages: [
+          "/manus-storage/cat_decorestar_page-01_446e0bcf.png",
+          "/manus-storage/cat_decorestar_page-02_7ec47909.png",
+          "/manus-storage/cat_decorestar_page-03_02d7c40f.png",
+          "/manus-storage/cat_decorestar_page-04_1343ac7b.png",
+        ],
+      },
+      {
+        slug: "lumberj",
+        label: "Lumber J – General",
+        pages: [
+          "/manus-storage/cat_lumberj_page-01_26020841.png",
+          "/manus-storage/cat_lumberj_page-02_65cb4c86.png",
+          "/manus-storage/cat_lumberj_page-03_797844fb.png",
+          "/manus-storage/cat_lumberj_page-04_f22d0d5e.png",
+        ],
+      },
+      {
+        slug: "yildiz_mel1",
+        label: "YILDIZ – MDF Melamine 1",
+        pages: [
+          "/manus-storage/cat_yildiz_mel1_page-01_1108a84c.png",
+          "/manus-storage/cat_yildiz_mel1_page-02_933223a0.png",
+          "/manus-storage/cat_yildiz_mel1_page-03_6fb576e0.png",
+        ],
+      },
+      {
+        slug: "yildiz_mel2",
+        label: "YILDIZ – MDF Melamine 2",
+        pages: [
+          "/manus-storage/cat_yildiz_mel2_page-01_1c4d9675.png",
+          "/manus-storage/cat_yildiz_mel2_page-02_6c95a43e.png",
+          "/manus-storage/cat_yildiz_mel2_page-03_33184d29.png",
+        ],
+      },
+      {
+        slug: "woodwood",
+        label: "WOOD & WOOD 2023",
+        pages: [
+          "/manus-storage/cat_woodwood_page-01_d3761383.png",
+          "/manus-storage/cat_woodwood_page-02_d99d508d.png",
+          "/manus-storage/cat_woodwood_page-03_501dc42f.png",
+          "/manus-storage/cat_woodwood_page-04_a73b8901.png",
+        ],
+      },
+    ],
+  },
+  {
+    keywords: ["PET", "أركوبا", "Arkopa", "pvc أركوبا"],
+    catalogs: [
+      {
+        slug: "lumberjpet",
+        label: "Lumber J – PET",
+        pages: [
+          "/manus-storage/cat_lumberjpet_page-01_1c4be042.png",
+          "/manus-storage/cat_lumberjpet_page-02_b541a15c.png",
+          "/manus-storage/cat_lumberjpet_page-03_4cca533f.png",
+          "/manus-storage/cat_lumberjpet_page-04_c537739a.png",
+        ],
+      },
+    ],
+  },
+  {
+    keywords: ["اكليريك", "Acrylic", "L.G +HPL"],
+    catalogs: [
+      {
+        slug: "nlam",
+        label: "N-LAM (Acrylic)",
+        pages: [
+          "/manus-storage/cat_nlam_page-01_135559bc.png",
+          "/manus-storage/cat_nlam_page-02_e724aed7.png",
+          "/manus-storage/cat_nlam_page-03_e7bdd7de.png",
+          "/manus-storage/cat_nlam_page-04_f4506579.png",
+        ],
+      },
+    ],
+  },
+];
+
+function getRelevantCatalogs(selMaterials: SelMaterial[]) {
+  const seen = new Set<string>();
+  const result: { slug: string; label: string; pages: string[] }[] = [];
+  for (const mat of selMaterials) {
+    for (const group of MATERIAL_CATALOG_MAP) {
+      const matches = group.keywords.some(kw =>
+        mat.nameAr.toLowerCase().includes(kw.toLowerCase())
+      );
+      if (matches) {
+        for (const cat of group.catalogs) {
+          if (!seen.has(cat.slug)) {
+            seen.add(cat.slug);
+            result.push(cat);
+          }
+        }
+      }
+    }
+  }
+  return result;
+}
+
+function ColorsTab({ selMaterials }: { selMaterials: SelMaterial[] }) {
+  const [activeCat, setActiveCat] = useState<string | null>(null);
+  const [activePage, setActivePage] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  const catalogs = getRelevantCatalogs(selMaterials);
+
+  // Auto-select first catalog
+  useEffect(() => {
+    if (catalogs.length > 0 && !activeCat) {
+      setActiveCat(catalogs[0].slug);
+      setActivePage(0);
+    }
+  }, [catalogs.length]);
+
+  const current = catalogs.find(c => c.slug === activeCat);
+
+  if (selMaterials.length === 0) {
+    return (
+      <div className="max-w-3xl mx-auto text-center py-20">
+        <div className="text-6xl mb-4">🎨</div>
+        <h2 className="text-2xl font-bold mb-2">كتالوجات الألوان</h2>
+        <p className="text-white/50">لم يتم اختيار أي خامات بعد — ارجع لخطوة أبعاد المطبخ واختر الخامات أولاً</p>
+      </div>
+    );
+  }
+
+  if (catalogs.length === 0) {
+    return (
+      <div className="max-w-3xl mx-auto text-center py-20">
+        <div className="text-6xl mb-4">🎨</div>
+        <h2 className="text-2xl font-bold mb-2">كتالوجات الألوان</h2>
+        <p className="text-white/50">لا توجد كتالوجات مرتبطة بالخامات المختارة</p>
+        <div className="mt-4 text-sm text-white/30">
+          الخامات المختارة: {selMaterials.map(m => m.nameAr).join("، ")}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto">
+      <div className="flex items-center gap-3 mb-6">
+        <span className="text-3xl">🎨</span>
+        <div>
+          <h2 className="text-2xl font-bold">كتالوجات الألوان</h2>
+          <p className="text-white/50 text-sm">بناءً على الخامات المختارة — {catalogs.length} كتالوج متاح</p>
+        </div>
+      </div>
+
+      {/* Catalog tabs */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {catalogs.map(cat => (
+          <button
+            key={cat.slug}
+            onClick={() => { setActiveCat(cat.slug); setActivePage(0); }}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeCat === cat.slug
+                ? "bg-amber-600 text-white"
+                : "bg-white/10 text-white/70 hover:bg-white/20"
+            }`}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Page viewer */}
+      {current && (
+        <div>
+          {/* Main image */}
+          <div
+            className="relative rounded-2xl overflow-hidden bg-white/5 border border-white/10 cursor-zoom-in mb-4"
+            onClick={() => setLightboxOpen(true)}
+          >
+            <img
+              src={current.pages[activePage]}
+              alt={`${current.label} — صفحة ${activePage + 1}`}
+              className="w-full object-contain max-h-[70vh]"
+            />
+            <div className="absolute top-3 left-3 bg-black/60 text-white/80 text-xs px-2 py-1 rounded-lg">
+              صفحة {activePage + 1} / {current.pages.length}
+            </div>
+            <div className="absolute top-3 right-3 bg-black/60 text-white/80 text-xs px-2 py-1 rounded-lg">
+              🔍 اضغط للتكبير
+            </div>
+          </div>
+
+          {/* Page thumbnails */}
+          <div className="flex gap-3 justify-center flex-wrap">
+            {current.pages.map((pg, i) => (
+              <button
+                key={i}
+                onClick={() => setActivePage(i)}
+                className={`rounded-lg overflow-hidden border-2 transition-all ${
+                  i === activePage ? "border-amber-500" : "border-white/10 opacity-60 hover:opacity-100"
+                }`}
+              >
+                <img src={pg} alt={`صفحة ${i + 1}`} className="w-24 h-16 object-cover" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {lightboxOpen && current && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white/70 hover:text-white text-3xl"
+            onClick={() => setLightboxOpen(false)}
+          >
+            ✕
+          </button>
+          <div className="flex items-center gap-4 max-w-full max-h-full">
+            <button
+              className="text-white/50 hover:text-white text-4xl px-2"
+              onClick={e => { e.stopPropagation(); setActivePage(p => Math.max(0, p - 1)); }}
+            >
+              ›
+            </button>
+            <img
+              src={current.pages[activePage]}
+              alt={`${current.label} — صفحة ${activePage + 1}`}
+              className="max-w-[90vw] max-h-[90vh] object-contain rounded-xl"
+              onClick={e => e.stopPropagation()}
+            />
+            <button
+              className="text-white/50 hover:text-white text-4xl px-2"
+              onClick={e => { e.stopPropagation(); setActivePage(p => Math.min(current.pages.length - 1, p + 1)); }}
+            >
+              ‹
+            </button>
+          </div>
+          <div className="absolute bottom-6 text-white/50 text-sm">
+            {activePage + 1} / {current.pages.length} — {current.label}
+          </div>
         </div>
       )}
     </div>

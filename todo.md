@@ -118,3 +118,10 @@
 - [ ] Build Approval Workflow (discount/free items/override)
 - [ ] Build Role-based access (6 roles)
 - [ ] Build Output generator (internal quotation, client quotation, WhatsApp summary, scripts)
+
+## Colors Tab & Catalog Integration (June 2026)
+- [ ] Add colors tab after review/discount stage in Professor Kitchens quotation flow
+- [ ] Show only color catalogs relevant to selected material family (UV-Lac, Poly-Lac, HPL, Melamine, PET, Matt, Gloss, Acrylic)
+- [ ] Extract and upload preview pages from all 17 uploaded color catalogs
+- [ ] Build catalog browsing UI with material-aware filtering
+- [ ] Update Just Top accessory image mapping using new JUSTTOP catalog product photos
