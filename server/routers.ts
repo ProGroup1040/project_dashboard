@@ -17,6 +17,10 @@ import {
   updateComplaintStatus,
 } from "./db";
 import { storagePut } from "./storage";
+import { parseSkpFile } from "./skpParser";
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
 import {
   getKitchenMaterials,
   getKitchenAccessories,
@@ -627,14 +631,33 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return addKitchenUnit(input);
       }),
-    deleteUnit: publicProcedure
+        deleteUnit: publicProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         await deleteKitchenUnit(input.id);
         return { success: true };
       }),
-  }),
 
+    parseSkp: publicProcedure
+      .input(z.object({
+        fileBase64: z.string(),
+        fileName: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'skp_upload_'));
+        const tmpFile = path.join(tmpDir, input.fileName);
+        try {
+          const buf = Buffer.from(input.fileBase64, 'base64');
+          fs.writeFileSync(tmpFile, buf);
+          const result = parseSkpFile(tmpFile);
+          return { success: true, data: result };
+        } catch (err: any) {
+          return { success: false, error: err.message, data: null };
+        } finally {
+          try { fs.rmSync(tmpDir, { recursive: true }); } catch { /* ignore */ }
+        }
+      }),
+  }),
   // ─── Platform Router ────────────────────────────────────────────────────────
   platform: router({
     // Transport rules
@@ -810,6 +833,7 @@ export const appRouter = router({
         const { generateWarnings } = await import("./db-platform");
         return generateWarnings(input);
       }),
+
   }),
 });
 export type AppRouter = typeof appRouter;

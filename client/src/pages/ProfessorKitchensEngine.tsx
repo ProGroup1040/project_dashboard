@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import {
   ArrowLeft, ArrowRight, CheckCircle2, AlertTriangle, AlertCircle, Info,
   Eye, EyeOff, Printer, Share2, BookOpen, Plus, Trash2, RefreshCw,
-  Play, X, Upload, Video
+  Play, X, Upload, Video, FileUp, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -165,6 +165,47 @@ export default function ProfessorKitchensEngine() {
     setSelCladding(prev => [...prev.filter(c => c.id !== cladding.id), { id: cladding.id, nameAr: cladding.nameAr, price: cladding.price, qty, total }]);
   };
 
+  // ─── SKP Import ─────────────────────────────────────────────────────────────
+  const [skpLoading, setSkpLoading] = useState(false);
+  const [skpResult, setSkpResult]   = useState<any>(null);
+  const skpInputRef = useRef<HTMLInputElement>(null);
+  const parseSkpMutation = trpc.kitchen.parseSkp.useMutation();
+
+  const handleSkpImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.name.endsWith('.skp')) { toast.error('يرجى اختيار ملف .skp'); return; }
+    setSkpLoading(true);
+    try {
+      const buf = await file.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      const base64 = btoa(Array.from(bytes, b => String.fromCharCode(b)).join(''));
+      const res = await parseSkpMutation.mutateAsync({ fileBase64: base64, fileName: file.name });
+      if (res.success && res.data) {
+        setSkpResult(res.data);
+        // Auto-fill accessories that match by name
+        const accList = accessories as any[];
+        let added = 0;
+        for (const accName of res.data.accessories) {
+          const match = accList.find(a =>
+            a.nameAr?.includes(accName) || accName.includes(a.nameAr) ||
+            a.nameAr?.toLowerCase() === accName.toLowerCase()
+          );
+          if (match) { addAccessory(match); added++; }
+        }
+        toast.success(`✅ تم قراءة ملف Sketch — ${res.data.accessories.length} إكسسوار مكتشف، ${added} تم إضافته تلقائياً`);
+        if (res.data.unitName) setStep(3); // jump to accessories
+      } else {
+        toast.error('فشل قراءة الملف: ' + (res.error ?? 'خطأ غير معروف'));
+      }
+    } catch (err: any) {
+      toast.error('خطأ: ' + err.message);
+    } finally {
+      setSkpLoading(false);
+      if (skpInputRef.current) skpInputRef.current.value = '';
+    }
+  };
+
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white" dir="rtl">
@@ -180,6 +221,17 @@ export default function ProfessorKitchensEngine() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* SKP Import Button */}
+            <input ref={skpInputRef} type="file" accept=".skp" className="hidden" onChange={handleSkpImport} />
+            <button
+              onClick={() => skpInputRef.current?.click()}
+              disabled={skpLoading}
+              title="استيراد ملف SketchUp"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-blue-600/20 text-blue-400 hover:bg-blue-600/40 transition-colors disabled:opacity-50"
+            >
+              {skpLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileUp className="w-4 h-4" />}
+              <span className="hidden sm:inline">استيراد Sketch</span>
+            </button>
           <button
             onClick={() => setViewMode(v => v === "internal" ? "client" : "internal")}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-colors ${viewMode === "client" ? "bg-amber-600 text-white" : "bg-white/10 text-white/60"}`}
