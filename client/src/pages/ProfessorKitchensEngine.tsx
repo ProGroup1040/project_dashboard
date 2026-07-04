@@ -31,9 +31,7 @@ const STEPS = [
   { id: 11, title: "عرض العميل",     icon: "📋" },
 ];
 
-const MARBLE_PRICES: Record<string, number> = {
-  granite: 850, porcelain: 650, quartz: 1200, other: 500,
-};
+// Marble prices now come from DB (marble.price field) — no hardcoded fallback map needed
 
 function fmt(n: number) { return n.toLocaleString("ar-EG") + " ج"; }
 
@@ -155,7 +153,7 @@ export default function ProfessorKitchensEngine() {
   };
 
   const addMarble = (marble: any, area: number) => {
-    const pricePerM2 = MARBLE_PRICES[marble.category] ?? 700;
+    const pricePerM2 = marble.price ?? 0;
     const total = Math.round(pricePerM2 * area);
     setSelMarble(prev => [...prev.filter(m => m.id !== marble.id), { id: marble.id, nameAr: marble.nameAr, category: marble.category, code: marble.code, area, pricePerM2, total }]);
   };
@@ -566,11 +564,16 @@ export default function ProfessorKitchensEngine() {
             <h2 className="text-2xl font-bold mb-2">🪨 الرخام والكونتر</h2>
             <p className="text-white/40 text-sm mb-4">الأسعار تقديرية حسب الفئة — يمكن تعديلها لاحقاً</p>
             <div className="mb-2 flex flex-wrap gap-2 text-xs">
-              {Object.entries(MARBLE_PRICES).map(([cat, price]) => (
-                <span key={cat} className="bg-white/5 border border-white/10 px-3 py-1 rounded-full text-white/60">
-                  {cat === "granite" ? "جرانيت" : cat === "porcelain" ? "بورسيلين" : cat === "quartz" ? "كوارتز" : "أخرى"}: {fmt(price)}/م²
-                </span>
-              ))}
+              {["granite","porcelain","quartz","other"].map(cat => {
+                const sample = (marbles as any[]).find((m:any) => m.category === cat);
+                if (!sample) return null;
+                const label = cat === "granite" ? "جرانيت" : cat === "porcelain" ? "بورسيلين" : cat === "quartz" ? "كوارتز" : "أخرى";
+                return (
+                  <span key={cat} className="bg-white/5 border border-white/10 px-3 py-1 rounded-full text-white/60">
+                    {label}: يبدأ من {fmt(Math.min(...(marbles as any[]).filter((m:any)=>m.category===cat).map((m:any)=>m.price)))}/م²
+                  </span>
+                );
+              })}
             </div>
 
             {selMarble.length > 0 && (
@@ -1217,7 +1220,7 @@ function AccCard({ acc, onAdd, showPb, onTogglePb }: { acc: any; onAdd: any; sho
 
 function MrbCard({ marble, onAdd }: { marble: any; onAdd: any }) {
   const [area, setArea] = useState("");
-  const pricePerM2 = MARBLE_PRICES[marble.category] ?? 700;
+  const pricePerM2 = marble.price ?? 0;
   const total = area && parseFloat(area) > 0 ? Math.round(pricePerM2 * parseFloat(area)) : 0;
   const catLabel: Record<string,string> = { granite: "جرانيت", porcelain: "بورسيلين", quartz: "كوارتز", other: "أخرى" };
   return (
