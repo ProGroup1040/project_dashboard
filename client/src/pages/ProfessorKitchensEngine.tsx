@@ -7,6 +7,7 @@ import {
   Play, X, Upload, Video, FileUp, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DarkSelect, DarkOption } from "@/components/DarkSelect";
 import { trpc } from "@/lib/trpc";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -296,13 +297,13 @@ export default function ProfessorKitchensEngine() {
             ))}
             <div>
               <label className="block text-sm text-white/60 mb-1">المحافظة</label>
-              <select value={governorate} onChange={e => setGovernorate(e.target.value)}
-                className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500">
-                <option value="">اختر المحافظة</option>
+              <DarkSelect value={governorate} onChange={e => setGovernorate(e.target.value)}
+                className="w-full rounded-xl px-4 py-3 text-sm">
+                <DarkOption value="">اختر المحافظة</DarkOption>
                 {(transportRules as any[]).map((r: any) => (
-                  <option key={r.id} value={r.governorate}>{r.governorate}</option>
+                  <DarkOption key={r.id} value={r.governorate}>{r.governorate}</DarkOption>
                 ))}
-              </select>
+              </DarkSelect>
             </div>
           </div>
         )}
@@ -343,20 +344,20 @@ export default function ProfessorKitchensEngine() {
                       <tr key={piece.id} className={`border-t border-white/5 ${idx % 2 === 0 ? "bg-white/[0.02]" : ""}`}>
                         <td className="px-3 py-2 text-amber-400 font-bold text-center text-sm">{idx + 1}</td>
                         <td className="px-3 py-2">
-                          <select value={piece.location} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, location: e.target.value } : x))}
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500">
-                            <option value="سفلي">سفلي</option>
-                            <option value="علوي">علوي</option>
-                            <option value="طولي">طولي</option>
-                            <option value="بلاكار">بلاكار</option>
-                          </select>
+                          <DarkSelect value={piece.location} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, location: e.target.value } : x))}
+                            className="w-full px-2 py-1.5 text-xs">
+                            <DarkOption value="سفلي">سفلي</DarkOption>
+                            <DarkOption value="علوي">علوي</DarkOption>
+                            <DarkOption value="طولي">طولي</DarkOption>
+                            <DarkOption value="بلاكار">بلاكار</DarkOption>
+                          </DarkSelect>
                         </td>
                         <td className="px-3 py-2">
-                          <select value={piece.wall} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, wall: e.target.value } : x))}
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500">
-                            <option value="">—</option>
-                            {["A","B","C","D","E","F"].map(w => <option key={w} value={w}>{w}</option>)}
-                          </select>
+                          <DarkSelect value={piece.wall} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, wall: e.target.value } : x))}
+                            className="w-full px-2 py-1.5 text-xs">
+                            <DarkOption value="">—</DarkOption>
+                            {["A","B","C","D","E","F"].map(w => <DarkOption key={w} value={w}>{w}</DarkOption>)}
+                          </DarkSelect>
                         </td>
                         <td className="px-3 py-2">
                           <input list={`desc-list-${piece.id}`} value={piece.desc} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, desc: e.target.value } : x))}
@@ -377,13 +378,13 @@ export default function ProfessorKitchensEngine() {
                             className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500 text-center" />
                         </td>
                         <td className="px-3 py-2">
-                          <select value={piece.material} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, material: e.target.value } : x))}
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500">
-                            <option value="">— اختر —</option>
+                          <DarkSelect value={piece.material} onChange={e => setPieces(p => p.map(x => x.id === piece.id ? { ...x, material: e.target.value } : x))}
+                            className="w-full px-2 py-1.5 text-xs">
+                            <DarkOption value="">— اختر —</DarkOption>
                             {(materials as any[]).map((m: any) => (
-                              <option key={m.id} value={m.nameAr}>{m.nameAr}</option>
+                              <DarkOption key={m.id} value={m.nameAr}>{m.nameAr}</DarkOption>
                             ))}
-                          </select>
+                          </DarkSelect>
                         </td>
                         <td className="px-3 py-2 text-center">
                           <span className={`font-bold text-sm ${tot > 0 ? "text-amber-400" : "text-white/20"}`}>{tot > 0 ? tot.toFixed(2) : "—"}</span>
@@ -839,10 +840,10 @@ function MatCard({ mat, onAdd, defaultArea }: { mat: any; onAdd: any; defaultAre
       <div className="grid grid-cols-2 gap-2 mt-3">
         <input type="number" step="0.1" value={area} onChange={e => setArea(e.target.value)} placeholder="المساحة م²"
           className="bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500" />
-        <select value={loc} onChange={e => setLoc(e.target.value)}
-          className="bg-white/5 border border-white/20 rounded-lg px-2 py-2 text-white text-xs focus:outline-none focus:border-amber-500">
-          <option>سفلي وعلوي</option><option>سفلي فقط</option><option>علوي فقط</option><option>طويل</option><option>خاص</option>
-        </select>
+        <DarkSelect value={loc} onChange={e => setLoc(e.target.value)}
+          className="px-2 py-2 text-xs">
+          <DarkOption>سفلي وعلوي</DarkOption><DarkOption>سفلي فقط</DarkOption><DarkOption>علوي فقط</DarkOption><DarkOption>طويل</DarkOption><DarkOption>خاص</DarkOption>
+        </DarkSelect>
       </div>
       {total > 0 && <p className="text-xs text-white/40 mt-1">= {fmt(total)}</p>}
       <Button onClick={() => area && parseFloat(area) > 0 && onAdd(mat, parseFloat(area), loc)}
@@ -1224,21 +1225,27 @@ function MrbCard({ marble, onAdd }: { marble: any; onAdd: any }) {
   const total = area && parseFloat(area) > 0 ? Math.round(pricePerM2 * parseFloat(area)) : 0;
   const catLabel: Record<string,string> = { granite: "جرانيت", porcelain: "بورسيلين", quartz: "كوارتز", other: "أخرى" };
   return (
-    <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-      <div className="flex items-start justify-between mb-2">
-        <div>
-          <h4 className="font-bold text-white text-sm">{marble.nameAr}</h4>
-          <p className="text-xs text-white/40">{marble.code} — {catLabel[marble.category] ?? marble.category}</p>
+    <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+      {marble.imageUrl && (
+        <img src={marble.imageUrl} alt={marble.nameAr}
+          className="w-full h-28 object-cover" />
+      )}
+      <div className="p-3">
+        <div className="flex items-start justify-between mb-1">
+          <div>
+            <h4 className="font-bold text-white text-sm">{marble.nameAr}</h4>
+            <p className="text-xs text-white/40">{marble.code} — {catLabel[marble.category] ?? marble.category}</p>
+          </div>
+          <span className="text-amber-400 font-bold text-sm whitespace-nowrap">{fmt(pricePerM2)}/م²</span>
         </div>
-        <span className="text-amber-400 font-bold text-sm">{fmt(pricePerM2)}/م²</span>
+        <input type="number" step="0.1" value={area} onChange={e => setArea(e.target.value)} placeholder="المساحة م²"
+          className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-white text-xs mt-2 focus:outline-none focus:border-amber-500" />
+        {total > 0 && <p className="text-xs text-white/40 mt-1">= {fmt(total)}</p>}
+        <Button onClick={() => area && parseFloat(area) > 0 && onAdd(marble, parseFloat(area))}
+          className="w-full mt-2 bg-amber-600/20 hover:bg-amber-600/40 text-amber-400 border border-amber-600/30 text-xs h-8">
+          <Plus className="w-3 h-3 ml-1" /> إضافة
+        </Button>
       </div>
-      <input type="number" step="0.1" value={area} onChange={e => setArea(e.target.value)} placeholder="المساحة م²"
-        className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-white text-xs mt-2 focus:outline-none focus:border-amber-500" />
-      {total > 0 && <p className="text-xs text-white/40 mt-1">= {fmt(total)}</p>}
-      <Button onClick={() => area && parseFloat(area) > 0 && onAdd(marble, parseFloat(area))}
-        className="w-full mt-3 bg-amber-600/20 hover:bg-amber-600/40 text-amber-400 border border-amber-600/30 text-xs h-8">
-        <Plus className="w-3 h-3 ml-1" /> إضافة
-      </Button>
     </div>
   );
 }

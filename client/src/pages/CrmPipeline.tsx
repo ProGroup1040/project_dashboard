@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { DarkSelect, DarkOption } from "@/components/DarkSelect";
 
 // ===================== TYPES =====================
 type PipelineStage =
@@ -212,9 +213,9 @@ export default function CrmPipeline() {
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1">نوع المشروع</label>
-                <select value={newProjectType} onChange={e => setNewProjectType(e.target.value as ProjectType)} className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm">
-                  {Object.entries(PROJECT_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                </select>
+                <DarkSelect value={newProjectType} onChange={e => setNewProjectType(e.target.value as ProjectType)} className="w-full px-3 py-2 text-sm">
+                  {Object.entries(PROJECT_TYPE_LABELS).map(([k, v]) => <DarkOption key={k} value={k}>{v}</DarkOption>)}
+                </DarkSelect>
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1">قيمة العرض (جنيه)</label>

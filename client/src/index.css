@@ -93,6 +93,40 @@
     font-family: 'Cairo', 'Tajawal', sans-serif;
     direction: rtl;
   }
+
+  /* ===== Global select dark-theme fix =====
+   * Native <select> elements inherit OS styling by default.
+   * Force dark background + white text on ALL states.
+   * Works on Chrome, Edge, Firefox, Safari (with color-scheme hint).
+   */
+  select {
+    color-scheme: dark;
+    background-color: #0f0f1a;
+    color: #ffffff;
+    border-color: rgba(255,255,255,0.2);
+  }
+  select:focus {
+    outline: none;
+    border-color: #d97706;
+    box-shadow: 0 0 0 2px rgba(217,119,6,0.3);
+  }
+  select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  /* Force dark bg on <option> elements (Firefox/Windows) */
+  select option {
+    background-color: #0f0f1a;
+    color: #ffffff;
+  }
+  select option:disabled {
+    color: #6b7280;
+  }
+  select option:checked,
+  select option:hover {
+    background-color: #1e1e3a;
+    color: #fbbf24;
+  }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
   [type="button"]:not(:disabled),

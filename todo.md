@@ -125,3 +125,15 @@
 - [ ] Extract and upload preview pages from all 17 uploaded color catalogs
 - [ ] Build catalog browsing UI with material-aware filtering
 - [ ] Update Just Top accessory image mapping using new JUSTTOP catalog product photos
+
+## Marble Catalog Images (July 2026)
+- [ ] Extract marble catalog images from PDF (32 marble types) and map each to its code
+- [ ] Add imageUrl column to kitchen_marble schema and database
+- [ ] Upload marble catalog images to static assets storage
+- [ ] Update ProfessorKitchensEngine marble cards to show marble texture image
+
+## Dropdown Dark Theme Fix (July 2026)
+- [x] Create unified DarkSelect reusable component with proper dark theme styling
+- [x] Fix global select CSS in index.css (dark bg, white text, all states)
+- [x] Replace all <select> elements in ProfessorKitchensEngine with DarkSelect
+- [x] Review and fix dropdowns in all other pages (CrmPipeline fixed)

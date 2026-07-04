@@ -264,6 +264,7 @@ export const kitchenMarble = mysqlTable("kitchen_marble", {
   nameAr: varchar("nameAr", { length: 128 }).notNull(),
   category: mysqlEnum("category", ["granite", "porcelain", "quartz", "other"]).notNull(),
   price: int("price").default(0).notNull(), // EGP per m²
+  imageUrl: varchar("imageUrl", { length: 255 }), // catalog texture image
   isActive: boolean("isActive").default(true).notNull(),
   sortOrder: int("sortOrder").default(0).notNull(),
 });
