@@ -72,8 +72,8 @@ export default function ProfessorKitchensEngine() {
   const tallArea    = useMemo(() => pieces.filter(p => p.location === "طولي").reduce((s, p) => s + calcPieceTotal(p), 0).toFixed(2), [pieces]);
   const specialArea = useMemo(() => pieces.filter(p => p.location === "بلاكار").reduce((s, p) => s + calcPieceTotal(p), 0).toFixed(2), [pieces]);
 
-  // Steps 3-7
-  const [selMaterials,   setSelMaterials]   = useState<SelMaterial[]>([]);
+  // Legacy no-op (selMaterials is now derived from pieces below)
+  const setSelMaterials = (_: any) => {};
   const [selAccessories, setSelAccessories] = useState<SelAccessory[]>([]);
   const [selMarble,      setSelMarble]      = useState<SelMarble[]>([]);
   const [selCladding,    setSelCladding]    = useState<SelCladding[]>([]);
@@ -100,6 +100,24 @@ export default function ProfessorKitchensEngine() {
   const { data: marbles     = [] } = trpc.kitchen.getMarble.useQuery();
   const { data: claddings   = [] } = trpc.kitchen.getCladding.useQuery();
   const { data: transportRules = [] } = trpc.platform.getTransportRules.useQuery();
+
+  // selMaterials is derived automatically from pieces (Step 2 selections)
+  const selMaterials: SelMaterial[] = useMemo(() => {
+    const matMap: Record<string, SelMaterial> = {};
+    pieces.forEach(p => {
+      if (!p.material) return;
+      const area = calcPieceTotal(p);
+      if (area <= 0) return;
+      const matData = (materials as any[]).find((m: any) => m.nameAr === p.material);
+      if (!matData) return;
+      if (!matMap[p.material]) {
+        matMap[p.material] = { id: matData.id, nameAr: matData.nameAr, brand: matData.brand ?? "", pricePerMeter: matData.pricePerMeter ?? 0, area: 0, total: 0, location: p.location };
+      }
+      matMap[p.material].area += area;
+      matMap[p.material].total = Math.round(matMap[p.material].pricePerMeter * matMap[p.material].area);
+    });
+    return Object.values(matMap);
+  }, [pieces, materials]);
 
   // ─── Totals ────────────────────────────────────────────────────────────────
   const matTotal  = useMemo(() => selMaterials.reduce((s, m) => s + m.total, 0), [selMaterials]);
@@ -140,10 +158,8 @@ export default function ProfessorKitchensEngine() {
   const goPrev = () => { if (step > 1) setStep(s => s - 1); };
 
   // ─── Helpers ───────────────────────────────────────────────────────────────
-  const addMaterial = (mat: any, area: number, location: string) => {
-    const total = Math.round((mat.pricePerMeter ?? 0) * area);
-    setSelMaterials(prev => [...prev.filter(m => m.id !== mat.id), { id: mat.id, nameAr: mat.nameAr, brand: mat.brand, pricePerMeter: mat.pricePerMeter, area, total, location }]);
-  };
+  // addMaterial is a no-op: selMaterials is now derived from pieces automatically
+  const addMaterial = (_mat: any, _area: number, _location: string) => { /* derived from pieces */ };
 
   const addAccessory = (acc: any) => {
     setSelAccessories(prev => {

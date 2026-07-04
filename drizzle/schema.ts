@@ -637,12 +637,29 @@ export type SalesScript = typeof salesScripts.$inferSelect;
 export const transportRules = mysqlTable("transport_rules", {
   id: int("id").autoincrement().primaryKey(),
   governorate: varchar("governorate", { length: 128 }).notNull(),
-  basePrice: int("basePrice").notNull(),
-  pricePerKm: int("pricePerKm").default(0),
-  carryingPrice: int("carryingPrice").default(0), // floor carrying
+  // Small car (سيارة دباية مغلقة) — مطبخ تحت 12 متر
+  smallCarPrice: int("smallCarPrice").notNull().default(0),
+  // Large car (سيارة جامبو مغلقة) — مطبخ فوق 12 متر
+  largeCarPrice: int("largeCarPrice").notNull().default(0),
+  // Legacy field kept for backward compat
+  basePrice: int("basePrice").notNull().default(0),
+  carryingPrice: int("carryingPrice").default(0),
   notes: text("notes"),
   isActive: boolean("isActive").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+/**
+ * Carrying (مشال) price tiers — floor-based
+ */
+export const carryingTiers = mysqlTable("carrying_tiers", {
+  id: int("id").autoincrement().primaryKey(),
+  label: varchar("label", { length: 64 }).notNull(), // e.g. "الدور الأول والثاني"
+  price: int("price").notNull(),                    // 0 = مجانا
+  floorFrom: int("floorFrom").notNull(),
+  floorTo: int("floorTo").default(999),             // null = open-ended
+  extraPerFloor: int("extraPerFloor").default(0),   // 400 after floor 5
+  isActive: boolean("isActive").default(true).notNull(),
 });
 export type TransportRule = typeof transportRules.$inferSelect;
 

@@ -137,3 +137,8 @@
 - [x] Fix global select CSS in index.css (dark bg, white text, all states)
 - [x] Replace all <select> elements in ProfessorKitchensEngine with DarkSelect
 - [x] Review and fix dropdowns in all other pages (CrmPipeline fixed)
+
+## Transport Prices Update (July 2026)
+- [ ] Update DB schema: add carType (small/large), carryingFloor pricing
+- [ ] Delete old transport rules and insert correct prices from official table
+- [ ] Update UI to show two car types and floor-based carrying price
