@@ -1,10 +1,10 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import {
   ArrowLeft, ArrowRight, CheckCircle2, AlertTriangle, AlertCircle, Info,
   Eye, EyeOff, Printer, Share2, BookOpen, Plus, Trash2, RefreshCw,
-  Play, X, Upload, Video, FileUp, Loader2
+  Play, X, Upload, Video, FileUp, Loader2, Save, FolderOpen, Cloud
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DarkSelect, DarkOption } from "@/components/DarkSelect";
@@ -180,6 +180,99 @@ export default function ProfessorKitchensEngine() {
     setSelCladding(prev => [...prev.filter(c => c.id !== cladding.id), { id: cladding.id, nameAr: cladding.nameAr, price: cladding.price, qty, total }]);
   };
 
+  // ─── Save/Load System ────────────────────────────────────────────────────────
+  const [quotationId, setQuotationId] = useState<number | null>(null);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [showLoadModal, setShowLoadModal] = useState(false);
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const createQuotationMutation = trpc.platform.createQuotation.useMutation();
+  const saveEngineStateMutation = trpc.platform.saveEngineState.useMutation();
+
+  const buildEngineState = useCallback(() => ({
+    step, viewMode,
+    clientName, clientPhone, address, governorate, engineerName,
+    pieces, nextPieceId,
+    selAccessories, selMarble, selCladding, transport,
+    discountType, discountValue, discountReason,
+    notes, internalNotes,
+  }), [step, viewMode, clientName, clientPhone, address, governorate, engineerName,
+    pieces, nextPieceId, selAccessories, selMarble, selCladding, transport,
+    discountType, discountValue, discountReason, notes, internalNotes]);
+
+  const doSave = useCallback(async (showToast = false) => {
+    try {
+      setSaveStatus("saving");
+      const state = buildEngineState();
+      const engineStateJson = JSON.stringify(state);
+      const meta = {
+        clientName: clientName || undefined,
+        clientPhone: clientPhone || undefined,
+        address: address || undefined,
+        governorate: governorate || undefined,
+        engineerName: engineerName || undefined,
+        lowerUnitsArea: lowerArea,
+        upperUnitsArea: upperArea,
+        tallUnitsArea: tallArea,
+        specialUnitsArea: specialArea,
+        materialsJson: JSON.stringify(selMaterials),
+        accessoriesJson: JSON.stringify(selAccessories),
+        claddingJson: JSON.stringify(selCladding),
+        marbleJson: JSON.stringify(selMarble),
+        transportJson: transport ? JSON.stringify(transport) : undefined,
+        discountType: discountType !== "none" ? discountType : undefined,
+        discountValue: discountValue || undefined,
+        discountReason: discountReason || undefined,
+        materialsTotalPrice: matTotal,
+        accessoriesTotalPrice: accTotal,
+        claddingTotalPrice: cldTotal,
+        marbleTotalPrice: mrbTotal,
+        transportTotalPrice: trpTotal,
+        subtotal,
+        discountAmount: discAmt,
+        grandTotal,
+        notes: notes || undefined,
+        status: "draft" as const,
+      };
+
+      let qId = quotationId;
+      if (!qId) {
+        const created = await createQuotationMutation.mutateAsync({
+          quotationCode: projectCode,
+          brandKey: "professor_kitchens",
+          ...meta,
+        });
+        if (created?.id) {
+          qId = created.id;
+          setQuotationId(qId);
+        }
+      }
+      if (qId) {
+        await saveEngineStateMutation.mutateAsync({ id: qId, engineStateJson, ...meta });
+        setSaveStatus("saved");
+        if (showToast) toast.success("✅ تم حفظ التسعير بنجاح");
+        setTimeout(() => setSaveStatus("idle"), 3000);
+      }
+    } catch (err: any) {
+      setSaveStatus("error");
+      if (showToast) toast.error("خطأ في الحفظ: " + err.message);
+      setTimeout(() => setSaveStatus("idle"), 3000);
+    }
+  }, [quotationId, projectCode, buildEngineState, clientName, clientPhone, address, governorate,
+    engineerName, lowerArea, upperArea, tallArea, specialArea, selMaterials, selAccessories,
+    selCladding, selMarble, transport, discountType, discountValue, discountReason,
+    matTotal, accTotal, cldTotal, mrbTotal, trpTotal, subtotal, discAmt, grandTotal, notes]);
+
+  // Auto-save: trigger 3s after any state change (only if clientName is set)
+  useEffect(() => {
+    if (!clientName.trim()) return;
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => { doSave(false); }, 3000);
+    return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
+  }, [clientName, clientPhone, address, governorate, engineerName, pieces,
+    selAccessories, selMarble, selCladding, transport, discountType, discountValue,
+    discountReason, notes, internalNotes]);
+
   // ─── SKP Import ─────────────────────────────────────────────────────────────
   const [skpLoading, setSkpLoading] = useState(false);
   const [skpResult, setSkpResult]   = useState<any>(null);
@@ -223,6 +316,7 @@ export default function ProfessorKitchensEngine() {
 
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
+    <>
     <div className="min-h-screen bg-[#0a0a0a] text-white" dir="rtl">
 
       {/* Header */}
@@ -236,6 +330,30 @@ export default function ProfessorKitchensEngine() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* Save Status Indicator */}
+            <div className="flex items-center gap-1.5">
+              {saveStatus === "saving" && <span className="flex items-center gap-1 text-xs text-amber-400"><Loader2 className="w-3 h-3 animate-spin" />حفظ...</span>}
+              {saveStatus === "saved" && <span className="flex items-center gap-1 text-xs text-green-400"><Cloud className="w-3 h-3" />محفوظ ✓</span>}
+              {saveStatus === "error" && <span className="text-xs text-red-400">خطأ في الحفظ</span>}
+            </div>
+            {/* Manual Save Button */}
+            <button
+              onClick={() => doSave(true)}
+              title="حفظ التسعير"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-green-600/20 text-green-400 hover:bg-green-600/40 transition-colors"
+            >
+              <Save className="w-4 h-4" />
+              <span className="hidden sm:inline">حفظ</span>
+            </button>
+            {/* Load Previous */}
+            <button
+              onClick={() => setShowLoadModal(true)}
+              title="استدعاء تسعير سابق"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-purple-600/20 text-purple-400 hover:bg-purple-600/40 transition-colors"
+            >
+              <FolderOpen className="w-4 h-4" />
+              <span className="hidden sm:inline">استدعاء</span>
+            </button>
             {/* SKP Import Button */}
             <input ref={skpInputRef} type="file" accept=".skp" className="hidden" onChange={handleSkpImport} />
             <button
@@ -833,12 +951,45 @@ export default function ProfessorKitchensEngine() {
               <CheckCircle2 className="w-4 h-4 ml-1" /> حفظ وإنهاء
             </Button>
           )}
-        </div>
+                </div>
       </div>
     </div>
+
+    {/* ─── Load Previous Quotation Modal ─── */}
+    {showLoadModal && (
+      <LoadQuotationModal
+        onClose={() => setShowLoadModal(false)}
+        onLoad={(q: any) => {
+          try {
+            const state = JSON.parse(q.engineStateJson || "{}");
+            if (state.clientName !== undefined) setClientName(state.clientName);
+            if (state.clientPhone !== undefined) setClientPhone(state.clientPhone);
+            if (state.address !== undefined) setAddress(state.address);
+            if (state.governorate !== undefined) setGovernorate(state.governorate);
+            if (state.engineerName !== undefined) setEngineerName(state.engineerName);
+            if (state.pieces) { setPieces(state.pieces); setNextPieceId(Math.max(...state.pieces.map((p: any) => p.id), 0) + 1); }
+            if (state.selAccessories) setSelAccessories(state.selAccessories);
+            if (state.selMarble) setSelMarble(state.selMarble);
+            if (state.selCladding) setSelCladding(state.selCladding);
+            if (state.transport !== undefined) setTransport(state.transport);
+            if (state.discountType) setDiscountType(state.discountType);
+            if (state.discountValue !== undefined) setDiscountValue(state.discountValue);
+            if (state.discountReason) setDiscountReason(state.discountReason);
+            if (state.notes) setNotes(state.notes);
+            if (state.internalNotes) setInternalNotes(state.internalNotes);
+            setQuotationId(q.id);
+            setStep(state.step || 1);
+            setShowLoadModal(false);
+            toast.success(`✅ تم تحميل التسعير: ${q.quotationCode}`);
+          } catch (e) {
+            toast.error("خطأ في تحميل التسعير");
+          }
+        }}
+      />
+    )}
+    </>
   );
 }
-
 // ─── Card components ──────────────────────────────────────────────────────────
 function MatCard({ mat, onAdd, defaultArea }: { mat: any; onAdd: any; defaultArea: number }) {
   const [area, setArea]     = useState(defaultArea > 0 ? String(defaultArea) : "");
@@ -1656,6 +1807,82 @@ const MATERIAL_CATALOG_MAP: { keywords: string[]; catalogs: { slug: string; labe
     ],
   },
 ];
+
+// ─── LoadQuotationModal Component ────────────────────────────────────────────────────────
+function LoadQuotationModal({ onClose, onLoad }: { onClose: () => void; onLoad: (q: any) => void }) {
+  const [query, setQuery] = React.useState("");
+  const [statusFilter, setStatusFilter] = React.useState("");
+  const { data: results = [], isLoading } = trpc.platform.searchQuotations.useQuery(
+    { query: query || undefined, status: statusFilter || undefined, brandKey: "professor_kitchens", limit: 50 },
+    { placeholderData: (prev: any) => prev }
+  );
+  const statusLabels: Record<string, string> = {
+    draft: "مسودة",
+    pending_approval: "بانتظار موافقة",
+    approved: "معتمد",
+    sent_to_client: "أرسل للعميل",
+    accepted: "مقبول",
+    rejected: "مرفوض",
+    revised: "قيد المراجعة",
+  };
+  return (
+    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-[#0f0f1a] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-4 border-b border-white/10">
+          <h2 className="text-lg font-bold text-amber-400">📂 استدعاء تسعير سابق</h2>
+          <button onClick={onClose} className="text-white/50 hover:text-white">✕</button>
+        </div>
+        <div className="p-4 flex gap-2">
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="ابحث باسم العميل أو رقم الهاتف أو كود المشروع..."
+            className="flex-1 bg-white/5 border border-white/20 rounded-xl px-4 py-2 text-white placeholder-white/30 focus:outline-none focus:border-amber-500 text-sm"
+          />
+          <select
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
+            className="bg-[#0f0f1a] border border-white/20 rounded-xl px-3 py-2 text-white text-sm"
+            style={{ colorScheme: "dark" }}
+          >
+            <option value="">كل الحالات</option>
+            {Object.entries(statusLabels).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
+          {isLoading && <div className="text-center text-white/40 py-8">جاري البحث...</div>}
+          {!isLoading && (results as any[]).length === 0 && (
+            <div className="text-center text-white/40 py-8">لا توجد نتائج</div>
+          )}
+          {(results as any[]).map((q: any) => (
+            <button
+              key={q.id}
+              onClick={() => onLoad(q)}
+              className="w-full text-right bg-white/5 hover:bg-amber-600/20 border border-white/10 hover:border-amber-500/50 rounded-xl p-3 transition-all"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-amber-400 font-mono text-sm">{q.quotationCode}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                  q.status === "approved" ? "bg-green-900/50 text-green-400" :
+                  q.status === "draft" ? "bg-gray-900/50 text-gray-400" :
+                  q.status === "sent_to_client" ? "bg-blue-900/50 text-blue-400" :
+                  "bg-amber-900/50 text-amber-400"
+                }`}>{statusLabels[q.status] || q.status}</span>
+              </div>
+              <div className="text-white font-medium mt-1">{q.clientName || "بدون اسم"}</div>
+              <div className="flex gap-3 mt-1 text-xs text-white/40">
+                {q.clientPhone && <span>📞 {q.clientPhone}</span>}
+                {q.engineerName && <span>👤 {q.engineerName}</span>}
+                {q.grandTotal && <span>💰 {Number(q.grandTotal).toLocaleString("ar-EG")} ج</span>}
+                <span>📅 {new Date(q.createdAt).toLocaleDateString("ar-EG")}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function getRelevantCatalogs(selMaterials: SelMaterial[]) {
   const seen = new Set<string>();

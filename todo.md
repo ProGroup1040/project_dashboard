@@ -142,3 +142,16 @@
 - [ ] Update DB schema: add carType (small/large), carryingFloor pricing
 - [ ] Delete old transport rules and insert correct prices from official table
 - [ ] Update UI to show two car types and floor-based carrying price
+
+## Catalog Full Pages Upload (Jul 4 2026)
+- [ ] Extract all pages from 11 relevant catalogs (Kastamonu Matt, GlossMax, Glossy Panel, Yildiz UV/Matt/Mel, Lumber-J CPL/PET, N-LAM, Decorestar, GoodWood)
+- [ ] Upload all pages to S3 via manus-upload-file --webdev
+- [ ] Update catalog page arrays in ProfessorKitchensEngine with full page URLs
+
+## Pricing Save/Restore System (Jul 4 2026)
+- [x] Add engineStateJson column to quotations_v2 table
+- [x] Add tRPC procedures: searchQuotations, saveEngineState, loadEngineState
+- [x] Implement Auto Save (debounced 3s) on every state change in engine
+- [x] Add manual "حفظ التسعير" button in engine header
+- [x] Add LoadQuotationModal with search by name/phone/code/engineer/status
+- [x] Restore full engine state when loading a saved project

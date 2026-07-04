@@ -104,7 +104,7 @@ export function isToolComplete(state: ToolInvocationState): boolean {
  */
 export interface ToolPartRendererProps {
   /** The tool part from the message - type is `tool-${toolName}` */
-  part: UIMessagePart & { type: `tool-${string}` };
+  part: UIMessagePart<any, any> & { type: `tool-${string}` };
   /** Extracted tool name for convenience */
   toolName: string;
   /** Current state of the tool invocation */
@@ -245,7 +245,7 @@ function MessageBubble({
             }
             return (
               <div key={i} className="prose prose-sm dark:prose-invert max-w-none">
-                <Markdown mode={isStreaming ? "typewriter" : "static"} typewriterSpeed={50}>
+                <Markdown mode={isStreaming ? "streaming" : "static"}>
                   {part.text}
                 </Markdown>
               </div>
@@ -256,7 +256,7 @@ function MessageBubble({
           if (part.type.startsWith("tool-")) {
             const toolName = part.type.replace("tool-", "");
             // Cast to access tool-specific properties
-            const toolPart = part as UIMessagePart & {
+            const toolPart = part as UIMessagePart<any, any> & {
               type: `tool-${string}`;
               toolCallId: string;
               state: ToolInvocationState;

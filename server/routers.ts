@@ -819,6 +819,76 @@ export const appRouter = router({
         return getQuotationKPIs(input.brandKey);
       }),
 
+    // Save/Load Engine State
+    saveEngineState: publicProcedure
+      .input(z.object({
+        id: z.number(),
+        engineStateJson: z.string(),
+        materialsTotalPrice: z.number().optional(),
+        accessoriesTotalPrice: z.number().optional(),
+        claddingTotalPrice: z.number().optional(),
+        marbleTotalPrice: z.number().optional(),
+        transportTotalPrice: z.number().optional(),
+        subtotal: z.number().optional(),
+        discountAmount: z.number().optional(),
+        grandTotal: z.number().optional(),
+        status: z.string().optional(),
+        clientName: z.string().optional(),
+        clientPhone: z.string().optional(),
+        address: z.string().optional(),
+        governorate: z.string().optional(),
+        engineerName: z.string().optional(),
+        lowerUnitsArea: z.string().optional(),
+        upperUnitsArea: z.string().optional(),
+        tallUnitsArea: z.string().optional(),
+        specialUnitsArea: z.string().optional(),
+        materialsJson: z.string().optional(),
+        accessoriesJson: z.string().optional(),
+        claddingJson: z.string().optional(),
+        marbleJson: z.string().optional(),
+        transportJson: z.string().optional(),
+        discountType: z.string().optional(),
+        discountValue: z.number().optional(),
+        discountReason: z.string().optional(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { saveEngineState } = await import("./db-platform");
+        const { id, engineStateJson, ...meta } = input;
+        return saveEngineState(id, engineStateJson, meta as any);
+      }),
+
+    getEngineState: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const { getEngineState } = await import("./db-platform");
+        return getEngineState(input.id);
+      }),
+
+    searchQuotations: publicProcedure
+      .input(z.object({
+        query: z.string().optional(),
+        engineerName: z.string().optional(),
+        status: z.string().optional(),
+        brandKey: z.string().optional(),
+        limit: z.number().optional(),
+      }))
+      .query(async ({ input }) => {
+        const { searchQuotationsV2 } = await import("./db-platform");
+        return searchQuotationsV2(input);
+      }),
+
+    updateQuotationStatus: publicProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(["draft", "pending_approval", "approved", "sent_to_client", "accepted", "rejected", "revised"]),
+      }))
+      .mutation(async ({ input }) => {
+        const { updateQuotationV2 } = await import("./db-platform");
+        await updateQuotationV2(input.id, { status: input.status });
+        return { success: true };
+      }),
+
     // Warnings
     generateWarnings: publicProcedure
       .input(z.object({

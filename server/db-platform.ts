@@ -176,6 +176,53 @@ export async function listQuotationsV2(brandKey?: string) {
   return db.select().from(quotationsV2).orderBy(desc(quotationsV2.createdAt)).limit(50);
 }
 
+export async function searchQuotationsV2(params: {
+  query?: string; engineerName?: string; status?: string; brandKey?: string; limit?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  let results = await db.select().from(quotationsV2).orderBy(desc(quotationsV2.updatedAt)).limit(500);
+  const q = (params.query || "").trim().toLowerCase();
+  if (q) {
+    results = results.filter(r =>
+      (r.clientName || "").toLowerCase().includes(q) ||
+      (r.clientPhone || "").toLowerCase().includes(q) ||
+      (r.quotationCode || "").toLowerCase().includes(q) ||
+      (r.engineerName || "").toLowerCase().includes(q)
+    );
+  }
+  if (params.engineerName) results = results.filter(r => (r.engineerName || "").toLowerCase().includes(params.engineerName!.toLowerCase()));
+  if (params.status) results = results.filter(r => r.status === params.status);
+  if (params.brandKey) results = results.filter(r => r.brandKey === params.brandKey);
+  return results.slice(0, params.limit || 50);
+}
+
+export async function saveEngineState(id: number, engineStateJson: string, meta: {
+  materialsTotalPrice?: number; accessoriesTotalPrice?: number;
+  claddingTotalPrice?: number; marbleTotalPrice?: number;
+  transportTotalPrice?: number; subtotal?: number;
+  discountAmount?: number; grandTotal?: number;
+  status?: string; clientName?: string; clientPhone?: string;
+  address?: string; governorate?: string; engineerName?: string;
+  lowerUnitsArea?: string; upperUnitsArea?: string;
+  tallUnitsArea?: string; specialUnitsArea?: string;
+  materialsJson?: string; accessoriesJson?: string;
+  claddingJson?: string; marbleJson?: string; transportJson?: string;
+  discountType?: string; discountValue?: number; discountReason?: string; notes?: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(quotationsV2).set({ engineStateJson, ...(meta as any), updatedAt: new Date() }).where(eq(quotationsV2.id, id));
+  return { success: true };
+}
+
+export async function getEngineState(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const rows = await db.select().from(quotationsV2).where(eq(quotationsV2.id, id)).limit(1);
+  return rows[0] || null;
+}
+
 // ─── Approval Logs ────────────────────────────────────────────────────────────
 export async function createApprovalRequest(data: {
   quotationId: number; requestType: "discount" | "free_item" | "price_override" | "final_approval";

@@ -166,7 +166,7 @@ const components = {
 // MARKDOWN COMPONENT
 // ============================================================================
 
-type MarkdownProps = Omit<ComponentProps<typeof Streamdown>, "components" | "plugins"> & {
+type MarkdownProps = Omit<ComponentProps<typeof Streamdown>, "components"> & {
   /** Override specific element renderers */
   components?: Partial<typeof components>;
   /** Enable/disable code syntax highlighting (default: true) */
@@ -217,7 +217,6 @@ export const Markdown = memo(function Markdown({
     <Streamdown
       className={cn("text-foreground leading-relaxed", className)}
       components={{ ...components, ...customComponents }}
-      plugins={plugins}
       shikiTheme={shikiTheme}
       controls={controls}
       {...props}

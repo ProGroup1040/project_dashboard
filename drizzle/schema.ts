@@ -713,6 +713,9 @@ export const quotationsV2 = mysqlTable("quotations_v2", {
   discountAmount: int("discountAmount").default(0),
   grandTotal: int("grandTotal").default(0),
 
+  // Full engine state (for save/restore)
+  engineStateJson: text("engineStateJson"), // full JSON snapshot of the pricing engine state
+
   // Warnings (stored as JSON)
   warningsJson: text("warningsJson"),
 
