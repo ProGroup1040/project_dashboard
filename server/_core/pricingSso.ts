@@ -75,7 +75,8 @@ export function registerPricingSsoRoutes(app: Express) {
       const db = await getDb();
       if (!db) return fail(res, 503, "Pricing SSO is temporarily unavailable");
 
-      // The primary key makes redemption atomic across multiple app instances.
+      // Opportunistically remove expired credentials; the primary key still makes redemption atomic.
+      await db.execute(sql`DELETE FROM pricing_sso_used_tokens WHERE expiresAt < CURRENT_TIMESTAMP`);
       await db.execute(sql`INSERT INTO pricing_sso_used_tokens (jti, expiresAt)
         VALUES (${jti}, FROM_UNIXTIME(${exp}))`);
 
@@ -109,7 +110,7 @@ export function registerPricingSsoRoutes(app: Express) {
       if (code === "ER_DUP_ENTRY" || code === "SQLITE_CONSTRAINT") {
         return fail(res, 409, "SSO credential has already been used");
       }
-      if (error instanceof Error && /JWT|signature|claim|exp|audience|issuer/i.test(error.message)) {
+      if (error instanceof Error && /JWS|JWT|JOSE|signature|claim|exp|audience|issuer|compact/i.test(error.name + " " + error.message)) {
         return fail(res, 401, "Invalid or expired SSO credentials");
       }
       return fail(res, 503, "Pricing SSO is temporarily unavailable");
