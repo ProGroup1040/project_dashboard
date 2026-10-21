@@ -21,6 +21,36 @@ export async function getKitchenAccessories() {
   return db.select().from(kitchenAccessories).where(eq(kitchenAccessories.isActive, true)).orderBy(asc(kitchenAccessories.sortOrder));
 }
 
+/** Admin-only catalog read. Includes inactive items so they can be restored or reviewed. */
+export async function getAllKitchenAccessoriesAdmin() {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  return db.select().from(kitchenAccessories).orderBy(asc(kitchenAccessories.sortOrder));
+}
+
+export async function createKitchenAccessory(data: typeof kitchenAccessories.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const result = await db.insert(kitchenAccessories).values(data);
+  return result[0];
+}
+
+export async function updateKitchenAccessory(id: number, data: Partial<typeof kitchenAccessories.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.update(kitchenAccessories).set(data).where(eq(kitchenAccessories.id, id));
+  const rows = await db.select().from(kitchenAccessories).where(eq(kitchenAccessories.id, id));
+  return rows[0] ?? null;
+}
+
+/** Soft-delete to preserve historical quotation references. */
+export async function deactivateKitchenAccessory(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.update(kitchenAccessories).set({ isActive: false }).where(eq(kitchenAccessories.id, id));
+  return { success: true };
+}
+
 export async function getKitchenMarble() {
   const db = await getDb();
   if (!db) return [];
