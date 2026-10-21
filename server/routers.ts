@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { adminProcedure, pricingCatalogProcedure, publicProcedure, router } from "./_core/trpc";
+import { adminProcedure, pricingCatalogProcedure, pricingSystemProcedure, publicProcedure, router } from "./_core/trpc";
 import {
   getProjectUserByUsername,
   getAllPhaseStatuses,
@@ -664,10 +664,10 @@ export const appRouter = router({
   }),
 
   kitchen: router({
-    getMaterials: pricingCatalogProcedure("canView").query(async () => {
+    getMaterials: pricingSystemProcedure("canView").query(async () => {
       return getKitchenMaterials();
     }),
-    getAccessories: pricingCatalogProcedure("canView").query(async () => {
+    getAccessories: pricingSystemProcedure("canView").query(async () => {
       return getKitchenAccessories();
     }),
     uploadAccessoryVideo: pricingCatalogProcedure("canEdit")
@@ -698,26 +698,26 @@ export const appRouter = router({
         if (db) await db.update(kitchenAccessories).set({ videoUrl: input.videoUrl }).where(eq(kitchenAccessories.id, input.id));
         return { success: true };
       }),
-    getMarble: pricingCatalogProcedure("canView").query(async () => {
+    getMarble: pricingSystemProcedure("canView").query(async () => {
       return getKitchenMarble();
     }),
-    getCladding: pricingCatalogProcedure("canView").query(async () => {
+    getCladding: pricingSystemProcedure("canView").query(async () => {
       return getKitchenCladding();
     }),
-    getQuotations: pricingCatalogProcedure("canView").query(async () => {
+    getQuotations: pricingSystemProcedure("canView").query(async () => {
       return getKitchenQuotations();
     }),
-    getQuotationById: pricingCatalogProcedure("canView")
+    getQuotationById: pricingSystemProcedure("canView")
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
         return getKitchenQuotationById(input.id);
       }),
-    getUnitsByQuotation: pricingCatalogProcedure("canView")
+    getUnitsByQuotation: pricingSystemProcedure("canView")
       .input(z.object({ quotationId: z.number() }))
       .query(async ({ input }) => {
         return getKitchenUnitsByQuotation(input.quotationId);
       }),
-    createQuotation: pricingCatalogProcedure("canAdd")
+    createQuotation: pricingSystemProcedure("canAdd")
       .input(z.object({
         quotationCode: z.string(),
         clientName: z.string().optional(),
@@ -756,7 +756,7 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return createKitchenQuotation(input);
       }),
-    addUnit: pricingCatalogProcedure("canAdd")
+    addUnit: pricingSystemProcedure("canAdd")
       .input(z.object({
         quotationId: z.number(),
         unitNumber: z.number(),
@@ -772,14 +772,14 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return addKitchenUnit(input);
       }),
-        deleteUnit: pricingCatalogProcedure("canDelete")
+        deleteUnit: pricingSystemProcedure("canDelete")
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         await deleteKitchenUnit(input.id);
         return { success: true };
       }),
 
-    parseSkp: pricingCatalogProcedure("canView")
+    parseSkp: pricingSystemProcedure("canView")
       .input(z.object({
         fileBase64: z.string(),
         fileName: z.string(),
