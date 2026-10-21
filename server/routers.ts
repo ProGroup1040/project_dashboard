@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { adminProcedure, publicProcedure, router } from "./_core/trpc";
 import {
   getProjectUserByUsername,
   getAllPhaseStatuses,
@@ -32,6 +32,10 @@ import {
   addKitchenUnit,
   getKitchenUnitsByQuotation,
   deleteKitchenUnit,
+  getAllKitchenAccessoriesAdmin,
+  createKitchenAccessory,
+  updateKitchenAccessory,
+  deactivateKitchenAccessory,
 } from "./db-kitchen";
 import {
   getAllLeads,
@@ -520,6 +524,75 @@ export const appRouter = router({
     getExcelImports: publicProcedure
       .input(z.object({ sessionId: z.number() }))
       .query(async ({ input }) => getExcelImportsBySession(input.sessionId)),
+  }),
+
+  // ===================== KITCHEN ACCESSORY CATALOG ADMIN =====================
+  // Server-side authorization is mandatory; UI visibility is not a security boundary.
+  kitchenAccessoryAdmin: router({
+    list: adminProcedure.query(async () => getAllKitchenAccessoriesAdmin()),
+
+    create: adminProcedure
+      .input(z.object({
+        brand: z.string().trim().min(1).max(32),
+        nameAr: z.string().trim().min(1).max(255),
+        price: z.number().int().min(0).max(100000000),
+        sortOrder: z.number().int().min(0).max(1000000).default(0),
+        videoUrl: z.string().url().max(2048).optional().or(z.literal("")),
+        salesScript: z.string().max(20000).optional(),
+        imageBase64: z.string().max(11000000).optional(),
+        imageMimeType: z.enum(["image/jpeg", "image/png", "image/webp"]).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        let imageUrl: string | undefined;
+        if (input.imageBase64 || input.imageMimeType) {
+          if (!input.imageBase64 || !input.imageMimeType) throw new Error("يجب إرسال الصورة ونوعها معًا");
+          const buffer = Buffer.from(input.imageBase64, "base64");
+          if (buffer.length > 8 * 1024 * 1024) throw new Error("حجم الصورة يجب ألا يتجاوز 8 ميجابايت");
+          const ext = input.imageMimeType === "image/jpeg" ? "jpg" : input.imageMimeType.split("/")[1];
+          const result = await storagePut(`kitchen-accessories/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`, buffer, input.imageMimeType);
+          imageUrl = result.url;
+        }
+        return createKitchenAccessory({
+          brand: input.brand, nameAr: input.nameAr, price: input.price,
+          sortOrder: input.sortOrder, videoUrl: input.videoUrl || null,
+          salesScript: input.salesScript?.trim() || null, imageUrl: imageUrl ?? null, isActive: true,
+        });
+      }),
+
+    update: adminProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        brand: z.string().trim().min(1).max(32).optional(),
+        nameAr: z.string().trim().min(1).max(255).optional(),
+        price: z.number().int().min(0).max(100000000).optional(),
+        sortOrder: z.number().int().min(0).max(1000000).optional(),
+        videoUrl: z.string().url().max(2048).optional().or(z.literal("")),
+        salesScript: z.string().max(20000).optional(),
+        imageBase64: z.string().max(11000000).optional(),
+        imageMimeType: z.enum(["image/jpeg", "image/png", "image/webp"]).optional(),
+        isActive: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, imageBase64, imageMimeType, ...fields } = input;
+        const updates: Record<string, unknown> = { ...fields };
+        if (fields.videoUrl !== undefined) updates.videoUrl = fields.videoUrl || null;
+        if (fields.salesScript !== undefined) updates.salesScript = fields.salesScript.trim() || null;
+        if (imageBase64 || imageMimeType) {
+          if (!imageBase64 || !imageMimeType) throw new Error("يجب إرسال الصورة ونوعها معًا");
+          const buffer = Buffer.from(imageBase64, "base64");
+          if (buffer.length > 8 * 1024 * 1024) throw new Error("حجم الصورة يجب ألا يتجاوز 8 ميجابايت");
+          const ext = imageMimeType === "image/jpeg" ? "jpg" : imageMimeType.split("/")[1];
+          const result = await storagePut(`kitchen-accessories/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`, buffer, imageMimeType);
+          updates.imageUrl = result.url;
+        }
+        const updated = await updateKitchenAccessory(id, updates as Parameters<typeof updateKitchenAccessory>[1]);
+        if (!updated) throw new Error("الإكسسوار غير موجود");
+        return updated;
+      }),
+
+    deactivate: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => deactivateKitchenAccessory(input.id)),
   }),
 
   kitchen: router({
