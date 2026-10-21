@@ -98,72 +98,14 @@ function getProjectSessionOptions(req: { headers: { host?: string } }) {
 
 export const appRouter = router({
   projectSso: router({
-    exchange: publicProcedure
-      .input(z.object({ token: z.string().min(20).max(8192) }))
-      .mutation(async ({ input, ctx }) => {
-        const secretText = process.env.PRICING_SSO_SECRET?.trim() ?? "";
-        const secret = new TextEncoder().encode(secretText);
-        if (secret.length < 32) throw new Error("تكامل الدخول الموحد غير مُعدّ على الخادم");
-        const { payload } = await jwtVerify(input.token, secret, {
-          issuer: "sales-team-platform",
-          audience: "professor-kitchens",
-          algorithms: ["HS256"],
-        });
-        const permissions = payload.permissions as Record<string, unknown> | undefined;
-        const catalogPermissions = payload.catalogPermissions as Record<string, unknown> | undefined;
-        if (
-          typeof payload.sub !== "string" ||
-          typeof payload.displayName !== "string" ||
-          typeof payload.role !== "string" ||
-          (payload.scope !== "own" && payload.scope !== "all") ||
-          !permissions ||
-          !["canView", "canAdd", "canEdit", "canDelete"].every(key => typeof permissions[key] === "boolean") ||
-          !catalogPermissions ||
-          !["canView", "canAdd", "canEdit", "canDelete"].every(key => typeof catalogPermissions[key] === "boolean") ||
-          permissions.canView !== true ||
-          catalogPermissions.canView !== true
-        ) {
-          throw new Error("بيانات الصلاحيات المرسلة من منصة المبيعات غير صالحة");
-        }
-        const sessionToken = await new SignJWT({
-          displayName: payload.displayName,
-          role: payload.role,
-          engineerId: typeof payload.engineerId === "number" ? payload.engineerId : null,
-          scope: payload.scope,
-          permissions,
-          catalogPermissions,
-        })
-          .setProtectedHeader({ alg: "HS256", typ: "JWT" })
-          .setIssuer("professor-kitchens")
-          .setAudience("professor-kitchens-app")
-          .setSubject(payload.sub)
-          .setIssuedAt()
-          .setExpirationTime("30m")
-          .sign(secret);
-        ctx.res.cookie("pricing_sso", sessionToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-          maxAge: 30 * 60 * 1000,
-          path: "/",
-        });
-        return {
-          success: true,
-          actor: {
-            userId: payload.sub,
-            displayName: payload.displayName,
-            role: payload.role,
-            scope: payload.scope,
-            permissions,
-          },
-        };
-      }),
+    // Browser SSO credentials must be redeemed only by the POST callback route.
+    // This legacy tRPC endpoint is intentionally disabled to prevent token replay.
     me: publicProcedure.query(({ ctx }) => ctx.pricingActor),
     logout: publicProcedure.mutation(({ ctx }) => {
       ctx.res.clearCookie("pricing_sso", {
         path: "/",
         secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        sameSite: "lax",
       });
       return { success: true };
     }),
