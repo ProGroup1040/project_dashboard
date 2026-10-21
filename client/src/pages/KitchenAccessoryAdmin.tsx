@@ -48,7 +48,7 @@ async function readImage(file: File): Promise<string> {
 
 export default function KitchenAccessoryAdmin() {
   const utils = trpc.useUtils();
-  const { data: currentUser, isLoading: authLoading } = trpc.auth.me.useQuery();
+  const { data: currentActor, isLoading: authLoading } = trpc.projectSso.me.useQuery();
   const { data: accessories = [], isLoading, error } = trpc.kitchenAccessoryAdmin.list.useQuery();
   const createMutation = trpc.kitchenAccessoryAdmin.create.useMutation();
   const updateMutation = trpc.kitchenAccessoryAdmin.update.useMutation();
@@ -137,7 +137,7 @@ export default function KitchenAccessoryAdmin() {
   if (authLoading) {
     return <main className="min-h-screen bg-background p-8" dir="rtl"><p className="text-sm text-muted-foreground">جاري التحقق من الصلاحيات...</p></main>;
   }
-  if (!currentUser || currentUser.role !== "admin") {
+  if (!currentActor || !currentActor.permissions.canView) {
     return (
       <main className="min-h-screen bg-background p-8" dir="rtl">
         <section className="mx-auto max-w-xl rounded-2xl border p-6 text-center">
@@ -161,7 +161,7 @@ export default function KitchenAccessoryAdmin() {
             <h1 className="text-2xl font-bold">إدارة إكسسوارات المطابخ</h1>
             <p className="text-sm text-muted-foreground">إدارة الصور والأسعار وسكريبت المبيعات. صلاحية الإدارة مطبقة على الـ API أيضًا.</p>
           </div>
-          <Button onClick={reset}><Plus className="ml-2 h-4 w-4" /> إكسسوار جديد</Button>
+          {currentActor.permissions.canAdd && <Button onClick={reset}><Plus className="ml-2 h-4 w-4" /> إكسسوار جديد</Button>}
         </header>
 
         {error && (
@@ -171,7 +171,7 @@ export default function KitchenAccessoryAdmin() {
           </section>
         )}
 
-        <section className="rounded-2xl border bg-card p-4 md:p-6">
+        {(currentActor.permissions.canAdd || currentActor.permissions.canEdit) && <section className="rounded-2xl border bg-card p-4 md:p-6">
           <h2 className="mb-4 text-lg font-semibold">{editing ? "تعديل الإكسسوار" : "إضافة إكسسوار"}</h2>
           <form onSubmit={submit} className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
@@ -215,7 +215,7 @@ export default function KitchenAccessoryAdmin() {
               {editing && <Button type="button" variant="outline" onClick={reset}><X className="ml-2 h-4 w-4" /> إلغاء التعديل</Button>}
             </div>
           </form>
-        </section>
+        </section>}
 
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">الكتالوج ({sorted.length})</h2>
@@ -228,8 +228,8 @@ export default function KitchenAccessoryAdmin() {
                 <p className="line-clamp-2 whitespace-pre-wrap text-sm text-muted-foreground">{item.salesScript || "لم تتم إضافة سكريبت مبيعات بعد"}</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" onClick={() => startEdit(item)}><Pencil className="ml-1 h-4 w-4" /> تعديل</Button>
-                <Button variant="outline" size="sm" onClick={() => void toggleActive(item)}><Trash2 className="ml-1 h-4 w-4" /> {item.isActive ? "تعطيل" : "تفعيل"}</Button>
+                {currentActor.permissions.canEdit && <Button variant="outline" size="sm" onClick={() => startEdit(item)}><Pencil className="ml-1 h-4 w-4" /> تعديل</Button>}
+                {currentActor.permissions.canDelete && <Button variant="outline" size="sm" onClick={() => void toggleActive(item)}><Trash2 className="ml-1 h-4 w-4" /> {item.isActive ? "تعطيل" : "تفعيل"}</Button>}
               </div>
             </article>
           ))}
