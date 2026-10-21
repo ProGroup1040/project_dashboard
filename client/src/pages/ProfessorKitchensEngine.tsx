@@ -97,7 +97,7 @@ export default function ProfessorKitchensEngine() {
   // Data
   const { data: materials   = [] } = trpc.kitchen.getMaterials.useQuery();
   const { data: accessories = [] } = trpc.kitchen.getAccessories.useQuery();
-  const { data: pricingActor } = trpc.projectSso.me.useQuery();
+  const { data: pricingActor, isLoading: pricingActorLoading } = trpc.projectSso.me.useQuery();
   const { data: marbles     = [] } = trpc.kitchen.getMarble.useQuery();
   const { data: claddings   = [] } = trpc.kitchen.getCladding.useQuery();
   const { data: transportRules = [] } = trpc.platform.getTransportRules.useQuery();
@@ -316,6 +316,21 @@ export default function ProfessorKitchensEngine() {
   };
 
   // ─── Render ────────────────────────────────────────────────────────────────
+  if (pricingActorLoading) {
+    return <main className="flex min-h-screen items-center justify-center bg-[#0a0a0a] p-6 text-white" dir="rtl"><p className="text-sm text-white/60">جاري التحقق من صلاحيات منظومة التسعير...</p></main>;
+  }
+  if (!pricingActor?.permissions.canView) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#0a0a0a] p-6 text-white" dir="rtl">
+        <section className="max-w-lg rounded-2xl border border-white/10 bg-white/5 p-6 text-center">
+          <h1 className="text-xl font-bold text-amber-400">الدخول من منصة المبيعات مطلوب</h1>
+          <p className="mt-3 text-sm leading-7 text-white/60">افتح منظومة التسعير من داخل Sales Team Platform حتى يتم التحقق من صلاحية المشاهدة. الدخول المباشر لا يمنح صلاحيات.</p>
+          <button onClick={() => navigate("/brands")} className="mt-5 rounded-lg bg-amber-600 px-4 py-2 font-semibold text-white">العودة</button>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <>
     <div className="min-h-screen bg-[#0a0a0a] text-white" dir="rtl">
