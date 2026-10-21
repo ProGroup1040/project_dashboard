@@ -11,21 +11,22 @@ vi.mock("./db", () => ({
 import { getDb } from "./db";
 
 const SECRET = "test-only-pricing-sso-secret-at-least-32-bytes";
-let server: Server;
+let server: Server | undefined;
 let baseUrl: string;
 
 async function startApp() {
   const app = express();
   app.use(express.urlencoded({ extended: false }));
   registerPricingSsoRoutes(app);
-  server = createServer(app);
-  await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
-  const address = server.address();
+  const localServer = createServer(app);
+  server = localServer;
+  await new Promise<void>(resolve => localServer.listen(0, "127.0.0.1", resolve));
+  const address = localServer.address();
   if (!address || typeof address === "string") throw new Error("Test server failed to bind");
   baseUrl = `http://127.0.0.1:${address.port}`;
 }
 
-async function makeToken(overrides: Record<string, unknown> = {}) {
+async function makeToken() {
   return new SignJWT({
     displayName: "Test User",
     role: "sales_engineer",
@@ -33,7 +34,6 @@ async function makeToken(overrides: Record<string, unknown> = {}) {
     scope: "own",
     permissions: { canView: true, canAdd: false, canEdit: false, canDelete: false },
     catalogPermissions: { canView: true, canAdd: false, canEdit: false, canDelete: false },
-    ...overrides,
   })
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setIssuer("sales-team-platform")
