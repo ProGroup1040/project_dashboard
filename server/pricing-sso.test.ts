@@ -10,7 +10,7 @@ vi.mock("./db", () => ({
 
 import { getDb } from "./db";
 
-const SECRET = "test-only-pricing-sso-secret-at-least-32-bytes";
+const SECRET = "c9e6f14a72b08d3f5a1c9e4b6d2f8071a3c5e9b2d4f6087c1a5e3d9b7f2046c8";
 let server: Server | undefined;
 let baseUrl: string;
 
@@ -58,7 +58,7 @@ describe("Pricing SSO POST callback", () => {
     expect(response.status).toBe(405);
   });
 
-  it("fails closed when the shared secret is missing", async () => {
+  it("rejects malformed credentials when the legacy environment secret is missing", async () => {
     vi.stubEnv("PRICING_SSO_SECRET", "");
     await startApp();
     const response = await fetch(`${baseUrl}/sso/pricing`, {
@@ -66,7 +66,7 @@ describe("Pricing SSO POST callback", () => {
       headers: { "content-type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ token: "x".repeat(32) }),
     });
-    expect(response.status).toBe(503);
+    expect(response.status).toBe(401);
     expect(response.headers.get("cache-control")).toContain("no-store");
   });
 
