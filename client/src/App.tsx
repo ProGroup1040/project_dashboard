@@ -13,6 +13,7 @@ import BrandHub from "./pages/BrandHub";
 import ProfessorKitchensEngine from "./pages/ProfessorKitchensEngine";
 import KitchenQuotationEngine from "./pages/KitchenQuotationEngine";
 import KitchenAccessoryAdmin from "./pages/KitchenAccessoryAdmin";
+import PricingSsoCallback from "./pages/PricingSsoCallback";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -24,6 +25,7 @@ function Router() {
       <Route path={"/brand/professor_kitchens/kitchens"} component={ProfessorKitchensEngine} />
       <Route path={"/brand/professor_kitchens/kitchens/new"} component={KitchenQuotationEngine} />
       <Route path={"/admin/kitchen-accessories"} component={KitchenAccessoryAdmin} />
+      <Route path={"/sso/pricing"} component={PricingSsoCallback} />
       {/* Legacy routes (kept for backward compatibility) */}
       <Route path={"/pricing"} component={PricingWizard} />
       <Route path={"/kitchen"} component={KitchenPricing} />
