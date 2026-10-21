@@ -1,9 +1,10 @@
 import { z } from "zod";
+import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { adminProcedure, publicProcedure, router } from "./_core/trpc";
+import { adminProcedure, pricingCatalogProcedure, publicProcedure, router } from "./_core/trpc";
 import {
   getProjectUserByUsername,
   getAllPhaseStatuses,
@@ -89,6 +90,73 @@ function getProjectSessionOptions(req: { headers: { host?: string } }) {
 }
 
 export const appRouter = router({
+  projectSso: router({
+    exchange: publicProcedure
+      .input(z.object({ token: z.string().min(20).max(8192) }))
+      .mutation(async ({ input, ctx }) => {
+        const secretText = process.env.PRICING_SSO_SECRET?.trim() ?? "";
+        const secret = new TextEncoder().encode(secretText);
+        if (secret.length < 32) throw new Error("تكامل الدخول الموحد غير مُعدّ على الخادم");
+        const { payload } = await jwtVerify(input.token, secret, {
+          issuer: "sales-team-platform",
+          audience: "professor-kitchens",
+          algorithms: ["HS256"],
+        });
+        const permissions = payload.permissions as Record<string, unknown> | undefined;
+        if (
+          typeof payload.sub !== "string" ||
+          typeof payload.displayName !== "string" ||
+          typeof payload.role !== "string" ||
+          (payload.scope !== "own" && payload.scope !== "all") ||
+          !permissions ||
+          !["canView", "canAdd", "canEdit", "canDelete"].every(key => typeof permissions[key] === "boolean") ||
+          permissions.canView !== true
+        ) {
+          throw new Error("بيانات الصلاحيات المرسلة من منصة المبيعات غير صالحة");
+        }
+        const sessionToken = await new SignJWT({
+          displayName: payload.displayName,
+          role: payload.role,
+          engineerId: typeof payload.engineerId === "number" ? payload.engineerId : null,
+          scope: payload.scope,
+          permissions,
+        })
+          .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+          .setIssuer("professor-kitchens")
+          .setAudience("professor-kitchens-app")
+          .setSubject(payload.sub)
+          .setIssuedAt()
+          .setExpirationTime("8h")
+          .sign(secret);
+        ctx.res.cookie("pricing_sso", sessionToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+          maxAge: 8 * 60 * 60 * 1000,
+          path: "/",
+        });
+        return {
+          success: true,
+          actor: {
+            userId: payload.sub,
+            displayName: payload.displayName,
+            role: payload.role,
+            scope: payload.scope,
+            permissions,
+          },
+        };
+      }),
+    me: publicProcedure.query(({ ctx }) => ctx.pricingActor),
+    logout: publicProcedure.mutation(({ ctx }) => {
+      ctx.res.clearCookie("pricing_sso", {
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      });
+      return { success: true };
+    }),
+  }),
+
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
@@ -529,9 +597,9 @@ export const appRouter = router({
   // ===================== KITCHEN ACCESSORY CATALOG ADMIN =====================
   // Server-side authorization is mandatory; UI visibility is not a security boundary.
   kitchenAccessoryAdmin: router({
-    list: adminProcedure.query(async () => getAllKitchenAccessoriesAdmin()),
+    list: pricingCatalogProcedure("canView").query(async () => getAllKitchenAccessoriesAdmin()),
 
-    create: adminProcedure
+    create: pricingCatalogProcedure("canAdd")
       .input(z.object({
         brand: z.string().trim().min(1).max(32),
         nameAr: z.string().trim().min(1).max(255),
@@ -559,7 +627,7 @@ export const appRouter = router({
         });
       }),
 
-    update: adminProcedure
+    update: pricingCatalogProcedure("canEdit")
       .input(z.object({
         id: z.number().int().positive(),
         brand: z.string().trim().min(1).max(32).optional(),
@@ -590,7 +658,7 @@ export const appRouter = router({
         return updated;
       }),
 
-    deactivate: adminProcedure
+    deactivate: pricingCatalogProcedure("canDelete")
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(async ({ input }) => deactivateKitchenAccessory(input.id)),
   }),
