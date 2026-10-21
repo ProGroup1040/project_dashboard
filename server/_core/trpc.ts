@@ -58,6 +58,9 @@ export function pricingCatalogProcedure(action: PricingCatalogAction) {
       if (!actor.permissions.canView || !actor.permissions[action]) {
         throw new TRPCError({ code: "FORBIDDEN", message: "ليس لديك صلاحية لتنفيذ هذه العملية في منظومة التسعير" });
       }
+      if (action !== "canView" && actor.scope !== "all") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "تعديل الكتالوج المشترك يتطلب نطاق صلاحية all" });
+      }
       return next();
     }),
   );
