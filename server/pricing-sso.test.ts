@@ -48,14 +48,14 @@ async function makeToken(overrides: Record<string, unknown> = {}) {
 afterEach(async () => {
   vi.unstubAllEnvs();
   vi.clearAllMocks();
-  if (server?.listening) await new Promise<void>(resolve => server.close(() => resolve()));
+  if (server?.listening) await new Promise<void>(resolve => server?.close(() => resolve()));
 });
 
 describe("Pricing SSO POST callback", () => {
   it("rejects GET callbacks so credentials cannot be supplied in a URL", async () => {
     await startApp();
     const response = await fetch(`${baseUrl}/sso/pricing?token=do-not-accept`);
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(405);
   });
 
   it("fails closed when the shared secret is missing", async () => {
