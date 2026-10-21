@@ -131,13 +131,13 @@ export const appRouter = router({
           .setAudience("professor-kitchens-app")
           .setSubject(payload.sub)
           .setIssuedAt()
-          .setExpirationTime("8h")
+          .setExpirationTime("30m")
           .sign(secret);
         ctx.res.cookie("pricing_sso", sessionToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-          maxAge: 8 * 60 * 60 * 1000,
+          maxAge: 30 * 60 * 1000,
           path: "/",
         });
         return {
