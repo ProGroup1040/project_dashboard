@@ -346,7 +346,7 @@ export default function ProfessorKitchensEngine() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {(pricingActor?.permissions.canAdd || pricingActor?.permissions.canEdit) && (
+            {(pricingActor?.catalogPermissions.canAdd || pricingActor?.catalogPermissions.canEdit) && (
               <button onClick={() => navigate("/admin/kitchen-accessories")} className="flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-600/10 px-3 py-1.5 text-xs text-amber-300 hover:bg-amber-600/20">
                 <Settings className="h-4 w-4" /><span className="hidden sm:inline">إدارة الإكسسوارات</span>
               </button>
