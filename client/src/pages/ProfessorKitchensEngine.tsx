@@ -1315,12 +1315,26 @@ function VideoModal({ url, name, onClose }: { url: string; name: string; onClose
 }
 
 function AccCard({ acc, onAdd, showPb, onTogglePb }: { acc: any; onAdd: any; showPb: boolean; onTogglePb: () => void }) {
-  const imgUrl = getAccImage(acc.nameAr);
+  const imgUrl = acc.imageUrl || getAccImage(acc.nameAr);
   const [showVideo, setShowVideo] = useState(false);
+  const [showSalesScript, setShowSalesScript] = useState(false);
   return (
     <>
     {showVideo && acc.videoUrl && (
       <VideoModal url={acc.videoUrl} name={acc.nameAr} onClose={() => setShowVideo(false)} />
+    )}
+    {showSalesScript && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4" role="dialog" aria-modal="true" aria-label={`سكريبت مبيعات ${acc.nameAr}`} onClick={() => setShowSalesScript(false)}>
+        <div className="w-full max-w-xl max-h-[85vh] overflow-y-auto rounded-2xl border border-amber-500/30 bg-slate-950 p-5 shadow-2xl" dir="rtl" onClick={e => e.stopPropagation()}>
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div><h3 className="text-white text-lg font-bold">سكريبت المبيعات</h3><p className="text-sm text-white/50">{acc.nameAr}</p></div>
+            <button type="button" aria-label="إغلاق" onClick={() => setShowSalesScript(false)} className="rounded-lg p-2 text-white/70 hover:bg-white/10"><X className="h-5 w-5" /></button>
+          </div>
+          {(acc.imageUrl || imgUrl) && <img src={acc.imageUrl || imgUrl} alt={acc.nameAr} className="mb-4 max-h-56 w-full rounded-xl bg-white/5 object-contain" />}
+          <p className="whitespace-pre-wrap text-sm leading-7 text-white/85">{acc.salesScript || "سكريبت المبيعات لهذا الإكسسوار سيظهر هنا بعد إضافة البيانات من لوحة الإدارة."}</p>
+          <div className="mt-5 flex justify-end"><Button onClick={() => setShowSalesScript(false)} className="bg-amber-600 text-white hover:bg-amber-500">إغلاق</Button></div>
+        </div>
+      </div>
     )}
     <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden flex flex-col">
       {/* Product Image */}
@@ -1364,17 +1378,16 @@ function AccCard({ acc, onAdd, showPb, onTogglePb }: { acc: any; onAdd: any; sho
           <Button onClick={() => onAdd(acc)} className="flex-1 bg-amber-600/20 hover:bg-amber-600/40 text-amber-400 border border-amber-600/30 text-xs h-8">
             <Plus className="w-3 h-3 ml-1" /> إضافة
           </Button>
-          {acc.videoUrl ? (
-            <button onClick={() => setShowVideo(true)} className="p-2 rounded-lg bg-amber-900/30 hover:bg-amber-900/50 text-amber-400">
+          {acc.videoUrl && (
+            <button onClick={() => setShowVideo(true)} aria-label="تشغيل فيديو المنتج" className="p-2 rounded-lg bg-amber-900/30 hover:bg-amber-900/50 text-amber-400">
               <Play className="w-4 h-4" />
             </button>
-          ) : (
-            <button onClick={onTogglePb} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/70">
-              <BookOpen className="w-4 h-4" />
-            </button>
           )}
+          <button onClick={() => acc.salesScript ? setShowSalesScript(true) : onTogglePb()} aria-label="عرض سكريبت المبيعات" className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white">
+            <BookOpen className="w-4 h-4" />
+          </button>
         </div>
-        {showPb && !acc.videoUrl && (
+        {showPb && !acc.salesScript && (
           <div className="mt-2 p-2 bg-blue-900/20 border border-blue-700/30 rounded-lg text-xs text-blue-300">
             <p className="font-bold mb-1">💡 Playbook</p>
             <p>سكريبت المبيعات لهذا الإكسسوار سيظهر هنا بعد إضافة البيانات من لوحة الإدارة.</p>
