@@ -249,6 +249,8 @@ export const kitchenAccessories = mysqlTable("kitchen_accessories", {
   nameAr: varchar("nameAr", { length: 255 }).notNull(),
   price: int("price").notNull(), // EGP per piece
   videoUrl: text("videoUrl"), // optional S3 URL for showroom video
+  imageUrl: text("imageUrl"), // optional S3 product image
+  salesScript: text("salesScript"), // optional sales script
   isActive: boolean("isActive").default(true).notNull(),
   sortOrder: int("sortOrder").default(0).notNull(),
 });
