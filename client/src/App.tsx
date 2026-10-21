@@ -12,6 +12,7 @@ import NegotiationSession from "./pages/NegotiationSession";
 import BrandHub from "./pages/BrandHub";
 import ProfessorKitchensEngine from "./pages/ProfessorKitchensEngine";
 import KitchenQuotationEngine from "./pages/KitchenQuotationEngine";
+import KitchenAccessoryAdmin from "./pages/KitchenAccessoryAdmin";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -22,6 +23,7 @@ function Router() {
       <Route path={"/brands"} component={BrandHub} />
       <Route path={"/brand/professor_kitchens/kitchens"} component={ProfessorKitchensEngine} />
       <Route path={"/brand/professor_kitchens/kitchens/new"} component={KitchenQuotationEngine} />
+      <Route path={"/admin/kitchen-accessories"} component={KitchenAccessoryAdmin} />
       {/* Legacy routes (kept for backward compatibility) */}
       <Route path={"/pricing"} component={PricingWizard} />
       <Route path={"/kitchen"} component={KitchenPricing} />
