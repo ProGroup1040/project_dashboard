@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import {
   ArrowLeft, ArrowRight, CheckCircle2, AlertTriangle, AlertCircle, Info,
   Eye, EyeOff, Printer, Share2, BookOpen, Plus, Trash2, RefreshCw,
-  Play, X, Upload, Video, FileUp, Loader2, Save, FolderOpen, Cloud
+  Play, X, Upload, Video, FileUp, Loader2, Save, FolderOpen, Cloud, Settings
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DarkSelect, DarkOption } from "@/components/DarkSelect";
@@ -97,6 +97,7 @@ export default function ProfessorKitchensEngine() {
   // Data
   const { data: materials   = [] } = trpc.kitchen.getMaterials.useQuery();
   const { data: accessories = [] } = trpc.kitchen.getAccessories.useQuery();
+  const { data: pricingActor } = trpc.projectSso.me.useQuery();
   const { data: marbles     = [] } = trpc.kitchen.getMarble.useQuery();
   const { data: claddings   = [] } = trpc.kitchen.getCladding.useQuery();
   const { data: transportRules = [] } = trpc.platform.getTransportRules.useQuery();
@@ -330,6 +331,11 @@ export default function ProfessorKitchensEngine() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {(pricingActor?.permissions.canAdd || pricingActor?.permissions.canEdit) && (
+              <button onClick={() => navigate("/admin/kitchen-accessories")} className="flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-600/10 px-3 py-1.5 text-xs text-amber-300 hover:bg-amber-600/20">
+                <Settings className="h-4 w-4" /><span className="hidden sm:inline">إدارة الإكسسوارات</span>
+              </button>
+            )}
             {/* Save Status Indicator */}
             <div className="flex items-center gap-1.5">
               {saveStatus === "saving" && <span className="flex items-center gap-1 text-xs text-amber-400"><Loader2 className="w-3 h-3 animate-spin" />حفظ...</span>}
