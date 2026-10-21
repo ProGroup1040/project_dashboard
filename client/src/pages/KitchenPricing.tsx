@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Eye, X } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type UnitLocation = "upper" | "lower" | "tall" | "placard" | "placard_deep";
@@ -96,6 +97,7 @@ export default function KitchenPricing() {
 
   // Accessories
   const [selectedAccessories, setSelectedAccessories] = useState<SelectedAccessory[]>([]);
+  const [scriptAccessory, setScriptAccessory] = useState<{ nameAr: string; salesScript: string | null; imageUrl: string | null } | null>(null);
   const [selectedCladding, setSelectedCladding] = useState<SelectedCladding[]>([]);
 
   // Data queries
@@ -611,16 +613,22 @@ export default function KitchenPricing() {
                       <div
                         key={acc.id}
                         onClick={() => toggleAccessory(acc)}
-                        className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-all ${
+                        className={`flex items-center gap-3 p-2.5 rounded-lg border cursor-pointer transition-all ${
                           selected ? "border-amber-400 bg-amber-50" : "border-gray-200 hover:border-amber-200"
                         }`}
                       >
-                        <div className="flex-1">
+                        {acc.imageUrl ? <img src={acc.imageUrl} alt={acc.nameAr} className="w-16 h-16 rounded-md object-cover border border-gray-200 shrink-0" /> : null}
+                        <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-800">{acc.nameAr}</p>
                           <p className="text-xs text-gray-500">{acc.price.toLocaleString()} جنيه</p>
+                          {acc.salesScript && (
+                            <button type="button" onClick={e => { e.stopPropagation(); setScriptAccessory({ nameAr: acc.nameAr, salesScript: acc.salesScript, imageUrl: acc.imageUrl }); }} className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-amber-700 hover:underline">
+                              <Eye className="h-3 w-3" /> سكريبت المبيعات
+                            </button>
+                          )}
                         </div>
                         {selected && (
-                          <div className="flex items-center gap-2 mr-2" onClick={e => e.stopPropagation()}>
+                          <div className="flex items-center gap-2 mr-2 shrink-0" onClick={e => e.stopPropagation()}>
                             <button onClick={() => updateAccessoryQty(acc.id, selected.qty - 1)} className="w-6 h-6 bg-gray-200 rounded text-sm font-bold">-</button>
                             <span className="text-sm font-bold w-6 text-center">{selected.qty}</span>
                             <button onClick={() => updateAccessoryQty(acc.id, selected.qty + 1)} className="w-6 h-6 bg-amber-500 text-white rounded text-sm font-bold">+</button>
@@ -647,6 +655,20 @@ export default function KitchenPricing() {
                 التالي: التجاليد ←
               </Button>
             </div>
+          </div>
+        )}
+
+        {scriptAccessory && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-label={`سكريبت مبيعات ${scriptAccessory.nameAr}`} onClick={() => setScriptAccessory(null)}>
+            <section className="max-h-[85vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl" dir="rtl" onClick={e => e.stopPropagation()}>
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div><h3 className="text-lg font-bold text-gray-900">سكريبت المبيعات</h3><p className="text-sm text-gray-500">{scriptAccessory.nameAr}</p></div>
+                <button type="button" aria-label="إغلاق" onClick={() => setScriptAccessory(null)} className="rounded-md p-2 hover:bg-gray-100"><X className="h-5 w-5" /></button>
+              </div>
+              {scriptAccessory.imageUrl && <img src={scriptAccessory.imageUrl} alt={scriptAccessory.nameAr} className="mb-4 max-h-64 w-full rounded-xl object-contain bg-gray-50" />}
+              <p className="whitespace-pre-wrap text-sm leading-7 text-gray-800">{scriptAccessory.salesScript || "لم تتم إضافة سكريبت المبيعات لهذا المنتج بعد."}</p>
+              <div className="mt-5 flex justify-end"><Button onClick={() => setScriptAccessory(null)}>إغلاق</Button></div>
+            </section>
           </div>
         )}
 

@@ -1,9 +1,10 @@
 import { z } from "zod";
+import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { adminProcedure, pricingCatalogProcedure, pricingSystemProcedure, publicProcedure, router } from "./_core/trpc";
 import {
   getProjectUserByUsername,
   getAllPhaseStatuses,
@@ -32,6 +33,10 @@ import {
   addKitchenUnit,
   getKitchenUnitsByQuotation,
   deleteKitchenUnit,
+  getAllKitchenAccessoriesAdmin,
+  createKitchenAccessory,
+  updateKitchenAccessory,
+  deactivateKitchenAccessory,
 } from "./db-kitchen";
 import {
   getAllLeads,
@@ -74,6 +79,13 @@ import {
 // Simple project session cookie name
 const PROJECT_SESSION_COOKIE = "proj_session";
 
+function isValidImagePayload(buffer: Buffer, mimeType: string): boolean {
+  if (mimeType === "image/jpeg") return buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  if (mimeType === "image/png") return buffer.length >= 8 && buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  if (mimeType === "image/webp") return buffer.length >= 12 && buffer.toString("ascii", 0, 4) === "RIFF" && buffer.toString("ascii", 8, 12) === "WEBP";
+  return false;
+}
+
 function getProjectSessionOptions(req: { headers: { host?: string } }) {
   return {
     httpOnly: true,
@@ -85,6 +97,78 @@ function getProjectSessionOptions(req: { headers: { host?: string } }) {
 }
 
 export const appRouter = router({
+  projectSso: router({
+    exchange: publicProcedure
+      .input(z.object({ token: z.string().min(20).max(8192) }))
+      .mutation(async ({ input, ctx }) => {
+        const secretText = process.env.PRICING_SSO_SECRET?.trim() ?? "";
+        const secret = new TextEncoder().encode(secretText);
+        if (secret.length < 32) throw new Error("تكامل الدخول الموحد غير مُعدّ على الخادم");
+        const { payload } = await jwtVerify(input.token, secret, {
+          issuer: "sales-team-platform",
+          audience: "professor-kitchens",
+          algorithms: ["HS256"],
+        });
+        const permissions = payload.permissions as Record<string, unknown> | undefined;
+        const catalogPermissions = payload.catalogPermissions as Record<string, unknown> | undefined;
+        if (
+          typeof payload.sub !== "string" ||
+          typeof payload.displayName !== "string" ||
+          typeof payload.role !== "string" ||
+          (payload.scope !== "own" && payload.scope !== "all") ||
+          !permissions ||
+          !["canView", "canAdd", "canEdit", "canDelete"].every(key => typeof permissions[key] === "boolean") ||
+          !catalogPermissions ||
+          !["canView", "canAdd", "canEdit", "canDelete"].every(key => typeof catalogPermissions[key] === "boolean") ||
+          permissions.canView !== true ||
+          catalogPermissions.canView !== true
+        ) {
+          throw new Error("بيانات الصلاحيات المرسلة من منصة المبيعات غير صالحة");
+        }
+        const sessionToken = await new SignJWT({
+          displayName: payload.displayName,
+          role: payload.role,
+          engineerId: typeof payload.engineerId === "number" ? payload.engineerId : null,
+          scope: payload.scope,
+          permissions,
+          catalogPermissions,
+        })
+          .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+          .setIssuer("professor-kitchens")
+          .setAudience("professor-kitchens-app")
+          .setSubject(payload.sub)
+          .setIssuedAt()
+          .setExpirationTime("30m")
+          .sign(secret);
+        ctx.res.cookie("pricing_sso", sessionToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+          maxAge: 30 * 60 * 1000,
+          path: "/",
+        });
+        return {
+          success: true,
+          actor: {
+            userId: payload.sub,
+            displayName: payload.displayName,
+            role: payload.role,
+            scope: payload.scope,
+            permissions,
+          },
+        };
+      }),
+    me: publicProcedure.query(({ ctx }) => ctx.pricingActor),
+    logout: publicProcedure.mutation(({ ctx }) => {
+      ctx.res.clearCookie("pricing_sso", {
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      });
+      return { success: true };
+    }),
+  }),
+
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
@@ -522,14 +606,85 @@ export const appRouter = router({
       .query(async ({ input }) => getExcelImportsBySession(input.sessionId)),
   }),
 
+  // ===================== KITCHEN ACCESSORY CATALOG ADMIN =====================
+  // Server-side authorization is mandatory; UI visibility is not a security boundary.
+  kitchenAccessoryAdmin: router({
+    list: pricingCatalogProcedure("canView").query(async () => getAllKitchenAccessoriesAdmin()),
+
+    create: pricingCatalogProcedure("canAdd")
+      .input(z.object({
+        brand: z.string().trim().min(1).max(32),
+        nameAr: z.string().trim().min(1).max(255),
+        price: z.number().int().min(0).max(100000000),
+        sortOrder: z.number().int().min(0).max(1000000).default(0),
+        videoUrl: z.string().url().max(2048).optional().or(z.literal("")),
+        salesScript: z.string().max(20000).optional(),
+        imageBase64: z.string().max(11000000).optional(),
+        imageMimeType: z.enum(["image/jpeg", "image/png", "image/webp"]).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        let imageUrl: string | undefined;
+        if (input.imageBase64 || input.imageMimeType) {
+          if (!input.imageBase64 || !input.imageMimeType) throw new Error("يجب إرسال الصورة ونوعها معًا");
+          const buffer = Buffer.from(input.imageBase64, "base64");
+          if (buffer.length > 8 * 1024 * 1024) throw new Error("حجم الصورة يجب ألا يتجاوز 8 ميجابايت");
+          if (!isValidImagePayload(buffer, input.imageMimeType)) throw new Error("محتوى الصورة لا يطابق نوع الملف");
+          const ext = input.imageMimeType === "image/jpeg" ? "jpg" : input.imageMimeType.split("/")[1];
+          const result = await storagePut(`kitchen-accessories/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`, buffer, input.imageMimeType);
+          imageUrl = result.url;
+        }
+        return createKitchenAccessory({
+          brand: input.brand, nameAr: input.nameAr, price: input.price,
+          sortOrder: input.sortOrder, videoUrl: input.videoUrl || null,
+          salesScript: input.salesScript?.trim() || null, imageUrl: imageUrl ?? null, isActive: true,
+        });
+      }),
+
+    update: pricingCatalogProcedure("canEdit")
+      .input(z.object({
+        id: z.number().int().positive(),
+        brand: z.string().trim().min(1).max(32).optional(),
+        nameAr: z.string().trim().min(1).max(255).optional(),
+        price: z.number().int().min(0).max(100000000).optional(),
+        sortOrder: z.number().int().min(0).max(1000000).optional(),
+        videoUrl: z.string().url().max(2048).optional().or(z.literal("")),
+        salesScript: z.string().max(20000).optional(),
+        imageBase64: z.string().max(11000000).optional(),
+        imageMimeType: z.enum(["image/jpeg", "image/png", "image/webp"]).optional(),
+        isActive: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, imageBase64, imageMimeType, ...fields } = input;
+        const updates: Record<string, unknown> = { ...fields };
+        if (fields.videoUrl !== undefined) updates.videoUrl = fields.videoUrl || null;
+        if (fields.salesScript !== undefined) updates.salesScript = fields.salesScript.trim() || null;
+        if (imageBase64 || imageMimeType) {
+          if (!imageBase64 || !imageMimeType) throw new Error("يجب إرسال الصورة ونوعها معًا");
+          const buffer = Buffer.from(imageBase64, "base64");
+          if (buffer.length > 8 * 1024 * 1024) throw new Error("حجم الصورة يجب ألا يتجاوز 8 ميجابايت");
+          if (!isValidImagePayload(buffer, input.imageMimeType)) throw new Error("محتوى الصورة لا يطابق نوع الملف");
+          const ext = imageMimeType === "image/jpeg" ? "jpg" : imageMimeType.split("/")[1];
+          const result = await storagePut(`kitchen-accessories/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`, buffer, imageMimeType);
+          updates.imageUrl = result.url;
+        }
+        const updated = await updateKitchenAccessory(id, updates as Parameters<typeof updateKitchenAccessory>[1]);
+        if (!updated) throw new Error("الإكسسوار غير موجود");
+        return updated;
+      }),
+
+    deactivate: pricingCatalogProcedure("canDelete")
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => deactivateKitchenAccessory(input.id)),
+  }),
+
   kitchen: router({
-    getMaterials: publicProcedure.query(async () => {
+    getMaterials: pricingSystemProcedure("canView").query(async () => {
       return getKitchenMaterials();
     }),
-    getAccessories: publicProcedure.query(async () => {
+    getAccessories: pricingSystemProcedure("canView").query(async () => {
       return getKitchenAccessories();
     }),
-    uploadAccessoryVideo: publicProcedure
+    uploadAccessoryVideo: pricingCatalogProcedure("canEdit")
       .input(z.object({
         accessoryId: z.number(),
         videoBase64: z.string(),
@@ -547,7 +702,7 @@ export const appRouter = router({
         if (db) await db.update(kitchenAccessories).set({ videoUrl: result.url }).where(eq(kitchenAccessories.id, input.accessoryId));
         return { url: result.url };
       }),
-    updateAccessoryVideo: publicProcedure
+    updateAccessoryVideo: pricingCatalogProcedure("canEdit")
       .input(z.object({ id: z.number(), videoUrl: z.string().nullable() }))
       .mutation(async ({ input }) => {
         const { getDb } = await import("./db");
@@ -557,26 +712,26 @@ export const appRouter = router({
         if (db) await db.update(kitchenAccessories).set({ videoUrl: input.videoUrl }).where(eq(kitchenAccessories.id, input.id));
         return { success: true };
       }),
-    getMarble: publicProcedure.query(async () => {
+    getMarble: pricingSystemProcedure("canView").query(async () => {
       return getKitchenMarble();
     }),
-    getCladding: publicProcedure.query(async () => {
+    getCladding: pricingSystemProcedure("canView").query(async () => {
       return getKitchenCladding();
     }),
-    getQuotations: publicProcedure.query(async () => {
+    getQuotations: pricingSystemProcedure("canView").query(async () => {
       return getKitchenQuotations();
     }),
-    getQuotationById: publicProcedure
+    getQuotationById: pricingSystemProcedure("canView")
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
         return getKitchenQuotationById(input.id);
       }),
-    getUnitsByQuotation: publicProcedure
+    getUnitsByQuotation: pricingSystemProcedure("canView")
       .input(z.object({ quotationId: z.number() }))
       .query(async ({ input }) => {
         return getKitchenUnitsByQuotation(input.quotationId);
       }),
-    createQuotation: publicProcedure
+    createQuotation: pricingSystemProcedure("canView")
       .input(z.object({
         quotationCode: z.string(),
         clientName: z.string().optional(),
@@ -615,7 +770,7 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return createKitchenQuotation(input);
       }),
-    addUnit: publicProcedure
+    addUnit: pricingSystemProcedure("canView")
       .input(z.object({
         quotationId: z.number(),
         unitNumber: z.number(),
@@ -631,14 +786,14 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return addKitchenUnit(input);
       }),
-        deleteUnit: publicProcedure
+        deleteUnit: pricingSystemProcedure("canView")
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         await deleteKitchenUnit(input.id);
         return { success: true };
       }),
 
-    parseSkp: publicProcedure
+    parseSkp: pricingSystemProcedure("canView")
       .input(z.object({
         fileBase64: z.string(),
         fileName: z.string(),
