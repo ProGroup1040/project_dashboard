@@ -11,6 +11,7 @@ export type PricingSsoActor = {
   engineerId: number | null;
   scope: "own" | "all";
   permissions: { canView: boolean; canAdd: boolean; canEdit: boolean; canDelete: boolean };
+  catalogPermissions: { canView: boolean; canAdd: boolean; canEdit: boolean; canDelete: boolean };
 };
 
 export type TrpcContext = {
@@ -43,13 +44,16 @@ export async function createContext(
         algorithms: ["HS256"],
       });
       const permissions = payload.permissions as Record<string, unknown> | undefined;
+      const catalogPermissions = payload.catalogPermissions as Record<string, unknown> | undefined;
       if (
         typeof payload.sub === "string" &&
         typeof payload.displayName === "string" &&
         typeof payload.role === "string" &&
         (payload.scope === "own" || payload.scope === "all") &&
         permissions &&
-        ["canView", "canAdd", "canEdit", "canDelete"].every(key => typeof permissions[key] === "boolean")
+        ["canView", "canAdd", "canEdit", "canDelete"].every(key => typeof permissions[key] === "boolean") &&
+        catalogPermissions &&
+        ["canView", "canAdd", "canEdit", "canDelete"].every(key => typeof catalogPermissions[key] === "boolean")
       ) {
         pricingActor = {
           userId: payload.sub,
@@ -62,6 +66,12 @@ export async function createContext(
             canAdd: permissions.canAdd as boolean,
             canEdit: permissions.canEdit as boolean,
             canDelete: permissions.canDelete as boolean,
+          },
+          catalogPermissions: {
+            canView: catalogPermissions.canView as boolean,
+            canAdd: catalogPermissions.canAdd as boolean,
+            canEdit: catalogPermissions.canEdit as boolean,
+            canDelete: catalogPermissions.canDelete as boolean,
           },
         };
       }
