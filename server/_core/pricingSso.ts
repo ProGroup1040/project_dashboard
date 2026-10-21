@@ -20,6 +20,8 @@ function fail(res: Response, status: number, message: string) {
 }
 
 export function registerPricingSsoRoutes(app: Express) {
+  app.get(CALLBACK_PATH, (_req: Request, res: Response) => fail(res, 405, "Use POST for SSO"));
+
   app.post(CALLBACK_PATH, async (req: Request, res: Response) => {
     setNoStoreHeaders(res);
 
