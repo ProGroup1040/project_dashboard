@@ -722,7 +722,7 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return getKitchenUnitsByQuotation(input.quotationId);
       }),
-    createQuotation: pricingSystemProcedure("canAdd")
+    createQuotation: pricingSystemProcedure("canView")
       .input(z.object({
         quotationCode: z.string(),
         clientName: z.string().optional(),
@@ -761,7 +761,7 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return createKitchenQuotation(input);
       }),
-    addUnit: pricingSystemProcedure("canAdd")
+    addUnit: pricingSystemProcedure("canView")
       .input(z.object({
         quotationId: z.number(),
         unitNumber: z.number(),
@@ -777,7 +777,7 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return addKitchenUnit(input);
       }),
-        deleteUnit: pricingSystemProcedure("canDelete")
+        deleteUnit: pricingSystemProcedure("canView")
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         await deleteKitchenUnit(input.id);
