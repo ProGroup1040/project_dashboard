@@ -37,7 +37,7 @@ export default function PricingSsoCallback() {
         {error ? <ShieldAlert className="mx-auto mb-4 h-10 w-10 text-red-400" /> : <Loader2 className="mx-auto mb-4 h-10 w-10 animate-spin text-amber-400" />}
         <h1 className="text-xl font-bold">{error ? "تعذر تسجيل الدخول" : "جاري تسجيل الدخول بأمان"}</h1>
         <p className="mt-2 text-sm text-white/60">{error || "يتم التحقق من هويتك وصلاحياتك من منصة المبيعات..."}</p>
-        {error && <button className="mt-5 rounded-lg bg-amber-600 px-4 py-2 font-semibold" onClick={() => { window.location.href = "https://sales-team-platform.manus.space/pricing-system"; }}>العودة إلى منصة المبيعات</button>}
+        {error && <button className="mt-5 rounded-lg bg-amber-600 px-4 py-2 font-semibold" onClick={() => window.history.back()}>الرجوع للصفحة السابقة</button>}
       </section>
     </main>
   );
