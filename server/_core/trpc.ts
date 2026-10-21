@@ -71,7 +71,7 @@ export function pricingCatalogProcedure(action: PricingCatalogAction) {
       if (!actor) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "انتهت جلسة التسعير أو لم يتم تسجيل الدخول من منصة المبيعات" });
       }
-      if (!actor.permissions.canView || !actor.permissions[action]) {
+      if (!actor.catalogPermissions.canView || !actor.catalogPermissions[action]) {
         throw new TRPCError({ code: "FORBIDDEN", message: "ليس لديك صلاحية لتنفيذ هذه العملية في منظومة التسعير" });
       }
       if (action !== "canView" && actor.scope !== "all") {
