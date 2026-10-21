@@ -103,6 +103,7 @@ export const appRouter = router({
           algorithms: ["HS256"],
         });
         const permissions = payload.permissions as Record<string, unknown> | undefined;
+        const catalogPermissions = payload.catalogPermissions as Record<string, unknown> | undefined;
         if (
           typeof payload.sub !== "string" ||
           typeof payload.displayName !== "string" ||
@@ -110,7 +111,10 @@ export const appRouter = router({
           (payload.scope !== "own" && payload.scope !== "all") ||
           !permissions ||
           !["canView", "canAdd", "canEdit", "canDelete"].every(key => typeof permissions[key] === "boolean") ||
-          permissions.canView !== true
+          !catalogPermissions ||
+          !["canView", "canAdd", "canEdit", "canDelete"].every(key => typeof catalogPermissions[key] === "boolean") ||
+          permissions.canView !== true ||
+          catalogPermissions.canView !== true
         ) {
           throw new Error("بيانات الصلاحيات المرسلة من منصة المبيعات غير صالحة");
         }
@@ -120,6 +124,7 @@ export const appRouter = router({
           engineerId: typeof payload.engineerId === "number" ? payload.engineerId : null,
           scope: payload.scope,
           permissions,
+          catalogPermissions,
         })
           .setProtectedHeader({ alg: "HS256", typ: "JWT" })
           .setIssuer("professor-kitchens")
