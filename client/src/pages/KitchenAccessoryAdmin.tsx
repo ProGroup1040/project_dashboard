@@ -48,6 +48,7 @@ async function readImage(file: File): Promise<string> {
 
 export default function KitchenAccessoryAdmin() {
   const utils = trpc.useUtils();
+  const { data: currentUser, isLoading: authLoading } = trpc.auth.me.useQuery();
   const { data: accessories = [], isLoading, error } = trpc.kitchenAccessoryAdmin.list.useQuery();
   const createMutation = trpc.kitchenAccessoryAdmin.create.useMutation();
   const updateMutation = trpc.kitchenAccessoryAdmin.update.useMutation();
@@ -132,6 +133,22 @@ export default function KitchenAccessoryAdmin() {
       toast.error(e instanceof Error ? e.message : "تعذر تغيير حالة الإكسسوار");
     }
   };
+
+  if (authLoading) {
+    return <main className="min-h-screen bg-background p-8" dir="rtl"><p className="text-sm text-muted-foreground">جاري التحقق من الصلاحيات...</p></main>;
+  }
+  if (!currentUser || currentUser.role !== "admin") {
+    return (
+      <main className="min-h-screen bg-background p-8" dir="rtl">
+        <section className="mx-auto max-w-xl rounded-2xl border p-6 text-center">
+          <ShieldAlert className="mx-auto mb-3 h-10 w-10 text-destructive" />
+          <h1 className="text-xl font-bold">غير مصرح لك بإدارة الإكسسوارات</h1>
+          <p className="mt-2 text-sm text-muted-foreground">تسجيل الدخول بحساب مستخدم عادي لا يمنح صلاحيات إدارة الكتالوج.</p>
+          <Link href="/brand/professor_kitchens/kitchens" className="mt-4 inline-block text-sm underline">العودة لنظام التسعير</Link>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-background px-4 py-6 md:px-8" dir="rtl">
