@@ -662,7 +662,7 @@ export const appRouter = router({
           if (!imageBase64 || !imageMimeType) throw new Error("يجب إرسال الصورة ونوعها معًا");
           const buffer = Buffer.from(imageBase64, "base64");
           if (buffer.length > 8 * 1024 * 1024) throw new Error("حجم الصورة يجب ألا يتجاوز 8 ميجابايت");
-          if (!isValidImagePayload(buffer, input.imageMimeType)) throw new Error("محتوى الصورة لا يطابق نوع الملف");
+          if (!isValidImagePayload(buffer, imageMimeType)) throw new Error("محتوى الصورة لا يطابق نوع الملف");
           const ext = imageMimeType === "image/jpeg" ? "jpg" : imageMimeType.split("/")[1];
           const result = await storagePut(`kitchen-accessories/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`, buffer, imageMimeType);
           updates.imageUrl = result.url;
