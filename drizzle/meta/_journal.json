@@ -64,6 +64,13 @@
       "when": 1792584000000,
       "tag": "0008_kitchen_accessory_media_script",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1792585000000,
+      "tag": "0009_pricing_sso_one_time_tokens",
+      "breakpoints": true
     }
   ]
 }

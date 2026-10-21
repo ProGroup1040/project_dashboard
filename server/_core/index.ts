@@ -11,6 +11,7 @@ import { registerPricingApiRoutes } from "../pricing-api";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { ensureProductionQuotationSchema } from "../db-migrations";
+import { registerPricingSsoRoutes } from "./pricingSso";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -42,6 +43,8 @@ async function startServer() {
   registerStorageProxy(app);
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+  // Pricing SSO callback accepts credentials only in a POST body, never a URL.
+  registerPricingSsoRoutes(app);
   // Chat API with streaming and tool calling
   registerChatRoutes(app);
   // Public Pricing API for ERP integration
