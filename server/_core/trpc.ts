@@ -47,6 +47,22 @@ export const adminProcedure = t.procedure.use(
 
 export type PricingCatalogAction = "canView" | "canAdd" | "canEdit" | "canDelete";
 
+/** Enforces the signed Sales Team Platform grant for ordinary pricing operations. */
+export function pricingSystemProcedure(action: PricingCatalogAction) {
+  return t.procedure.use(
+    t.middleware(async ({ ctx, next }) => {
+      const actor = ctx.pricingActor;
+      if (!actor) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "انتهت جلسة التسعير أو لم يتم تسجيل الدخول من منصة المبيعات" });
+      }
+      if (!actor.permissions.canView || !actor.permissions[action]) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "ليس لديك صلاحية لتنفيذ هذه العملية في منظومة التسعير" });
+      }
+      return next();
+    }),
+  );
+}
+
 /** Enforces permissions issued by the Sales Team Platform on every catalog API call. */
 export function pricingCatalogProcedure(action: PricingCatalogAction) {
   return t.procedure.use(
