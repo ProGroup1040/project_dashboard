@@ -758,26 +758,26 @@ export const appRouter = router({
   // ─── Platform Router ────────────────────────────────────────────────────────
   platform: router({
     // Transport rules
-    getTransportRules: publicProcedure.query(async () => {
+    getTransportRules: pricingSystemProcedure("canView").query(async () => {
       const { getTransportRules, seedTransportRules } = await import("./db-platform");
       await seedTransportRules();
       return getTransportRules();
     }),
 
     // Playbook
-    getPlaybookItems: publicProcedure
+    getPlaybookItems: pricingSystemProcedure("canView")
       .input(z.object({ category: z.string().optional() }))
       .query(async ({ input }) => {
         const { getPlaybookItems } = await import("./db-platform");
         return getPlaybookItems(input.category);
       }),
-    getPlaybookItem: publicProcedure
+    getPlaybookItem: pricingSystemProcedure("canView")
       .input(z.object({ itemKey: z.string() }))
       .query(async ({ input }) => {
         const { getPlaybookItem } = await import("./db-platform");
         return getPlaybookItem(input.itemKey);
       }),
-    upsertPlaybookItem: publicProcedure
+    upsertPlaybookItem: pricingSystemProcedure("canEdit")
       .input(z.object({
         itemKey: z.string(), itemNameAr: z.string(), itemNameEn: z.string().optional(),
         category: z.enum(["material", "accessory", "cladding", "marble", "transport", "labor"]),
@@ -792,13 +792,13 @@ export const appRouter = router({
       }),
 
     // Media Library
-    getMediaByItemKey: publicProcedure
+    getMediaByItemKey: pricingSystemProcedure("canView")
       .input(z.object({ itemKey: z.string() }))
       .query(async ({ input }) => {
         const { getMediaByItemKey } = await import("./db-platform");
         return getMediaByItemKey(input.itemKey);
       }),
-    addMediaItem: publicProcedure
+    addMediaItem: pricingSystemProcedure("canAdd")
       .input(z.object({
         itemKey: z.string(), nameAr: z.string(),
         fileType: z.enum(["image", "video", "render", "document"]),
@@ -813,13 +813,13 @@ export const appRouter = router({
       }),
 
     // Sales Scripts
-    getSalesScript: publicProcedure
+    getSalesScript: pricingSystemProcedure("canView")
       .input(z.object({ itemKey: z.string() }))
       .query(async ({ input }) => {
         const { getSalesScript } = await import("./db-platform");
         return getSalesScript(input.itemKey);
       }),
-    upsertSalesScript: publicProcedure
+    upsertSalesScript: pricingSystemProcedure("canEdit")
       .input(z.object({
         itemKey: z.string(), shortClientExplanation: z.string().optional(),
         premiumExplanation: z.string().optional(), objectionResponse: z.string().optional(),
@@ -832,7 +832,7 @@ export const appRouter = router({
       }),
 
     // Quotations V2
-    createQuotation: publicProcedure
+    createQuotation: pricingSystemProcedure("canAdd")
       .input(z.object({
         quotationCode: z.string(), brandKey: z.string().optional(),
         clientName: z.string().optional(), clientPhone: z.string().optional(),
@@ -846,7 +846,7 @@ export const appRouter = router({
         const { createQuotationV2 } = await import("./db-platform");
         return createQuotationV2(input);
       }),
-    updateQuotation: publicProcedure
+    updateQuotation: pricingSystemProcedure("canEdit")
       .input(z.object({
         id: z.number(),
         materialsJson: z.string().optional(), accessoriesJson: z.string().optional(),
@@ -867,13 +867,13 @@ export const appRouter = router({
         await updateQuotationV2(id, data as any);
         return { success: true };
       }),
-    getQuotation: publicProcedure
+    getQuotation: pricingSystemProcedure("canView")
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
         const { getQuotationV2 } = await import("./db-platform");
         return getQuotationV2(input.id);
       }),
-    listQuotations: publicProcedure
+    listQuotations: pricingSystemProcedure("canView")
       .input(z.object({ brandKey: z.string().optional() }))
       .query(async ({ input }) => {
         const { listQuotationsV2 } = await import("./db-platform");
@@ -881,7 +881,7 @@ export const appRouter = router({
       }),
 
     // Approval
-    requestApproval: publicProcedure
+    requestApproval: pricingSystemProcedure("canAdd")
       .input(z.object({
         quotationId: z.number(),
         requestType: z.enum(["discount", "free_item", "price_override", "final_approval"]),
@@ -892,7 +892,7 @@ export const appRouter = router({
         await createApprovalRequest(input);
         return { success: true };
       }),
-    reviewApproval: publicProcedure
+    reviewApproval: pricingSystemProcedure("canEdit")
       .input(z.object({
         id: z.number(),
         status: z.enum(["approved", "rejected"]),
@@ -903,13 +903,13 @@ export const appRouter = router({
         await reviewApprovalRequest(input.id, input);
         return { success: true };
       }),
-    getPendingApprovals: publicProcedure.query(async () => {
+    getPendingApprovals: pricingSystemProcedure("canView").query(async () => {
       const { getPendingApprovals } = await import("./db-platform");
       return getPendingApprovals();
     }),
 
     // KPIs
-    getKPIs: publicProcedure
+    getKPIs: pricingSystemProcedure("canView")
       .input(z.object({ brandKey: z.string().optional() }))
       .query(async ({ input }) => {
         const { getQuotationKPIs } = await import("./db-platform");
@@ -917,7 +917,7 @@ export const appRouter = router({
       }),
 
     // Save/Load Engine State
-    saveEngineState: publicProcedure
+    saveEngineState: pricingSystemProcedure("canEdit")
       .input(z.object({
         id: z.number(),
         engineStateJson: z.string(),
@@ -955,14 +955,14 @@ export const appRouter = router({
         return saveEngineState(id, engineStateJson, meta as any);
       }),
 
-    getEngineState: publicProcedure
+    getEngineState: pricingSystemProcedure("canView")
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
         const { getEngineState } = await import("./db-platform");
         return getEngineState(input.id);
       }),
 
-    searchQuotations: publicProcedure
+    searchQuotations: pricingSystemProcedure("canView")
       .input(z.object({
         query: z.string().optional(),
         engineerName: z.string().optional(),
@@ -975,7 +975,7 @@ export const appRouter = router({
         return searchQuotationsV2(input);
       }),
 
-    updateQuotationStatus: publicProcedure
+    updateQuotationStatus: pricingSystemProcedure("canEdit")
       .input(z.object({
         id: z.number(),
         status: z.enum(["draft", "pending_approval", "approved", "sent_to_client", "accepted", "rejected", "revised"]),
@@ -987,7 +987,7 @@ export const appRouter = router({
       }),
 
     // Warnings
-    generateWarnings: publicProcedure
+    generateWarnings: pricingSystemProcedure("canView")
       .input(z.object({
         selectedAccessories: z.array(z.object({ id: z.number(), qty: z.number() })),
         marbleSelected: z.boolean(), transportSelected: z.boolean(),
