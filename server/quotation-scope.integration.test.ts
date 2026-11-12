@@ -3,13 +3,7 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { getDb } from "./db";
 import {
-  addKitchenUnit,
   createApprovalRequest,
-  createKitchenQuotation,
-  deleteKitchenUnit,
-  getKitchenQuotationById,
-  getKitchenQuotations,
-  getKitchenUnitsByQuotation,
   createQuotationV2,
   getEngineState,
   getPendingApprovals,
@@ -21,6 +15,14 @@ import {
   searchQuotationsV2,
   updateQuotationV2,
 } from "./db-platform";
+import {
+  addKitchenUnit,
+  createKitchenQuotation,
+  deleteKitchenUnit,
+  getKitchenQuotationById,
+  getKitchenQuotations,
+  getKitchenUnitsByQuotation,
+} from "./db-kitchen";
 import { approvalLogs, kitchenQuotations, kitchenUnits, quotationsV2 } from "../drizzle/schema";
 
 const databaseUrl = process.env.DATABASE_URL;
