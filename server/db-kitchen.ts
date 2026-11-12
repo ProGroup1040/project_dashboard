@@ -1,5 +1,6 @@
 import { eq, asc } from "drizzle-orm";
 import { getDb } from "./db";
+import type { PricingRecordScope } from "./db-platform";
 import {
   kitchenMaterials,
   kitchenAccessories,
@@ -66,41 +67,55 @@ export async function getKitchenCladding() {
   return db.select().from(kitchenCladding).where(eq(kitchenCladding.isActive, true)).orderBy(asc(kitchenCladding.sortOrder));
 }
 
-export async function createKitchenQuotation(data: typeof kitchenQuotations.$inferInsert) {
+export async function createKitchenQuotation(data: Omit<typeof kitchenQuotations.$inferInsert, "createdByUserId">, actor: PricingRecordScope) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const result = await db.insert(kitchenQuotations).values(data);
-  return result[0];
-}
-
-export async function getKitchenQuotations() {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(kitchenQuotations).orderBy(asc(kitchenQuotations.createdAt));
-}
-
-export async function getKitchenQuotationById(id: number) {
-  const db = await getDb();
-  if (!db) return null;
-  const rows = await db.select().from(kitchenQuotations).where(eq(kitchenQuotations.id, id));
+  const inserted = await db.insert(kitchenQuotations).values({ ...data, createdByUserId: actor.userId }).$returningId();
+  const id = inserted[0]?.id;
+  if (!id) throw new Error("Failed to create kitchen quotation: insert ID was not returned");
+  const rows = await db.select().from(kitchenQuotations).where(eq(kitchenQuotations.id, id)).limit(1);
   return rows[0] ?? null;
 }
 
-export async function addKitchenUnit(data: typeof kitchenUnits.$inferInsert) {
+export async function getKitchenQuotations(actor: PricingRecordScope) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const result = await db.insert(kitchenUnits).values(data);
-  return result[0];
+  const query = db.select().from(kitchenQuotations).orderBy(asc(kitchenQuotations.createdAt));
+  if (actor.scope === "all") return query;
+  return db.select().from(kitchenQuotations).where(eq(kitchenQuotations.createdByUserId, actor.userId)).orderBy(asc(kitchenQuotations.createdAt));
 }
 
-export async function getKitchenUnitsByQuotation(quotationId: number) {
+export async function getKitchenQuotationById(id: number, actor: PricingRecordScope) {
   const db = await getDb();
-  if (!db) return [];
+  if (!db) throw new Error("DB not available");
+  const rows = await db.select().from(kitchenQuotations).where(eq(kitchenQuotations.id, id)).limit(1);
+  if (!rows[0] || (actor.scope === "own" && rows[0].createdByUserId !== actor.userId)) return null;
+  return rows[0];
+}
+
+export async function addKitchenUnit(data: typeof kitchenUnits.$inferInsert, actor: PricingRecordScope) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  if (!(await getKitchenQuotationById(data.quotationId, actor))) throw new Error("Quotation not found or access denied");
+  const inserted = await db.insert(kitchenUnits).values(data).$returningId();
+  const id = inserted[0]?.id;
+  if (!id) throw new Error("Failed to create kitchen unit: insert ID was not returned");
+  const rows = await db.select().from(kitchenUnits).where(eq(kitchenUnits.id, id)).limit(1);
+  return rows[0] ?? null;
+}
+
+export async function getKitchenUnitsByQuotation(quotationId: number, actor: PricingRecordScope) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  if (!(await getKitchenQuotationById(quotationId, actor))) throw new Error("Quotation not found or access denied");
   return db.select().from(kitchenUnits).where(eq(kitchenUnits.quotationId, quotationId)).orderBy(asc(kitchenUnits.sortOrder));
 }
 
-export async function deleteKitchenUnit(id: number) {
+export async function deleteKitchenUnit(id: number, actor: PricingRecordScope) {
   const db = await getDb();
-  if (!db) return;
+  if (!db) throw new Error("DB not available");
+  const rows = await db.select().from(kitchenUnits).where(eq(kitchenUnits.id, id)).limit(1);
+  if (!rows[0]) return;
+  if (!(await getKitchenQuotationById(rows[0].quotationId, actor))) throw new Error("Quotation not found or access denied");
   await db.delete(kitchenUnits).where(eq(kitchenUnits.id, id));
 }
