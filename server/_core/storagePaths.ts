@@ -10,11 +10,12 @@ export function getStorageDirectory(): string {
 
 /** Resolve a storage key while preventing path traversal outside the storage root. */
 export function resolveStorageFilePath(key: string): string {
-  const normalized = key.replace(/\\/g, "/").replace(/^\\/+/, "");
+  const normalized = key.replaceAll("\\", "/");
   const segments = normalized.split("/");
 
   if (
     !normalized ||
+    normalized.startsWith("/") ||
     segments.some(segment => !segment || segment === "." || segment === ".." || segment.includes("\0"))
   ) {
     throw new Error("Invalid storage key");
@@ -22,7 +23,8 @@ export function resolveStorageFilePath(key: string): string {
 
   const root = getStorageDirectory();
   const filePath = path.resolve(root, ...segments);
-  if (filePath !== root && !filePath.startsWith(root + path.sep)) {
+  const relativePath = path.relative(root, filePath);
+  if (relativePath === ".." || relativePath.startsWith(".." + path.sep) || path.isAbsolute(relativePath)) {
     throw new Error("Invalid storage key");
   }
 
