@@ -660,18 +660,18 @@ export const appRouter = router({
     getCladding: pricingSystemProcedure("canView").query(async () => {
       return getKitchenCladding();
     }),
-    getQuotations: pricingSystemProcedure("canView").query(async () => {
-      return getKitchenQuotations();
+    getQuotations: pricingSystemProcedure("canView").query(async ({ ctx }) => {
+      return getKitchenQuotations(ctx.pricingActor!);
     }),
     getQuotationById: pricingSystemProcedure("canView")
       .input(z.object({ id: z.number() }))
-      .query(async ({ input }) => {
-        return getKitchenQuotationById(input.id);
+      .query(async ({ input, ctx }) => {
+        return getKitchenQuotationById(input.id, ctx.pricingActor!);
       }),
     getUnitsByQuotation: pricingSystemProcedure("canView")
       .input(z.object({ quotationId: z.number() }))
-      .query(async ({ input }) => {
-        return getKitchenUnitsByQuotation(input.quotationId);
+      .query(async ({ input, ctx }) => {
+        return getKitchenUnitsByQuotation(input.quotationId, ctx.pricingActor!);
       }),
     createQuotation: pricingSystemProcedure("canAdd")
       .input(z.object({
@@ -709,8 +709,8 @@ export const appRouter = router({
         grandTotal: z.number().optional(),
         notes: z.string().optional(),
       }))
-      .mutation(async ({ input }) => {
-        return createKitchenQuotation(input);
+      .mutation(async ({ input, ctx }) => {
+        return createKitchenQuotation(input, ctx.pricingActor!);
       }),
     addUnit: pricingSystemProcedure("canAdd")
       .input(z.object({
@@ -725,13 +725,13 @@ export const appRouter = router({
         wallLabel: z.string().optional(),
         sortOrder: z.number().optional(),
       }))
-      .mutation(async ({ input }) => {
-        return addKitchenUnit(input);
+      .mutation(async ({ input, ctx }) => {
+        return addKitchenUnit(input, ctx.pricingActor!);
       }),
         deleteUnit: pricingSystemProcedure("canDelete")
       .input(z.object({ id: z.number() }))
-      .mutation(async ({ input }) => {
-        await deleteKitchenUnit(input.id);
+      .mutation(async ({ input, ctx }) => {
+        await deleteKitchenUnit(input.id, ctx.pricingActor!);
         return { success: true };
       }),
 
