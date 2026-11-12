@@ -4,7 +4,8 @@ import path from "node:path";
 import { resolveStorageFilePath } from "./_core/storagePaths";
 
 function normalizeKey(relKey: string): string {
-  const key = relKey.replace(/\\/g, "/").replace(/^\\/+/, "");
+  let key = relKey.replaceAll("\\", "/");
+  while (key.startsWith("/")) key = key.slice(1);
   // Validate the key before using it or returning it to the caller.
   resolveStorageFilePath(key);
   return key;
@@ -18,8 +19,8 @@ function toPublicUrl(key: string): string {
  * Store uploaded files on persistent local storage.
  *
  * Set PRICING_STORAGE_DIR to a mounted persistent volume in deployments.
- * The /manus-storage URL is retained for compatibility with existing frontend
- * references and legacy database records.
+ * The legacy URL path is retained for compatibility with existing frontend
+ * references; no Manus credentials or remote storage service are used.
  */
 export async function storagePut(
   relKey: string,
