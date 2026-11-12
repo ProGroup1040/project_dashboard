@@ -7,6 +7,7 @@ import {
   createQuotationV2,
   getEngineState,
   getPendingApprovals,
+  getQuotationKPIs,
   getQuotationV2,
   listQuotationsV2,
   reviewApprovalRequest,
@@ -31,12 +32,14 @@ describe.skipIf(!databaseUrl)("pricing quotation own/all scope", () => {
   beforeAll(async () => {
     quotationA = await createQuotationV2({
       quotationCode: codeA,
+      brandKey: "scope-test",
       createdByUserId: actorA.userId,
       engineerName: "Engineer A",
       clientName: "Scope Test A",
     });
     quotationB = await createQuotationV2({
       quotationCode: codeB,
+      brandKey: "scope-test",
       createdByUserId: actorB.userId,
       engineerName: "Engineer B",
       clientName: "Scope Test B",
@@ -60,6 +63,9 @@ describe.skipIf(!databaseUrl)("pricing quotation own/all scope", () => {
     expect(ownRows.some(row => row.id === quotationA!.id)).toBe(true);
     expect(ownRows.some(row => row.id === quotationB!.id)).toBe(false);
 
+    const ownBrandRows = await listQuotationsV2("scope-test", actorA);
+    expect(ownBrandRows.map(row => row.id)).toEqual([quotationA!.id]);
+
     const managerRows = await listQuotationsV2(undefined, manager);
     expect(managerRows.some(row => row.id === quotationA!.id)).toBe(true);
     expect(managerRows.some(row => row.id === quotationB!.id)).toBe(true);
@@ -70,6 +76,11 @@ describe.skipIf(!databaseUrl)("pricing quotation own/all scope", () => {
     const ownSearch = await searchQuotationsV2({ query: suffix }, actorA);
     expect(ownSearch.some(row => row.id === quotationA!.id)).toBe(true);
     expect(ownSearch.some(row => row.id === quotationB!.id)).toBe(false);
+
+    const ownKpis = await getQuotationKPIs("scope-test", actorA);
+    const managerKpis = await getQuotationKPIs("scope-test", manager);
+    expect(ownKpis.total).toBe(1);
+    expect(managerKpis.total).toBe(2);
   });
 
   it("blocks cross-owner edits, engine-state reads, and approval actions", async () => {
