@@ -49,6 +49,19 @@ export async function ensureProductionQuotationSchema() {
       await connection.query("CREATE INDEX `quotations_v2_created_by_user_id_idx` ON `quotations_v2` (`createdByUserId`)");
     }
 
+    const [legacyOwnerRows] = await connection.query(
+      "SHOW COLUMNS FROM `kitchen_quotations` LIKE 'createdByUserId'",
+    );
+    if (!Array.isArray(legacyOwnerRows) || legacyOwnerRows.length === 0) {
+      await connection.query("ALTER TABLE `kitchen_quotations` ADD COLUMN `createdByUserId` varchar(128) NULL");
+    }
+    const [legacyOwnerIndexRows] = await connection.query(
+      "SHOW INDEX FROM `kitchen_quotations` WHERE Key_name = 'kitchen_quotations_created_by_user_id_idx'",
+    );
+    if (!Array.isArray(legacyOwnerIndexRows) || legacyOwnerIndexRows.length === 0) {
+      await connection.query("CREATE INDEX `kitchen_quotations_created_by_user_id_idx` ON `kitchen_quotations` (`createdByUserId`)");
+    }
+
     const [verifiedRows] = await connection.query(
       "SHOW COLUMNS FROM `quotations_v2` LIKE 'engineStateJson'",
     );
