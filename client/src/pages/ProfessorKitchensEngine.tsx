@@ -96,7 +96,7 @@ export default function ProfessorKitchensEngine() {
 
   // Data
   const { data: materials   = [] } = trpc.kitchen.getMaterials.useQuery();
-  const { data: accessories = [] } = trpc.kitchen.getAccessories.useQuery();
+  const { data: accessories = [], error: accessoriesError, refetch: refetchAccessories } = trpc.kitchen.getAccessories.useQuery();
   const { data: pricingActor, isLoading: pricingActorLoading } = trpc.projectSso.me.useQuery();
   const { data: marbles     = [] } = trpc.kitchen.getMarble.useQuery();
   const { data: claddings   = [] } = trpc.kitchen.getCladding.useQuery();
@@ -657,6 +657,13 @@ export default function ProfessorKitchensEngine() {
         {/* ── Step 3: Accessories ── */}
         {step === 3 && (
           <div>
+            {accessoriesError && (
+              <div role="alert" className="mb-4 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">
+                <p className="font-semibold">تعذر تحميل كتالوج الإكسسوارات</p>
+                <p className="mt-1 break-words">{accessoriesError.message}</p>
+                <button type="button" onClick={() => void refetchAccessories()} className="mt-3 rounded-lg border border-red-400/40 px-3 py-1.5 hover:bg-red-500/10">إعادة المحاولة</button>
+              </div>
+            )}
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold">⚙️ الإكسسوارات</h2>
               <div className="flex gap-2 flex-wrap items-center">

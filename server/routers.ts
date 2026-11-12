@@ -561,7 +561,7 @@ export const appRouter = router({
         sortOrder: z.number().int().min(0).max(1000000).default(0),
         videoUrl: z.string().url().max(2048).optional().or(z.literal("")),
         salesScript: z.string().max(20000).optional(),
-        imageBase64: z.string().max(11000000).optional(),
+        imageBase64: z.string().max(11200000).optional(),
         imageMimeType: z.enum(["image/jpeg", "image/png", "image/webp"]).optional(),
       }))
       .mutation(async ({ input }) => {
@@ -591,7 +591,7 @@ export const appRouter = router({
         sortOrder: z.number().int().min(0).max(1000000).optional(),
         videoUrl: z.string().url().max(2048).optional().or(z.literal("")),
         salesScript: z.string().max(20000).optional(),
-        imageBase64: z.string().max(11000000).optional(),
+        imageBase64: z.string().max(11200000).optional(),
         imageMimeType: z.enum(["image/jpeg", "image/png", "image/webp"]).optional(),
         isActive: z.boolean().optional(),
       }))

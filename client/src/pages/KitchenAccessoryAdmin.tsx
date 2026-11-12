@@ -49,7 +49,7 @@ async function readImage(file: File): Promise<string> {
 export default function KitchenAccessoryAdmin() {
   const utils = trpc.useUtils();
   const { data: currentActor, isLoading: authLoading } = trpc.projectSso.me.useQuery();
-  const { data: accessories = [], isLoading, error } = trpc.kitchenAccessoryAdmin.list.useQuery();
+  const { data: accessories = [], isLoading, error, refetch } = trpc.kitchenAccessoryAdmin.list.useQuery();
   const createMutation = trpc.kitchenAccessoryAdmin.create.useMutation();
   const updateMutation = trpc.kitchenAccessoryAdmin.update.useMutation();
   const deactivateMutation = trpc.kitchenAccessoryAdmin.deactivate.useMutation();
@@ -93,15 +93,7 @@ export default function KitchenAccessoryAdmin() {
     setSaving(true);
     try {
       const media = image ? { imageBase64: await readImage(image), imageMimeType: image.type as "image/jpeg" | "image/png" | "image/webp" } : {};
-      const common = {
-        brand: form.brand.trim(),
-        nameAr: form.nameAr.trim(),
-        price,
-        sortOrder,
-        videoUrl: form.videoUrl.trim(),
-        salesScript: form.salesScript.trim(),
-        ...media,
-      };
+      const common = { brand: form.brand.trim(), nameAr: form.nameAr.trim(), price, sortOrder, videoUrl: form.videoUrl.trim(), salesScript: form.salesScript.trim(), ...media };
       if (editing) {
         await updateMutation.mutateAsync({ id: editing.id, ...common });
         toast.success("تم تحديث الإكسسوار");
@@ -109,13 +101,20 @@ export default function KitchenAccessoryAdmin() {
         await createMutation.mutateAsync(common);
         toast.success("تمت إضافة الإكسسوار");
       }
-      await utils.kitchenAccessoryAdmin.list.invalidate();
-      await utils.kitchen.getAccessories.invalidate();
       reset();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "تعذر حفظ الإكسسوار");
+      return;
     } finally {
       setSaving(false);
+    }
+
+    // A failed GET refresh must not be reported as a failed save: the write has committed.
+    try {
+      await Promise.all([utils.kitchenAccessoryAdmin.list.invalidate(), utils.kitchen.getAccessories.invalidate()]);
+    } catch (e) {
+      const reason = e instanceof Error ? e.message : "خطأ غير معروف";
+      toast.error("تم الحفظ، لكن تعذر تحديث قائمة الإكسسوارات: " + reason);
     }
   };
 
@@ -167,7 +166,7 @@ export default function KitchenAccessoryAdmin() {
         {error && (
           <section className="rounded-xl border border-destructive/40 bg-destructive/5 p-4">
             <div className="flex items-center gap-2 font-semibold"><ShieldAlert className="h-5 w-5" /> غير مصرح بالدخول أو تعذر تحميل الكتالوج</div>
-            <p className="mt-1 text-sm text-muted-foreground">تأكد من تسجيل الدخول بحساب إدارة مخوّل. عمليات التعديل محمية من الخادم.</p>
+            <p className="mt-1 text-sm text-muted-foreground">{error.message}</p><Button className="mt-3" size="sm" variant="outline" onClick={() => void refetch()}>إعادة تحميل الكتالوج</Button>
           </section>
         )}
 
