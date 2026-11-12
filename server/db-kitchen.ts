@@ -80,8 +80,9 @@ export async function createKitchenQuotation(data: Omit<typeof kitchenQuotations
 export async function getKitchenQuotations(actor: PricingRecordScope) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const query = db.select().from(kitchenQuotations).orderBy(asc(kitchenQuotations.createdAt));
-  if (actor.scope === "all") return query;
+  if (actor.scope === "all") {
+    return db.select().from(kitchenQuotations).orderBy(asc(kitchenQuotations.createdAt));
+  }
   return db.select().from(kitchenQuotations).where(eq(kitchenQuotations.createdByUserId, actor.userId)).orderBy(asc(kitchenQuotations.createdAt));
 }
 
