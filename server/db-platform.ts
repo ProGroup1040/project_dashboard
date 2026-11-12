@@ -176,10 +176,20 @@ export async function getQuotationV2(id: number, actor: PricingRecordScope) {
 export async function listQuotationsV2(brandKey: string | undefined, actor: PricingRecordScope) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const rows = brandKey
-    ? await db.select().from(quotationsV2).where(eq(quotationsV2.brandKey, brandKey)).orderBy(desc(quotationsV2.createdAt))
-    : await db.select().from(quotationsV2).orderBy(desc(quotationsV2.createdAt)).limit(actor.scope === "all" ? 50 : 500);
-  return actor.scope === "all" ? rows : rows.filter(row => canAccessQuotation(row, actor)).slice(0, 50);
+  if (brandKey && actor.scope === "own") {
+    return db.select().from(quotationsV2)
+      .where(and(eq(quotationsV2.brandKey, brandKey), eq(quotationsV2.createdByUserId, actor.userId)))
+      .orderBy(desc(quotationsV2.createdAt)).limit(50);
+  }
+  if (brandKey) {
+    return db.select().from(quotationsV2).where(eq(quotationsV2.brandKey, brandKey))
+      .orderBy(desc(quotationsV2.createdAt)).limit(50);
+  }
+  if (actor.scope === "own") {
+    return db.select().from(quotationsV2).where(eq(quotationsV2.createdByUserId, actor.userId))
+      .orderBy(desc(quotationsV2.createdAt)).limit(50);
+  }
+  return db.select().from(quotationsV2).orderBy(desc(quotationsV2.createdAt)).limit(50);
 }
 
 export async function searchQuotationsV2(params: { query?: string; engineerName?: string; status?: string; brandKey?: string; limit?: number; }, actor: PricingRecordScope) {
@@ -280,10 +290,13 @@ export async function getQuotationKPIs(brandKey: string | undefined, actor: Pric
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   if (!db) throw new Error("Database not available");
-  const filters = [];
-  if (brandKey) filters.push(eq(quotationsV2.brandKey, brandKey));
-  if (actor.scope === "own") filters.push(eq(quotationsV2.createdByUserId, actor.userId));
-  const all = filters.length ? await db.select().from(quotationsV2).where(and(...filters)) : await db.select().from(quotationsV2);
+  const all = brandKey && actor.scope === "own"
+    ? await db.select().from(quotationsV2).where(and(eq(quotationsV2.brandKey, brandKey), eq(quotationsV2.createdByUserId, actor.userId)))
+    : brandKey
+      ? await db.select().from(quotationsV2).where(eq(quotationsV2.brandKey, brandKey))
+      : actor.scope === "own"
+        ? await db.select().from(quotationsV2).where(eq(quotationsV2.createdByUserId, actor.userId))
+        : await db.select().from(quotationsV2);
 
   const total = all.length;
   const totalValue = all.reduce((s: number, q) => s + (q.grandTotal || 0), 0);
