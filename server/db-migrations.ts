@@ -36,6 +36,19 @@ export async function ensureProductionQuotationSchema() {
       );
     }
 
+    const [ownerRows] = await connection.query(
+      "SHOW COLUMNS FROM `quotations_v2` LIKE 'createdByUserId'",
+    );
+    if (!Array.isArray(ownerRows) || ownerRows.length === 0) {
+      await connection.query("ALTER TABLE `quotations_v2` ADD COLUMN `createdByUserId` varchar(128) NULL");
+    }
+    const [ownerIndexRows] = await connection.query(
+      "SHOW INDEX FROM `quotations_v2` WHERE Key_name = 'quotations_v2_created_by_user_id_idx'",
+    );
+    if (!Array.isArray(ownerIndexRows) || ownerIndexRows.length === 0) {
+      await connection.query("CREATE INDEX `quotations_v2_created_by_user_id_idx` ON `quotations_v2` (`createdByUserId`)");
+    }
+
     const [verifiedRows] = await connection.query(
       "SHOW COLUMNS FROM `quotations_v2` LIKE 'engineStateJson'",
     );

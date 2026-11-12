@@ -71,6 +71,13 @@
       "when": 1792585000000,
       "tag": "0009_pricing_sso_one_time_tokens",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1794489000000,
+      "tag": "0010_quotation_owner_scope",
+      "breakpoints": true
     }
   ]
 }

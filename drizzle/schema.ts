@@ -682,6 +682,7 @@ export const quotationsV2 = mysqlTable("quotations_v2", {
   projectCode: varchar("projectCode", { length: 64 }),
   engineerName: varchar("engineerName", { length: 128 }),
   engineerRole: mysqlEnum("engineerRole", ["sales_engineer", "designer", "technical_office", "sales_manager", "admin", "owner"]).default("sales_engineer"),
+  createdByUserId: varchar("createdByUserId", { length: 128 }),
 
   // Kitchen dimensions
   kitchenLength: varchar("kitchenLength", { length: 16 }),
