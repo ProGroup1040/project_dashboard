@@ -1,4 +1,4 @@
-import { boolean, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { boolean, index, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -733,7 +733,9 @@ export const quotationsV2 = mysqlTable("quotations_v2", {
   internalNotes: text("internalNotes"), // hidden from client
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  createdByUserIdIdx: index("quotations_v2_created_by_user_id_idx").on(table.createdByUserId),
+}));
 export type QuotationV2 = typeof quotationsV2.$inferSelect;
 
 /**
