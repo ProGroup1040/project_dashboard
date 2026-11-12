@@ -2,6 +2,7 @@ import type { Express, Request, Response } from "express";
 import { jwtVerify, SignJWT } from "jose";
 import { sql } from "drizzle-orm";
 import { getDb } from "../db";
+import { getPricingSsoSecret } from "./env";
 
 const CALLBACK_PATH = "/sso/pricing";
 const SAFE_DESTINATION = "/brand/professor_kitchens/kitchens";
@@ -34,7 +35,7 @@ export function registerPricingSsoRoutes(app: Express) {
       return fail(res, 400, "Invalid SSO request");
     }
 
-    const secretText = "c9e6f14a72b08d3f5a1c9e4b6d2f8071a3c5e9b2d4f6087c1a5e3d9b7f2046c8";
+    const secretText = getPricingSsoSecret();
     const secret = new TextEncoder().encode(secretText);
     if (secret.length < 32) {
       return fail(res, 503, "Pricing SSO is not configured");

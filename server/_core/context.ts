@@ -3,6 +3,7 @@ import { jwtVerify } from "jose";
 import { parse as parseCookieHeader } from "cookie";
 import type { User } from "../../drizzle/schema";
 import { sdk } from "./sdk";
+import { getPricingSsoSecret } from "./env";
 
 export type PricingSsoActor = {
   userId: string;
@@ -36,7 +37,7 @@ export async function createContext(
   let pricingActor: PricingSsoActor | null = null;
   try {
     const cookie = parseCookieHeader(opts.req.headers.cookie ?? "").pricing_sso;
-    const secretText = process.env.PRICING_SSO_SECRET?.trim() ?? "";
+    const secretText = getPricingSsoSecret();
     if (cookie && new TextEncoder().encode(secretText).length >= 32) {
       const { payload } = await jwtVerify(cookie, new TextEncoder().encode(secretText), {
         issuer: "professor-kitchens",

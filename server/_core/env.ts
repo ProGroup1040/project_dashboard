@@ -1,3 +1,7 @@
+export function getPricingSsoSecret(environment: NodeJS.ProcessEnv = process.env) {
+  return environment.PRICING_SSO_SECRET?.trim() ?? "";
+}
+
 export const ENV = {
   appId: process.env.VITE_APP_ID ?? "",
   cookieSecret: process.env.JWT_SECRET ?? "",
