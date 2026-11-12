@@ -76,3 +76,47 @@ export async function ensurePricingSsoTokenSchema() {
     await connection.end();
   }
 }
+
+/**
+ * Verify the accessory columns used by both catalog writes and pricing reads.
+ * Imported databases may have a migration ledger that does not match the
+ * physical schema. Add only missing nullable columns; never rewrite catalog data.
+ */
+export async function ensureKitchenAccessorySchema() {
+  if (process.env.NODE_ENV !== "production") return;
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) throw new Error("DATABASE_URL is required before verifying the kitchen accessory schema");
+
+  const connection = await mysql.createConnection(databaseUrl);
+  try {
+    const [tableRows] = await connection.query("SHOW TABLES LIKE 'kitchen_accessories'");
+    if (!Array.isArray(tableRows) || tableRows.length === 0) {
+      throw new Error("Production schema is missing kitchen_accessories; apply the base Pricing migrations before startup");
+    }
+
+    const requiredColumns = [
+      ["videoUrl", "text NULL"],
+      ["imageUrl", "text NULL"],
+      ["salesScript", "text NULL"],
+    ] as const;
+
+    for (const [column, definition] of requiredColumns) {
+      const [rows] = await connection.query("SHOW COLUMNS FROM `kitchen_accessories` LIKE ?", [column]);
+      if (!Array.isArray(rows) || rows.length === 0) {
+        await connection.query(
+          "ALTER TABLE `kitchen_accessories` ADD COLUMN " + "`" + column + "` " + definition,
+        );
+      }
+    }
+
+    const [verifiedRows] = await connection.query("SHOW COLUMNS FROM `kitchen_accessories`");
+    const verifiedColumns = new Set((verifiedRows as Array<{ Field: string }>).map(row => row.Field));
+    const missing = requiredColumns.map(([column]) => column).filter(column => !verifiedColumns.has(column));
+    if (missing.length > 0) {
+      throw new Error(`Production kitchen accessory schema verification failed; missing columns: ${missing.join(", ")}`);
+    }
+    console.log("[Database] Kitchen accessory catalog schema verified");
+  } finally {
+    await connection.end();
+  }
+}

@@ -12,7 +12,7 @@ import { getDb } from "../db";
 import { registerPricingApiRoutes } from "../pricing-api";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
-import { ensurePricingSsoTokenSchema, ensureProductionQuotationSchema } from "../db-migrations";
+import { ensurePricingSsoTokenSchema, ensureProductionQuotationSchema, ensureKitchenAccessorySchema } from "../db-migrations";
 import { registerPricingSsoRoutes } from "./pricingSso";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -40,6 +40,7 @@ async function startServer() {
   }
   await ensurePricingSsoTokenSchema();
   await ensureProductionQuotationSchema();
+  await ensureKitchenAccessorySchema();
   const app = express();
   const server = createServer(app);
   // Configure body parser with larger size limit for file uploads
