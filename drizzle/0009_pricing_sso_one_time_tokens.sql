@@ -1,4 +1,4 @@
-CREATE TABLE `pricing_sso_used_tokens` (
+CREATE TABLE IF NOT EXISTS `pricing_sso_used_tokens` (
   `jti` varchar(128) NOT NULL,
   `expiresAt` timestamp NOT NULL,
   PRIMARY KEY (`jti`),

@@ -10,7 +10,7 @@ import { appRouter } from "../routers";
 import { registerPricingApiRoutes } from "../pricing-api";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
-import { ensureProductionQuotationSchema } from "../db-migrations";
+import { ensurePricingSsoTokenSchema, ensureProductionQuotationSchema } from "../db-migrations";
 import { registerPricingSsoRoutes } from "./pricingSso";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -33,6 +33,7 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  await ensurePricingSsoTokenSchema();
   await ensureProductionQuotationSchema();
   const app = express();
   const server = createServer(app);

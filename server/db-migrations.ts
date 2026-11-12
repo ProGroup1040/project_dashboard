@@ -50,3 +50,29 @@ export async function ensureProductionQuotationSchema() {
     await connection.end();
   }
 }
+
+
+/**
+ * Ensure the one-time SSO redemption table exists without replaying historical
+ * migrations against databases imported from the managed TiDB instance.
+ * This operation is idempotent and matches drizzle/0009_pricing_sso_one_time_tokens.sql.
+ */
+export async function ensurePricingSsoTokenSchema() {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) return;
+
+  const connection = await mysql.createConnection(databaseUrl);
+  try {
+    await connection.query(
+      "CREATE TABLE IF NOT EXISTS `pricing_sso_used_tokens` (" +
+        "`jti` varchar(128) NOT NULL," +
+        "`expiresAt` timestamp NOT NULL," +
+        "PRIMARY KEY (`jti`)," +
+        "KEY `pricing_sso_used_tokens_expiresAt_idx` (`expiresAt`)" +
+      ")",
+    );
+    console.log("[Database] Pricing SSO token schema verified");
+  } finally {
+    await connection.end();
+  }
+}

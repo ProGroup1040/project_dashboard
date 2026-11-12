@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import express from "express";
 import { createServer, type Server } from "node:http";
-import { SignJWT } from "jose";
+import { SignJWT, jwtVerify } from "jose";
 import { registerPricingSsoRoutes } from "./_core/pricingSso";
 
 vi.mock("./db", () => ({
@@ -10,7 +10,7 @@ vi.mock("./db", () => ({
 
 import { getDb } from "./db";
 
-const SECRET = "c9e6f14a72b08d3f5a1c9e4b6d2f8071a3c5e9b2d4f6087c1a5e3d9b7f2046c8";
+const SECRET = "test-only-pricing-sso-secret-32-bytes-minimum";
 let server: Server | undefined;
 let baseUrl: string;
 
@@ -58,7 +58,7 @@ describe("Pricing SSO POST callback", () => {
     expect(response.status).toBe(405);
   });
 
-  it("rejects malformed credentials when the legacy environment secret is missing", async () => {
+  it("fails closed when the SSO environment secret is missing", async () => {
     vi.stubEnv("PRICING_SSO_SECRET", "");
     await startApp();
     const response = await fetch(`${baseUrl}/sso/pricing`, {
@@ -66,7 +66,7 @@ describe("Pricing SSO POST callback", () => {
       headers: { "content-type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ token: "x".repeat(32) }),
     });
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(503);
     expect(response.headers.get("cache-control")).toContain("no-store");
   });
 
@@ -101,6 +101,13 @@ describe("Pricing SSO POST callback", () => {
     expect(response.headers.get("set-cookie")).toContain("HttpOnly");
     expect(response.headers.get("set-cookie")).toContain("Secure");
     expect(response.headers.get("set-cookie")).toContain("SameSite=Lax");
+    const sessionToken = response.headers.get("set-cookie")?.match(/pricing_sso=([^;]+)/)?.[1];
+    if (!sessionToken) throw new Error("Pricing SSO session cookie was not set");
+    await expect(jwtVerify(sessionToken, new TextEncoder().encode(SECRET), {
+      issuer: "professor-kitchens",
+      audience: "professor-kitchens-app",
+      algorithms: ["HS256"],
+    })).resolves.toBeDefined();
     expect(execute).toHaveBeenCalledTimes(2);
   });
 
