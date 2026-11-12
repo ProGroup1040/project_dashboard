@@ -142,114 +142,106 @@ export async function upsertSalesScript(data: {
 }
 
 // ─── Quotations V2 ────────────────────────────────────────────────────────────
-export async function createQuotationV2(data: Partial<typeof quotationsV2.$inferInsert> & { quotationCode: string }) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  if (!db) throw new Error("Database not available");
-  await db.insert(quotationsV2).values({ ...data, status: "draft", approvalStatus: "not_required" });
-  const result = await db.select().from(quotationsV2).where(eq(quotationsV2.quotationCode, data.quotationCode));
-  return result[0];
+export type PricingRecordScope = { userId: string; scope: "own" | "all" };
+
+function canAccessQuotation(quotation: typeof quotationsV2.$inferSelect, actor: PricingRecordScope) {
+  return actor.scope === "all" || quotation.createdByUserId === actor.userId;
 }
 
-export async function updateQuotationV2(id: number, data: Partial<typeof quotationsV2.$inferInsert>) {
+export async function createQuotationV2(data: Partial<typeof quotationsV2.$inferInsert> & { quotationCode: string; createdByUserId: string }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  if (!data.createdByUserId) throw new Error("Quotation owner is required");
+  await db.insert(quotationsV2).values({ ...data, status: "draft", approvalStatus: "not_required" });
+  const result = await db.select().from(quotationsV2).where(eq(quotationsV2.quotationCode, data.quotationCode)).limit(1);
+  return result[0] ?? null;
+}
+
+export async function updateQuotationV2(id: number, data: Partial<typeof quotationsV2.$inferInsert>, actor: PricingRecordScope) {
+  const db = await getDb();
   if (!db) throw new Error("Database not available");
+  const existing = await db.select().from(quotationsV2).where(eq(quotationsV2.id, id)).limit(1);
+  if (!existing[0] || !canAccessQuotation(existing[0], actor)) throw new Error("Quotation not found or access denied");
   await db.update(quotationsV2).set({ ...data, updatedAt: new Date() }).where(eq(quotationsV2.id, id));
 }
 
-export async function getQuotationV2(id: number) {
+export async function getQuotationV2(id: number, actor: PricingRecordScope) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  if (!db) throw new Error("Database not available");
-  const result = await db.select().from(quotationsV2).where(eq(quotationsV2.id, id));
-  return result[0] || null;
+  const result = await db.select().from(quotationsV2).where(eq(quotationsV2.id, id)).limit(1);
+  if (!result[0] || !canAccessQuotation(result[0], actor)) return null;
+  return result[0];
 }
 
-export async function listQuotationsV2(brandKey?: string) {
+export async function listQuotationsV2(brandKey: string | undefined, actor: PricingRecordScope) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  if (!db) throw new Error("Database not available");
+  if (brandKey && actor.scope === "own") {
+    return db.select().from(quotationsV2)
+      .where(and(eq(quotationsV2.brandKey, brandKey), eq(quotationsV2.createdByUserId, actor.userId)))
+      .orderBy(desc(quotationsV2.createdAt)).limit(50);
+  }
   if (brandKey) {
-    return db.select().from(quotationsV2).where(eq(quotationsV2.brandKey, brandKey)).orderBy(desc(quotationsV2.createdAt));
+    return db.select().from(quotationsV2).where(eq(quotationsV2.brandKey, brandKey))
+      .orderBy(desc(quotationsV2.createdAt));
+  }
+  if (actor.scope === "own") {
+    return db.select().from(quotationsV2).where(eq(quotationsV2.createdByUserId, actor.userId))
+      .orderBy(desc(quotationsV2.createdAt)).limit(50);
   }
   return db.select().from(quotationsV2).orderBy(desc(quotationsV2.createdAt)).limit(50);
 }
 
-export async function searchQuotationsV2(params: {
-  query?: string; engineerName?: string; status?: string; brandKey?: string; limit?: number;
-}) {
+export async function searchQuotationsV2(params: { query?: string; engineerName?: string; status?: string; brandKey?: string; limit?: number; }, actor: PricingRecordScope) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  let results = await db.select().from(quotationsV2).orderBy(desc(quotationsV2.updatedAt)).limit(500);
+  const rows = actor.scope === "all"
+    ? await db.select().from(quotationsV2).orderBy(desc(quotationsV2.updatedAt)).limit(500)
+    : await db.select().from(quotationsV2).where(eq(quotationsV2.createdByUserId, actor.userId)).orderBy(desc(quotationsV2.updatedAt)).limit(500);
+  let results = rows;
   const q = (params.query || "").trim().toLowerCase();
-  if (q) {
-    results = results.filter(r =>
-      (r.clientName || "").toLowerCase().includes(q) ||
-      (r.clientPhone || "").toLowerCase().includes(q) ||
-      (r.quotationCode || "").toLowerCase().includes(q) ||
-      (r.engineerName || "").toLowerCase().includes(q)
-    );
-  }
+  if (q) results = results.filter(r => (r.clientName || "").toLowerCase().includes(q) || (r.clientPhone || "").toLowerCase().includes(q) || (r.quotationCode || "").toLowerCase().includes(q) || (r.engineerName || "").toLowerCase().includes(q));
   if (params.engineerName) results = results.filter(r => (r.engineerName || "").toLowerCase().includes(params.engineerName!.toLowerCase()));
   if (params.status) results = results.filter(r => r.status === params.status);
   if (params.brandKey) results = results.filter(r => r.brandKey === params.brandKey);
   return results.slice(0, params.limit || 50);
 }
 
-export async function saveEngineState(id: number, engineStateJson: string, meta: {
-  materialsTotalPrice?: number; accessoriesTotalPrice?: number;
-  claddingTotalPrice?: number; marbleTotalPrice?: number;
-  transportTotalPrice?: number; subtotal?: number;
-  discountAmount?: number; grandTotal?: number;
-  status?: string; clientName?: string; clientPhone?: string;
-  address?: string; governorate?: string; engineerName?: string;
-  lowerUnitsArea?: string; upperUnitsArea?: string;
-  tallUnitsArea?: string; specialUnitsArea?: string;
-  materialsJson?: string; accessoriesJson?: string;
-  claddingJson?: string; marbleJson?: string; transportJson?: string;
-  discountType?: string; discountValue?: number; discountReason?: string; notes?: string;
-}) {
+export async function saveEngineState(id: number, engineStateJson: string, meta: { materialsTotalPrice?: number; accessoriesTotalPrice?: number; claddingTotalPrice?: number; marbleTotalPrice?: number; transportTotalPrice?: number; subtotal?: number; discountAmount?: number; grandTotal?: number; status?: string; clientName?: string; clientPhone?: string; address?: string; governorate?: string; engineerName?: string; lowerUnitsArea?: string; upperUnitsArea?: string; tallUnitsArea?: string; specialUnitsArea?: string; materialsJson?: string; accessoriesJson?: string; claddingJson?: string; marbleJson?: string; transportJson?: string; discountType?: string; discountValue?: number; discountReason?: string; notes?: string; }, actor: PricingRecordScope) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  if (!(await getQuotationV2(id, actor))) throw new Error("Quotation not found or access denied");
   await db.update(quotationsV2).set({ engineStateJson, ...(meta as any), updatedAt: new Date() }).where(eq(quotationsV2.id, id));
   return { success: true };
 }
 
-export async function getEngineState(id: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  const rows = await db.select().from(quotationsV2).where(eq(quotationsV2.id, id)).limit(1);
-  return rows[0] || null;
-}
+export async function getEngineState(id: number, actor: PricingRecordScope) { return getQuotationV2(id, actor); }
 
 // ─── Approval Logs ────────────────────────────────────────────────────────────
-export async function createApprovalRequest(data: {
-  quotationId: number; requestType: "discount" | "free_item" | "price_override" | "final_approval";
-  requestedBy: string; requestedValue?: string; reason?: string;
-}) {
+export async function createApprovalRequest(data: { quotationId: number; requestType: "discount" | "free_item" | "price_override" | "final_approval"; requestedBy: string; requestedValue?: string; reason?: string; }, actor: PricingRecordScope) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  if (!db) throw new Error("Database not available");
+  if (!(await getQuotationV2(data.quotationId, actor))) throw new Error("Quotation not found or access denied");
   await db.insert(approvalLogs).values({ ...data, status: "pending" });
 }
 
-export async function reviewApprovalRequest(id: number, data: {
-  status: "approved" | "rejected"; reviewedBy: string; reviewNote?: string;
-}) {
+export async function reviewApprovalRequest(id: number, data: { status: "approved" | "rejected"; reviewedBy: string; reviewNote?: string; }, actor: PricingRecordScope) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  if (!db) throw new Error("Database not available");
+  const approval = await db.select().from(approvalLogs).where(eq(approvalLogs.id, id)).limit(1);
+  if (!approval[0] || !(await getQuotationV2(approval[0].quotationId, actor))) throw new Error("Approval not found or access denied");
   await db.update(approvalLogs).set({ ...data, reviewedAt: new Date() }).where(eq(approvalLogs.id, id));
 }
 
-export async function getPendingApprovals() {
+export async function getPendingApprovals(actor: PricingRecordScope) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  if (!db) throw new Error("Database not available");
-  return db.select().from(approvalLogs).where(eq(approvalLogs.status, "pending")).orderBy(desc(approvalLogs.createdAt));
+  const pending = await db.select().from(approvalLogs).where(eq(approvalLogs.status, "pending")).orderBy(desc(approvalLogs.createdAt));
+  if (actor.scope === "all") return pending;
+  const owned = await db.select({ id: quotationsV2.id }).from(quotationsV2).where(eq(quotationsV2.createdByUserId, actor.userId));
+  const ownedIds = new Set(owned.map(row => row.id));
+  return pending.filter(row => ownedIds.has(row.quotationId));
 }
-
 // ─── Smart Warnings Engine ────────────────────────────────────────────────────
 export function generateWarnings(data: {
   selectedAccessories: { id: number; qty: number }[];
@@ -294,14 +286,17 @@ export function generateWarnings(data: {
 }
 
 // ─── Dashboard KPIs ───────────────────────────────────────────────────────────
-export async function getQuotationKPIs(brandKey?: string) {
+export async function getQuotationKPIs(brandKey: string | undefined, actor: PricingRecordScope) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   if (!db) throw new Error("Database not available");
-  const filter = brandKey ? eq(quotationsV2.brandKey, brandKey) : undefined;
-  const all = filter
-    ? await db.select().from(quotationsV2).where(filter)
-    : await db.select().from(quotationsV2);
+  const all = brandKey && actor.scope === "own"
+    ? await db.select().from(quotationsV2).where(and(eq(quotationsV2.brandKey, brandKey), eq(quotationsV2.createdByUserId, actor.userId)))
+    : brandKey
+      ? await db.select().from(quotationsV2).where(eq(quotationsV2.brandKey, brandKey))
+      : actor.scope === "own"
+        ? await db.select().from(quotationsV2).where(eq(quotationsV2.createdByUserId, actor.userId))
+        : await db.select().from(quotationsV2);
 
   const total = all.length;
   const totalValue = all.reduce((s: number, q) => s + (q.grandTotal || 0), 0);

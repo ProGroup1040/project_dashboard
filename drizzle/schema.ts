@@ -1,4 +1,4 @@
-import { boolean, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { boolean, index, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -316,6 +316,7 @@ export const kitchenQuotations = mysqlTable("kitchen_quotations", {
   clientPhone: varchar("clientPhone", { length: 32 }),
   address: text("address"),
   engineerName: varchar("engineerName", { length: 128 }),
+  createdByUserId: varchar("createdByUserId", { length: 128 }),
   quotationDate: timestamp("quotationDate").defaultNow().notNull(),
 
   // Materials
@@ -361,7 +362,9 @@ export const kitchenQuotations = mysqlTable("kitchen_quotations", {
   status: mysqlEnum("status", ["draft", "sent", "approved"]).default("draft").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  createdByUserIdIdx: index("kitchen_quotations_created_by_user_id_idx").on(table.createdByUserId),
+}));
 
 export type KitchenQuotation = typeof kitchenQuotations.$inferSelect;
 
@@ -682,6 +685,7 @@ export const quotationsV2 = mysqlTable("quotations_v2", {
   projectCode: varchar("projectCode", { length: 64 }),
   engineerName: varchar("engineerName", { length: 128 }),
   engineerRole: mysqlEnum("engineerRole", ["sales_engineer", "designer", "technical_office", "sales_manager", "admin", "owner"]).default("sales_engineer"),
+  createdByUserId: varchar("createdByUserId", { length: 128 }),
 
   // Kitchen dimensions
   kitchenLength: varchar("kitchenLength", { length: 16 }),
@@ -732,7 +736,9 @@ export const quotationsV2 = mysqlTable("quotations_v2", {
   internalNotes: text("internalNotes"), // hidden from client
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  createdByUserIdIdx: index("quotations_v2_created_by_user_id_idx").on(table.createdByUserId),
+}));
 export type QuotationV2 = typeof quotationsV2.$inferSelect;
 
 /**

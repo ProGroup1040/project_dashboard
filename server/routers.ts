@@ -660,18 +660,18 @@ export const appRouter = router({
     getCladding: pricingSystemProcedure("canView").query(async () => {
       return getKitchenCladding();
     }),
-    getQuotations: pricingSystemProcedure("canView").query(async () => {
-      return getKitchenQuotations();
+    getQuotations: pricingSystemProcedure("canView").query(async ({ ctx }) => {
+      return getKitchenQuotations(ctx.pricingActor!);
     }),
     getQuotationById: pricingSystemProcedure("canView")
       .input(z.object({ id: z.number() }))
-      .query(async ({ input }) => {
-        return getKitchenQuotationById(input.id);
+      .query(async ({ input, ctx }) => {
+        return getKitchenQuotationById(input.id, ctx.pricingActor!);
       }),
     getUnitsByQuotation: pricingSystemProcedure("canView")
       .input(z.object({ quotationId: z.number() }))
-      .query(async ({ input }) => {
-        return getKitchenUnitsByQuotation(input.quotationId);
+      .query(async ({ input, ctx }) => {
+        return getKitchenUnitsByQuotation(input.quotationId, ctx.pricingActor!);
       }),
     createQuotation: pricingSystemProcedure("canAdd")
       .input(z.object({
@@ -709,8 +709,8 @@ export const appRouter = router({
         grandTotal: z.number().optional(),
         notes: z.string().optional(),
       }))
-      .mutation(async ({ input }) => {
-        return createKitchenQuotation(input);
+      .mutation(async ({ input, ctx }) => {
+        return createKitchenQuotation(input, ctx.pricingActor!);
       }),
     addUnit: pricingSystemProcedure("canAdd")
       .input(z.object({
@@ -725,13 +725,13 @@ export const appRouter = router({
         wallLabel: z.string().optional(),
         sortOrder: z.number().optional(),
       }))
-      .mutation(async ({ input }) => {
-        return addKitchenUnit(input);
+      .mutation(async ({ input, ctx }) => {
+        return addKitchenUnit(input, ctx.pricingActor!);
       }),
         deleteUnit: pricingSystemProcedure("canDelete")
       .input(z.object({ id: z.number() }))
-      .mutation(async ({ input }) => {
-        await deleteKitchenUnit(input.id);
+      .mutation(async ({ input, ctx }) => {
+        await deleteKitchenUnit(input.id, ctx.pricingActor!);
         return { success: true };
       }),
 
@@ -842,9 +842,9 @@ export const appRouter = router({
         kitchenLength: z.string().optional(), kitchenWidth: z.string().optional(),
         totalUnits: z.number().optional(),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const { createQuotationV2 } = await import("./db-platform");
-        return createQuotationV2(input);
+        return createQuotationV2({ ...input, createdByUserId: ctx.pricingActor!.userId });
       }),
     updateQuotation: pricingSystemProcedure("canEdit")
       .input(z.object({
@@ -861,23 +861,23 @@ export const appRouter = router({
         warningsJson: z.string().optional(), status: z.string().optional(),
         notes: z.string().optional(), internalNotes: z.string().optional(),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const { updateQuotationV2 } = await import("./db-platform");
         const { id, ...data } = input;
-        await updateQuotationV2(id, data as any);
+        await updateQuotationV2(id, data as any, ctx.pricingActor!);
         return { success: true };
       }),
     getQuotation: pricingSystemProcedure("canView")
       .input(z.object({ id: z.number() }))
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
         const { getQuotationV2 } = await import("./db-platform");
-        return getQuotationV2(input.id);
+        return getQuotationV2(input.id, ctx.pricingActor!);
       }),
     listQuotations: pricingSystemProcedure("canView")
       .input(z.object({ brandKey: z.string().optional() }))
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
         const { listQuotationsV2 } = await import("./db-platform");
-        return listQuotationsV2(input.brandKey);
+        return listQuotationsV2(input.brandKey, ctx.pricingActor!);
       }),
 
     // Approval
@@ -887,9 +887,9 @@ export const appRouter = router({
         requestType: z.enum(["discount", "free_item", "price_override", "final_approval"]),
         requestedBy: z.string(), requestedValue: z.string().optional(), reason: z.string().optional(),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const { createApprovalRequest } = await import("./db-platform");
-        await createApprovalRequest(input);
+        await createApprovalRequest({ ...input, requestedBy: ctx.pricingActor!.displayName }, ctx.pricingActor!);
         return { success: true };
       }),
     reviewApproval: pricingSystemProcedure("canEdit")
@@ -898,22 +898,22 @@ export const appRouter = router({
         status: z.enum(["approved", "rejected"]),
         reviewedBy: z.string(), reviewNote: z.string().optional(),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const { reviewApprovalRequest } = await import("./db-platform");
-        await reviewApprovalRequest(input.id, input);
+        await reviewApprovalRequest(input.id, { ...input, reviewedBy: ctx.pricingActor!.displayName }, ctx.pricingActor!);
         return { success: true };
       }),
-    getPendingApprovals: pricingSystemProcedure("canView").query(async () => {
+    getPendingApprovals: pricingSystemProcedure("canView").query(async ({ ctx }) => {
       const { getPendingApprovals } = await import("./db-platform");
-      return getPendingApprovals();
+      return getPendingApprovals(ctx.pricingActor!);
     }),
 
     // KPIs
     getKPIs: pricingSystemProcedure("canView")
       .input(z.object({ brandKey: z.string().optional() }))
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
         const { getQuotationKPIs } = await import("./db-platform");
-        return getQuotationKPIs(input.brandKey);
+        return getQuotationKPIs(input.brandKey, ctx.pricingActor!);
       }),
 
     // Save/Load Engine State
@@ -949,17 +949,17 @@ export const appRouter = router({
         discountReason: z.string().optional(),
         notes: z.string().optional(),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const { saveEngineState } = await import("./db-platform");
         const { id, engineStateJson, ...meta } = input;
-        return saveEngineState(id, engineStateJson, meta as any);
+        return saveEngineState(id, engineStateJson, meta as any, ctx.pricingActor!);
       }),
 
     getEngineState: pricingSystemProcedure("canView")
       .input(z.object({ id: z.number() }))
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
         const { getEngineState } = await import("./db-platform");
-        return getEngineState(input.id);
+        return getEngineState(input.id, ctx.pricingActor!);
       }),
 
     searchQuotations: pricingSystemProcedure("canView")
@@ -970,9 +970,9 @@ export const appRouter = router({
         brandKey: z.string().optional(),
         limit: z.number().optional(),
       }))
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
         const { searchQuotationsV2 } = await import("./db-platform");
-        return searchQuotationsV2(input);
+        return searchQuotationsV2(input, ctx.pricingActor!);
       }),
 
     updateQuotationStatus: pricingSystemProcedure("canEdit")
@@ -980,9 +980,9 @@ export const appRouter = router({
         id: z.number(),
         status: z.enum(["draft", "pending_approval", "approved", "sent_to_client", "accepted", "rejected", "revised"]),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const { updateQuotationV2 } = await import("./db-platform");
-        await updateQuotationV2(input.id, { status: input.status });
+        await updateQuotationV2(input.id, { status: input.status }, ctx.pricingActor!);
         return { success: true };
       }),
 
