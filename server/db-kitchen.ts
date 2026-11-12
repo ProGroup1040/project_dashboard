@@ -31,8 +31,11 @@ export async function getAllKitchenAccessoriesAdmin() {
 export async function createKitchenAccessory(data: typeof kitchenAccessories.$inferInsert) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const result = await db.insert(kitchenAccessories).values(data);
-  return result[0];
+  const inserted = await db.insert(kitchenAccessories).values(data).$returningId();
+  const id = inserted[0]?.id;
+  if (!id) throw new Error("Failed to create kitchen accessory: insert ID was not returned");
+  const rows = await db.select().from(kitchenAccessories).where(eq(kitchenAccessories.id, id)).limit(1);
+  return rows[0] ?? null;
 }
 
 export async function updateKitchenAccessory(id: number, data: Partial<typeof kitchenAccessories.$inferInsert>) {
