@@ -183,7 +183,7 @@ export async function listQuotationsV2(brandKey: string | undefined, actor: Pric
   }
   if (brandKey) {
     return db.select().from(quotationsV2).where(eq(quotationsV2.brandKey, brandKey))
-      .orderBy(desc(quotationsV2.createdAt)).limit(50);
+      .orderBy(desc(quotationsV2.createdAt));
   }
   if (actor.scope === "own") {
     return db.select().from(quotationsV2).where(eq(quotationsV2.createdByUserId, actor.userId))
